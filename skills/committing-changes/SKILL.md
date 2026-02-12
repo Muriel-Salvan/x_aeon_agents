@@ -7,6 +7,17 @@ description: Commits changes and pushes them on GitHub. Use when development and
 
 When committing changes, follow those steps.
 
+## Create Execution Checklist (MANDATORY)
+
+- Before executing anything, create a checklist with ALL steps of this skill.
+- The checklist MUST include ALL numbered steps explicitly.
+- The checklist MUST be displayed to the USER at the beginning of the skill execution, and at the end of each step.
+- Mark each item as completed only after execution and successful completion of the item itself.
+- Do NOT skip any item.
+- If an item cannot be executed, explicitly explain why.
+- NEVER mark the skill as completed while any item from the Execution Checklist remains open.
+
+
 ## 1. Inform the USER
 
 - ALWAYS inform the user that you are running this skill, saying "SKILL: I am committing changes".
@@ -32,3 +43,12 @@ When committing changes, follow those steps.
 ## 5. Push this commit on GitHub
 
 - ALWAYS use `cli: git push github` to push the commit on GitHub.
+
+## Final Verification (MANDATORY)
+
+Before declaring the task complete:
+
+- Re-list all numbered steps from the Execution Checklist.
+- Confirm each one was executed.
+- If any step was not executed, execute it now.
+

@@ -7,6 +7,17 @@ description: Syncs the current branch with its base. Use when the base branch of
 
 When syncing the current branch on its base, follow these steps.
 
+## Create Execution Checklist (MANDATORY)
+
+- Before executing anything, create a checklist with ALL steps of this skill.
+- The checklist MUST include ALL numbered steps explicitly.
+- The checklist MUST be displayed to the USER at the beginning of the skill execution, and at the end of each step.
+- Mark each item as completed only after execution and successful completion of the item itself.
+- Do NOT skip any item.
+- If an item cannot be executed, explicitly explain why.
+- NEVER mark the skill as completed while any item from the Execution Checklist remains open.
+
+
 ## 1. Inform the USER
 
 - ALWAYS inform the user that you are running this skill, saying "SKILL: I am syncing the current branch with its base".
@@ -31,3 +42,12 @@ When syncing the current branch on its base, follow these steps.
 
 - ALWAYS push your rebased branch to GitHub using the `--force-with-lease` option: `cli: git push github --force-with-lease`.
 - If the push with `--force-with-lease` option failed, ALWAYS use `agent: ask_followup_question` to ask the USER to help you solve the issue. It could be that another user contributed to the branch.
+
+## Final Verification (MANDATORY)
+
+Before declaring the task complete:
+
+- Re-list all numbered steps from the Execution Checklist.
+- Confirm each one was executed.
+- If any step was not executed, execute it now.
+

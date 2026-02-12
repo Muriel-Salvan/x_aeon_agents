@@ -7,6 +7,17 @@ description: Creates a Pull Request for the current git branch on GitHub. Use wh
 
 When creating a Pull Request, follow those steps.
 
+## Create Execution Checklist (MANDATORY)
+
+- Before executing anything, create a checklist with ALL steps of this skill.
+- The checklist MUST include ALL numbered steps explicitly.
+- The checklist MUST be displayed to the USER at the beginning of the skill execution, and at the end of each step.
+- Mark each item as completed only after execution and successful completion of the item itself.
+- Do NOT skip any item.
+- If an item cannot be executed, explicitly explain why.
+- NEVER mark the skill as completed while any item from the Execution Checklist remains open.
+
+
 ## 1. Inform the USER
 
 - ALWAYS inform the user that you are running this skill, saying "SKILL: I am creating a Pull Request on GitHub".
@@ -30,3 +41,12 @@ When creating a Pull Request, follow those steps.
 - ALWAYS use `cli: ruby {skill_path}/scripts/create_pr {pr_title} {pr_description_file}` to create the Pull Request.
 - NEVER use `cli: gh` directly to create Pull Requests; the script wrapper must be used to handle multiline descriptions and append the AI agent signature to the Pull Request description.
 - ALWAYS delete the temporary description file {pr_description_file} once the Pull Request has been created.
+
+## Final Verification (MANDATORY)
+
+Before declaring the task complete:
+
+- Re-list all numbered steps from the Execution Checklist.
+- Confirm each one was executed.
+- If any step was not executed, execute it now.
+
