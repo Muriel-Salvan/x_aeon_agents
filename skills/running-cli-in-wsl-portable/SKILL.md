@@ -5,14 +5,53 @@ description: Runs Bash command lines in a Portable installation under WSL. What 
 
 # Running CLI in WSL Portable
 
+## Sequential steps to be followed when using this skill
+
 When running a bash command under a WSL portable environment, follow those steps.
 The original bash command to be run is later referenced as {original_cli}.
 
-## 1. Inform the USER
+### 1. Inform the USER
 
-- <%= announce_skill('running a command under WSL Portable environment') >
+- ALWAYS tell the USER "SKILL: I am running CLI in WSL Portable" to inform the USER that you are running this skill.
 
-## 2. Run the command line with the right prefix
+### 2. Run the command line with the right prefix
 
 - Find this skill directory absolute path, later referenced as {skill_absolute_path}.
 - ALWAYS use `cli: {skill_absolute_path}\scripts\wsl_portable_bash.cmd "{original_cli}"`.
+- Be careful that the path to the script should be absolute and using anti-slashes (`\`). However the argument will be executed under WSL, so it should follow Linux conventions, with file paths using slashes (`/`).
+
+Example:
+```shell
+C:\my-repo\.cline\skills\running-cli-in-wsl-portable\scripts\wsl_portable_bash.cmd "mkdir linux-path/to/my-files"
+```
+Example with Linux file patterns that don't need to be escaped:
+```shell
+C:\my-repo\.cline\skills\running-cli-in-wsl-portable\scripts\wsl_portable_bash.cmd "ls *.md"
+```
+
+## When to use it
+
+- You MUST use it every time the USER asks you to run a CLI command using the WSL Portable environment.
+- You MUST use it every time another skill specifically mentions `skill: running-cli-in-wsl-portable`.
+- You can use it every time you need to run a CLI command that needs a WSL Portable environment.
+- NEVER use this skill when you are under a Linux environment.
+
+## Usage and code examples
+
+Those examples are given for a Windows environment.
+
+### Running a Hello World prompt under a WSL Portable environment, with example of the output
+
+Note that the WSL Portable environment may output some lines on stderr. You can safely ignore them.
+```bash
+C:\my-repo\.cline\skills\running-cli-in-wsl-portable\scripts\wsl_portable_bash.cmd "echo 'Hello World'"
+# Setting $HOME to /mnt/i/Env/Linux/Programs/bash/bash.home
+# Setting $XDG_CONFIG_HOME to /mnt/i/Env/Linux/Programs/bash/bash.config
+# Hello World
+```
+
+### Listing all workspace Ruby files (*.rb) under a WSL Portable environment
+
+```bash
+C:\my-repo\.cline\skills\running-cli-in-wsl-portable\scripts\wsl_portable_bash.cmd "ls -la *.rb"
+```
