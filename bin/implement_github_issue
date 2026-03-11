@@ -2,7 +2,7 @@
 
 # Parameters:
 # * *github_issue_number* (Integer): The Github issue number to implement
-issue_number = Integer(ARGV[0])
+github_issue_number = Integer(ARGV[0])
 
 require 'x-aeon_agents_skills/agents'
 
@@ -11,4 +11,4 @@ XAeonAgentsSkills::Agents.configure(
   debug: true
 )
 
-XAeonAgentsSkills::Agents.implement_requirements(`gh issue view #{issue_number} --json=number,title,body,comments,labels,state,url`)
+XAeonAgentsSkills::Agents.implement_requirements(`gh issue view #{github_issue_number} --json=number,title,body,comments,labels,state,url`)
