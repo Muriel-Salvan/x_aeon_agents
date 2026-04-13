@@ -35,7 +35,7 @@ module XAeonAgentsSkills
       # * *debug* (Boolean): Do we activate debug mode? [default: false]
       def configure(
         cline_api_key: ENV['CLINE_API_KEY'],
-        default_cline_model: 'clinecli/qwen/qwen3.6-plus-preview:free',
+        default_cline_model: 'clinecli/arcee-ai/trinity-large-preview:free',
         default_cline_config: {
           actModeReasoningEffort: 'xhigh',
           autoApprovalSettings: {
@@ -1077,10 +1077,9 @@ module XAeonAgentsSkills
       # * Proc: Code called with the runner setup
       def with_runner(run_id = nil)
         # If runner is already initialized, reuse existing runner and artifacts
-        unless @runner
+        unless @artifacts
           # Initialize new runner and artifacts
           @run_id = run_id
-          @runner = ::Agents::Runner.new
           @artifacts = {}
         end
         yield
@@ -1098,13 +1097,9 @@ module XAeonAgentsSkills
         puts
         puts "===== #{agent.name}..."
         raw_response = nil
-        result = @runner.run(
-          agent,
-          prompt,
-          callbacks: {
-            llm_call_complete: [proc { |_agent_name, _model, response, _context_wrapper| raw_response = response.raw }]
-          }
-        )
+        agents_runner = ::Agents::AgentRunner.new([agent])
+        agents_runner.on_llm_call_complete { |_agent_name, _model, response, _context_wrapper| raw_response = response.raw }
+        result = agents_runner.run(prompt)
         puts "===== #{agent.name} - Total cost: $#{(raw_response[:usage] || {}).values.map { |stats| stats[:cost] || 0 }.sum }" unless raw_response.nil?
         raise "Error: #{result.error}\n#{result.error.backtrace.join("\n")}" unless result.error.nil?
         # Keep user's feedback in an artifact
