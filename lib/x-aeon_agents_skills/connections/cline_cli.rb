@@ -67,7 +67,7 @@ module XAeonAgentsSkills
         end
         prompt_json[:instructions] = payload[:messages].map(&:content).select { |content| !content.strip.empty? }.join("\n\n").strip
         constraints = <<~EO_Constraints
-          - Do NOT ask for user confirmation. 
+          - Do NOT ask for user confirmation.
         EO_Constraints
         unless @plan_mode
           constraints << <<~EO_Constraints
