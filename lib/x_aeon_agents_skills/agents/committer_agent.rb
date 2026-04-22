@@ -16,9 +16,9 @@ module XAeonAgentsSkills
       def run(input_artifacts: {})
         # If nothing is staged, stage everything
         Helpers.git.add(all: true) if Helpers.git_diff_cached.empty?
-        diff_interpreter_agent = DiffInterpreterAgent.new
+        diff_interpreter_agent = DiffInterpreterAgent.new(**Models.free_simple)
         change_intent = diff_interpreter_agent.run(input_artifacts: { files_diff: Helpers.artifact_files_diffs(:cached) })[:change_intent]
-        one_line_summary = OneLineCodeDiffSummarizerAgent.new.run(
+        one_line_summary = OneLineCodeDiffSummarizerAgent.new(**Models.free_simple).run(
           input_artifacts: {
             change_intent:
           }
