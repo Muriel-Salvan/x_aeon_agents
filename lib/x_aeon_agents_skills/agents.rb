@@ -113,7 +113,7 @@ module XAeonAgentsSkills
       # If the staging area is empty, add everything.
       # Ask for a confirmation on the message from an editor.
       def commit
-        Agents::CommitterAgent.new.run
+        CommitterAgent.new.run
       end
 
       # Interpret current code diffs
