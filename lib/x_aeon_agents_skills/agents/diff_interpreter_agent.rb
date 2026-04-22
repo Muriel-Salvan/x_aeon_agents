@@ -68,8 +68,20 @@ module XAeonAgentsSkills
             # }
           }
         )
-        @input_artifacts = { files_diff: 'Full list of files changes and differences that have been done' }
-        @output_artifacts = { change_intent: 'Full explanation of the changes, as in a git commit description' }
+      end
+
+      # Define input artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      def input_artifacts_contracts
+        { files_diff: 'Full list of files changes and differences that have been done' }
+      end
+
+      # Define output artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      def output_artifacts_contracts
+        { change_intent: 'Full explanation of the changes, as in a git commit description' }
       end
     end
   end

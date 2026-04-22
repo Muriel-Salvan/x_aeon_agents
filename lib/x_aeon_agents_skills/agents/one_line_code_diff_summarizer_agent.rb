@@ -46,8 +46,20 @@ module XAeonAgentsSkills
             # }
           }
         )
-        @input_artifacts = { change_intent: 'Full description of the code changes, their meaning and intent' }
-        @output_artifacts = { one_line_summary: '1-line summary of the code change intent' }
+      end
+
+      # Define input artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      def input_artifacts_contracts
+        { change_intent: 'Full description of the code changes, their meaning and intent' }
+      end
+
+      # Define output artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      def output_artifacts_contracts
+        { one_line_summary: '1-line summary of the code change intent' }
       end
     end
   end
