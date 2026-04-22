@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'open3'
-require 'x-aeon_agents_skills/logger'
 
 module XAeonAgentsSkills
 
@@ -112,6 +111,59 @@ module XAeonAgentsSkills
           stderr: stderr_lines.join("\n"),
           exit_status:
         }
+      end
+
+      # Get a Git instance on the current directory.
+      # Keep a cache of it.
+      #
+      # Result::
+      # * Git::Base: The git instance
+      def git
+        @git ||= Git.open(Dir.pwd)
+      end
+
+      # Return a list of patch description of diffs in the git staging area.
+      #
+      # Result::
+      # * String: Patches in the staging area
+      def git_diff_cached
+        # TODO: Use ruby-git when the --cached feature will be implemented
+        `git diff --cached`.strip
+      end
+
+      # Get a current files diffs
+      #
+      # Parameters::
+      # * *base* (Object): Git base (sha, objectish...) with which we diff, or :cached to only get diff of the staging area [default = 'HEAD']
+      def artifact_files_diffs(base = 'HEAD')
+        if base == :cached
+          <<~EO_Artifact
+            ### git diff --cached
+
+            ```
+            #{git_diff_cached}
+            ```
+          EO_Artifact
+        else
+          <<~EO_Artifact
+            ### New untracked files
+
+            #{git.status.untracked.keys.map do |file|
+              <<~EO_Untracked_File
+                #### #{file}
+                ```
+                #{File.read(file)}
+                ```
+              EO_Untracked_File
+            end.join("\n")}
+
+            ### git diff
+
+            ```
+            #{git.diff(base)}
+            ```
+          EO_Artifact
+        end
       end
 
     end

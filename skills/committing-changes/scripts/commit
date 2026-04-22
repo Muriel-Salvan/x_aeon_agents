@@ -3,7 +3,7 @@
 # Usage: commit <description_file>
 
 require 'tmpdir'
-require 'x-aeon_agents_skills'
+require 'x_aeon_agents_skills'
 
 description_file = ARGV[0]
 

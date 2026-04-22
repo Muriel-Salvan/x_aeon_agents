@@ -4,7 +4,7 @@
 
 require 'json'
 require 'tmpdir'
-require 'x-aeon_agents_skills'
+require 'x_aeon_agents_skills'
 
 pull_request_number = Integer(ARGV[0])
 comment_database_id = Integer(ARGV[1])

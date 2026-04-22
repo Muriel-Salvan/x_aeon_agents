@@ -1,7 +1,5 @@
 require 'json'
 require 'launchy'
-require 'x-aeon_agents_skills/cline'
-require 'x-aeon_agents_skills/logger'
 
 module XAeonAgentsSkills
 

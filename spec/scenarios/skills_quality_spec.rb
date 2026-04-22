@@ -1,5 +1,3 @@
-require 'x-aeon_agents_skills/gen_helpers'
-
 describe 'Generated skills quality' do
 
   COMPLIANCE_SCORE_THRESHOLD = 90

@@ -5,8 +5,6 @@ require 'human_number'
 require 'json'
 require 'time'
 require 'tmpdir'
-require 'x-aeon_agents_skills/helpers'
-require 'x-aeon_agents_skills/logger'
 
 # Load the HumanNumber locale files, as it does not do it automatically.
 # TODO: Remove this when human_number will be fixed.

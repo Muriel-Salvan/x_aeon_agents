@@ -1,3 +1,7 @@
+require 'zeitwerk'
+
+Zeitwerk::Loader.for_gem.setup
+
 module XAeonAgentsSkills
 
   # Return the current AI agent name

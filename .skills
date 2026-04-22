@@ -4,7 +4,7 @@ skills:
     skills:
       - skill-creator
     enabled: true
-  - source: Muriel-Salvan/x-aeon_agents_skills
+  - source: Muriel-Salvan/x_aeon_agents_skills
     skills:
       - implementing-github-issue
     enabled: true

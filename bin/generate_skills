@@ -6,7 +6,7 @@ require 'erb'
 require 'fileutils'
 require 'pathname'
 require 'thor'
-require 'x-aeon_agents_skills/gen_helpers'
+require 'x_aeon_agents_skills'
 
 class GenerateSkillsCLI < Thor
 

@@ -4,7 +4,7 @@
 # * *prompt* (String): The prompt to give to the AI agent
 prompt = ARGV[0]
 
-require 'x-aeon_agents_skills/agents'
+require 'x_aeon_agents_skills'
 
 XAeonAgentsSkills::Agents.configure(
   cline_api_key: Bundler.with_unbundled_env { `launcher safe -- "Cline API key"`.match(/\[PASSWORD\][^:]+: ([^\n]+)\n/)[1] },

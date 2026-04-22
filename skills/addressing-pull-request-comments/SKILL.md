@@ -76,7 +76,7 @@ ruby .cline/skills/addressing-pull-request-comments/scripts/check_unresolved_pr_
 Example of an error case with a non-existing Pull Request:
 ```bash
 ruby .cline/skills/addressing-pull-request-comments/scripts/check_unresolved_pr_comments
-# => Repository Github handle: Muriel-Salvan/x-aeon_agents_skills
+# => Repository Github handle: Muriel-Salvan/x_aeon_agents_skills
 # Branch name: main
 # Found 0 Pull Requests dealing with this branch (numbers )
 ```

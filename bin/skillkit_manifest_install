@@ -16,13 +16,13 @@ require 'thor'
 #
 # Installing 2 source(s):
 #   ● anthropic/skills
-#   ● Muriel-Salvan/x-aeon_agents_skills
+#   ● Muriel-Salvan/x_aeon_agents_skills
 #
 # │
 # ◇  Failed: anthropic/skills
 # spawnSync skillkit ENOENT
 # │
-# ◇  Failed: Muriel-Salvan/x-aeon_agents_skills
+# ◇  Failed: Muriel-Salvan/x_aeon_agents_skills
 # spawnSync skillkit ENOENT
 # │
 # ◆  Manifest installation complete

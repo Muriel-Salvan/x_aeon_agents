@@ -1,7 +1,5 @@
 require 'ruby_llm/message'
 require 'ruby_llm/provider'
-require 'x-aeon_agents_skills/cline'
-require 'x-aeon_agents_skills/connections/cline_cli'
 
 module XAeonAgentsSkills
 

@@ -1,5 +1,6 @@
 require 'agents'
 require 'commonmarker'
+require 'composable_agents'
 require 'front_matter_parser'
 require 'git'
 require 'json'
@@ -7,11 +8,6 @@ require 'launchy'
 require 'octokit'
 require 'ruby_llm/model/info'
 require 'time'
-require 'x-aeon_agents_skills/gen_helpers'
-require 'x-aeon_agents_skills/helpers'
-require 'x-aeon_agents_skills/logger'
-require 'x-aeon_agents_skills/providers/cline_cli'
-require 'x-aeon_agents_skills/providers/cline'
 
 module XAeonAgentsSkills
 
@@ -27,6 +23,7 @@ module XAeonAgentsSkills
       #
       # Parameters::
       # * *cline_api_key* (String): Cline API key to be used [default: ENV['CLINE_API_KEY']]
+      # * *openrouter_api_key* (String): OpenRouter API key to be used [default: ENV['OPENROUTER_API_KEY']]
       # * *default_cline_model* (String): Default Cline model [default: 'clinecli/qwen/qwen3.6-plus-preview:free']
       # * *default_cline_config* (Hash): Default Cline config [default: See signature]
       # * *default_cline_cli_args* (String): Default Cline CLI arguments [default: '--thinking 1024']
@@ -35,6 +32,7 @@ module XAeonAgentsSkills
       # * *debug* (Boolean): Do we activate debug mode? [default: false]
       def configure(
         cline_api_key: ENV['CLINE_API_KEY'],
+        openrouter_api_key: ENV['OPENROUTER_API_KEY'],
         default_cline_model: 'clinecli/arcee-ai/trinity-large-preview:free',
         default_cline_config: {
           actModeReasoningEffort: 'xhigh',
@@ -76,6 +74,7 @@ module XAeonAgentsSkills
       )
         @config = {
           cline_api_key:,
+          openrouter_api_key:,
           default_cline_model:,
           default_cline_config:,
           default_cline_cli_args:,
@@ -95,6 +94,7 @@ module XAeonAgentsSkills
         end
         RubyLLM.configure do |ruby_llm_config|
           ruby_llm_config.cline_api_key = config[:cline_api_key]
+          ruby_llm_config.openrouter_api_key = config[:openrouter_api_key]
         end
 
         # Discover all the models
@@ -113,30 +113,7 @@ module XAeonAgentsSkills
       # If the staging area is empty, add everything.
       # Ask for a confirmation on the message from an editor.
       def commit
-        with_runner do
-          # If nothing is staged, stage everything
-          git.add(all: true) if git_diff_cached.empty?
-          commit_file = '.x-aeon_agents/commit.md'
-          FileUtils.mkdir_p File.dirname(commit_file)
-          File.write(
-            commit_file,
-            <<~EO_Commit
-              #{code_diffs(:cached).join("\n\n")}
-              
-              Co-authored by: X-Aeon Agent #{diff_interpreter_agent.name} (#{diff_interpreter_agent.model})
-            EO_Commit
-          )
-          begin
-            Launchy.open(commit_file)
-            puts
-            puts 'Review and edit the commit file description and hit Enter to create the commit or Ctrl-C to cancel...'
-            $stdin.gets
-            git.commit File.read(commit_file).strip
-            puts 'Commit created successfully.'
-          ensure
-            FileUtils.rm_f commit_file
-          end
-        end
+        Agents::CommitterAgent.new.run
       end
 
       # Interpret current code diffs
@@ -209,7 +186,7 @@ module XAeonAgentsSkills
           step(:ir_a_setup_requirements) do
              @artifacts.merge!(
               requirements: requirements,
-              base_sha: git.gcommit('HEAD').sha
+              base_sha: Helpers.git.gcommit('HEAD').sha
              )
           end
 
@@ -220,7 +197,7 @@ module XAeonAgentsSkills
 
           step(:ir_c_develop) do
             run(developer_agent)
-            puts "===== Developer changes: #{git.status.changed.keys.join(", ")}"
+            puts "===== Developer changes: #{Helpers.git.status.changed.keys.join(", ")}"
           end
 
           step(:ir_d_commit) { git_commit(developer_agent) } if commit
@@ -241,9 +218,9 @@ module XAeonAgentsSkills
               EO_Artifact
               break if test_result[:exit_status] == 0
 
-              @artifacts[:files_diffs] = artifact_files_diffs(@artifacts[:base_sha])
+              @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
               run(tester_agent)
-              puts "===== Tester changes: #{git.status.changed.keys.join(", ")}"
+              puts "===== Tester changes: #{Helpers.git.status.changed.keys.join(", ")}"
               # Integrate potential implementation plan modifications
               unless @artifacts[:plan_modifications].strip.empty?
                 plan_modifications = @artifacts.delete(:plan_modifications)
@@ -262,9 +239,9 @@ module XAeonAgentsSkills
           step(:ir_f_commit) { git_commit(tester_agent) } if commit
 
           step(:ir_g_document) do
-            @artifacts[:files_diffs] = artifact_files_diffs(@artifacts[:base_sha])
+            @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
             run(documenter_agent)
-            puts "===== Documenter changes: #{git.status.changed.keys.join(", ")}"
+            puts "===== Documenter changes: #{Helpers.git.status.changed.keys.join(", ")}"
           end
 
           step(:ir_h_commit) { git_commit(documenter_agent) } if commit
@@ -355,7 +332,7 @@ module XAeonAgentsSkills
 
                 #{align_markdown_headers(pr.body, level: 2)}
               EO_Description
-              @artifacts[:pr_files_diffs] = git.diff("#{pr.base.sha}...#{pr.head.sha}").to_s
+              @artifacts[:pr_files_diffs] = Helpers.git.diff("#{pr.base.sha}...#{pr.head.sha}").to_s
               @artifacts[:conversations] = JSON.pretty_generate(pr_conversations)
               @artifacts[:open_comments_to_agents] = JSON.pretty_generate(open_comments_to_agents)
               run(pr_requirements_extractor_agent)
@@ -406,15 +383,6 @@ module XAeonAgentsSkills
         end.join("\n")
       end
 
-      # Get a Git instance on the current directory.
-      # Keep a cache of it.
-      #
-      # Result::
-      # * Git::Base: The git instance
-      def git
-        @git_pwd ||= Git.open(Dir.pwd)
-      end
-
       # Get a Github Octokit API instance.
       # Keep a cache of it.
       #
@@ -431,7 +399,7 @@ module XAeonAgentsSkills
       # * Git::Remote: The Github remote instance
       def github_remote
         @github_remote ||= begin
-          remote = git.remotes.find { |remote| remote.url.match(%r{github\.com[:/].+\.git}) }
+          remote = Helpers.git.remotes.find { |remote| remote.url.match(%r{github\.com[:/].+\.git}) }
           raise 'Can\'t find a Github remote in this repository' if remote.nil?
           remote
         end
@@ -528,60 +496,7 @@ module XAeonAgentsSkills
       # Result::
       # * ::Agents::Agent: The Diff interpreter agent
       def diff_interpreter_agent
-        @diff_interpreter_agent ||= cline_agent(
-          name: 'Diff interpreter',
-          objective: <<~EO_Objective,
-            Interpret files modifications and explain the changes properly with its meaning and intent.
-
-            The goals are:
-            - Get a general explanation of those changes.
-            - Identify the kind of changes involved (new features, feature change, bug fix, documentation...).
-            - Identify the components that are impacted by those changes (a specific plugin, CLI, UI...).
-          EO_Objective
-          input_artifacts: [
-            { name: :files_diffs, description: 'Full list of files changes and differences that have been done' }
-          ],
-          output_artifacts: [
-            { name: :change_intent, description: 'the full explanation of the changes, as in a git commit description' }
-          ],
-          skills: %w[
-            applying-ruby-conventions
-            applying-test-conventions
-            enforcing-project-rules
-          ],
-          plan_mode: false,
-          config: read_only_config.merge(
-            doubleCheckCompletionEnabled: false
-          ),
-          instructions: <<~EO_Instructions,
-            ## 1. Read and analyze ALL file changes from the `ARTIFACT_FILES_DIFFS` artifact
-            
-            - Those changes are the ones you must explain.
-            
-            ## 2. Analyze the project files
-            
-            - Those files give you context to understand the changes.
-            - Changes made on those files should NOT be explained unless they are part of the `ARTIFACT_FILES_DIFFS` artifact.
-            
-            ## 3. Explain properly the changes reported by the `ARTIFACT_FILES_DIFFS` artifact
-
-            - You MUST produce an output that includes:
-            1. A general explanation of the changes, their meaning and intent in the context of this project.
-            2. The types of changes (feature, bug fix, documentation, etc.).
-            3. The impacted architectural components (backend, login screen, CLI, etc.).
-            - Describe those changes as in a git commit or pull request description.
-            - ONLY cover changes from the `ARTIFACT_FILES_DIFFS` artifact.
-            - Do NOT explain changes for other files.
-          EO_Instructions
-          constraints: <<~EO_Constraints
-            - You are in read-only mode.
-            - Do NOT modify or write any file.
-            - You must ONLY explain the changes of the `ARTIFACT_FILES_DIFFS` artifact content, NOT other changes.
-            - You already have ALL the information required.
-            - The user's intent is fully specified.
-            - The conversation log is provided for context only. You MUST NOT ask follow-up questions.
-          EO_Constraints
-        )
+        @diff_interpreter_agent ||= XAeonAgentsSkills::Agents::DiffInterpreterAgent.new
       end
 
       # Create the 1-line code diff summarizer agent
@@ -589,33 +504,7 @@ module XAeonAgentsSkills
       # Result::
       # * ::Agents::Agent: The 1-line code diff summarizer agent
       def one_line_code_diff_summarizer
-        @one_line_code_diff_summarizer ||= cline_agent(
-          name: '1-line code diff summarizer',
-          objective: 'Produce a 1-line summary of a code change intent report.',
-          input_artifacts: [
-            { name: :change_intent, description: 'The full description of the code changes, their meaning and intent' }
-          ],
-          output_artifacts: [
-            { name: :one_line_summary, description: 'the 1-line summary of the code change intent' }
-          ],
-          plan_mode: false,
-          config: read_only_config.merge(
-            doubleCheckCompletionEnabled: false
-          ),
-          instructions: <<~EO_Instructions,
-            ## Provide a 1-line summary of the code change intent described in the `ARTIFACT_CHANGE_INTENT` artifact
-            
-            - Follow standard git commit title conventions using `feat`, `fix`, etc... with impacted component names.
-          EO_Instructions
-          constraints: <<~EO_Constraints
-            - You are in read-only mode.
-            - Do NOT modify or write any file.
-            - You already have ALL the information required.
-            - You MUST NOT use other tools to gather information.
-            - The user's intent is fully specified.
-            - You MUST NOT ask follow-up questions.
-          EO_Constraints
-        )
+        @one_line_code_diff_summarizer ||= XAeonAgentsSkills::Agents::OneLineCodeDiffSummarizerAgent.new
       end
 
       # Create the Developer agent
@@ -922,7 +811,7 @@ module XAeonAgentsSkills
       # * String: The current code diffs summarized as 1 line
       # * String: The current code diffs with details
       def code_diffs(base = 'HEAD')
-        @artifacts[:files_diffs] = artifact_files_diffs(base)
+        @artifacts[:files_diffs] = Helpers.artifact_files_diffs(base)
         run(diff_interpreter_agent)
         run(one_line_code_diff_summarizer)
         [
@@ -934,11 +823,11 @@ module XAeonAgentsSkills
       # Create a Pull Request if it does not exist already for the current branch against main
       def create_pr
         repo_name = github_repo
-        head_branch = git.current_branch
+        head_branch = Helpers.git.current_branch
 
         # Push the branch on the git_remote using --force-with-lease as it may have been rebased
         # TODO: Use force_with_lease when it will be supported by ruby-git
-        git.push(github_remote, head_branch, force: true)
+        Helpers.git.push(github_remote, head_branch, force: true)
        
         # Check if PR already exists for the current branch
         existing_pr = github.pull_requests(repo_name, state: 'open').find { |pull_request| pull_request.head.ref == head_branch }
@@ -979,60 +868,16 @@ module XAeonAgentsSkills
       # Parameters::
       # * *author_agent* (::Agents::Agent): The agent authoring the changes
       def git_commit(author_agent)
-        git_status = git.status
+        git_status = Helpers.git.status
         if git_status.changed.empty? && git_status.added.empty? && git_status.deleted.empty? && git_status.untracked.empty?
           log_debug 'Nothing to commit'
         else
-          git.add(all: true)
-          git.commit <<~EO_Commit.strip
+          Helpers.git.add(all: true)
+          Helpers.git.commit <<~EO_Commit.strip
             #{code_diffs.join("\n\n")}
             
             Co-authored by: X-Aeon Agent #{author_agent.name} (#{author_agent.model})
           EO_Commit
-        end
-      end
-
-      # Return a list of patch description of diffs in the git staging area.
-      #
-      # Result::
-      # * String: Patches in the staging area
-      def git_diff_cached
-        # TODO: Use ruby-git when the --cached feature will be implemented
-        `git diff --cached`.strip
-      end
-
-      # Get a current files diffs
-      #
-      # Parameters::
-      # * *base* (Object): Git base (sha, objectish...) with which we diff, or :cached to only get diff of the staging area [default = 'HEAD']
-      def artifact_files_diffs(base = 'HEAD')
-        if base == :cached
-          <<~EO_Artifact
-            ### git diff --cached
-
-            ```
-            #{git_diff_cached}
-            ```
-          EO_Artifact
-        else
-          <<~EO_Artifact
-            ### New untracked files
-
-            #{git.status.untracked.keys.map do |file|
-              <<~EO_Untracked_File
-                #### #{file}
-                ```
-                #{File.read(file)}
-                ```
-              EO_Untracked_File
-            end.join("\n")}
-
-            ### git diff
-
-            ```
-            #{git.diff(base)}
-            ```
-          EO_Artifact
         end
       end
 
