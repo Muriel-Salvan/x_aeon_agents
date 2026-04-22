@@ -13,16 +13,12 @@ module XAeonAgentsSkills
       #
       # @param input_artifacts [Hash<Symbol,Object>] The input artifacts content
       # @return Hash<Symbol,Object> Output artifacts content
-      def run(input_artifacts: {})
+      def run(**_input_artifacts)
         # If nothing is staged, stage everything
         Helpers.git.add(all: true) if Helpers.git_diff_cached.empty?
         diff_interpreter_agent = DiffInterpreterAgent.new(**Models.free_simple)
-        change_intent = diff_interpreter_agent.run(input_artifacts: { files_diff: Helpers.artifact_files_diffs(:cached) })[:change_intent]
-        one_line_summary = OneLineCodeDiffSummarizerAgent.new(**Models.free_simple).run(
-          input_artifacts: {
-            change_intent:
-          }
-        )[:one_line_summary]
+        change_intent = diff_interpreter_agent.run(files_diff: Helpers.artifact_files_diffs(:cached))[:change_intent]
+        one_line_summary = OneLineCodeDiffSummarizerAgent.new(**Models.free_simple).run(change_intent:)[:one_line_summary]
 
         commit_file = '.x-aeon_agents/commit.md'
         FileUtils.mkdir_p File.dirname(commit_file)
