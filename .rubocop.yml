@@ -1,0 +1,62 @@
+plugins: rubocop-rspec
+
+AllCops:
+  NewCops: enable
+
+# It's ok to have longer lines
+Layout/LineLength:
+  Max: 160
+
+# Not all plugins use all keyword arguments, it's normal.
+Lint/UnusedMethodArgument:
+  AllowUnusedKeywordArguments: true
+
+# It's ok to have longer methods, while keeping readability.
+Metrics/AbcSize:
+  Max: 50
+
+# It's ok to have longer methods, while keeping readability.
+Metrics/CyclomaticComplexity:
+  Max: 15
+
+# It's ok to have longer methods, while keeping readability.
+Metrics/MethodLength:
+  Max: 50
+
+# kwargs should not count towards max parameters list.
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+# It's ok to have longer methods, while keeping readability.
+Metrics/PerceivedComplexity:
+  Max: 20
+
+# It's ok to have nested groups in RSpec.
+RSpec/NestedGroups:
+  Max: 5
+
+# TODO: Remove this by using ruby-serial instead of Marshall
+Security/MarshalLoad:
+  Enabled: false
+
+# I don't want to pollute my code with something that should be integrated in the language
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: never
+
+# I don't want to pollute my code with something that should be integrated in the language
+Style/MutableConstant:
+  Enabled: false
+
+# These tests are not describing any class or module
+RSpec/DescribeClass:
+  Exclude:
+    - 'spec/scenarios/code_quality_spec.rb'
+    - 'spec/scenarios/packaging_spec.rb'
+
+# It's ok to have test scenarios having several expectations
+RSpec/MultipleExpectations:
+  Max: 10
+
+# It's ok to have scenarios having multiple lines
+RSpec/ExampleLength:
+  Max: 30
