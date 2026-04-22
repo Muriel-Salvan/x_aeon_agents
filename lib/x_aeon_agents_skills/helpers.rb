@@ -48,7 +48,7 @@ module XAeonAgentsSkills
       # Result::
       # * Hash: Merged hash
       def deep_merge(target, source)
-        target.merge(source) do |key, oldval, newval|
+        target.merge(source) do |_key, oldval, newval|
           if oldval.is_a?(Hash) && newval.is_a?(Hash)
             deep_merge(oldval, newval)
           else
