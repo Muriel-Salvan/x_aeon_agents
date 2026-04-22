@@ -5,7 +5,9 @@ module XAeonAgentsSkills
       prepend ComposableAgents::Mixins::ArtifactContract
 
       # Constructor
-      def initialize
+      #
+      # @param agent_params [Hash<Symbol, Object>] Parameters driving the agent model selection
+      def initialize(**agent_params)
         super(
           name: '1-line code diff summarizer',
           role: 'You are a 1-line code diff summarizer agent',
@@ -33,18 +35,7 @@ module XAeonAgentsSkills
             - The user's intent is fully specified.
             - You MUST NOT ask follow-up questions.
           EO_CONSTRAINTS
-          model: 'inclusionai/ling-2.6-flash:free',
-          strategy: ComposableAgents::PromptRenderingStrategy::Markdown,
-          params: {
-            # cline: {
-            #   plan_mode: false,
-            #   config: XAeonAgentsSkills::Agents.read_only_config.merge(
-            #     doubleCheckCompletionEnabled: false
-            #   ),
-            #   cli_args: XAeonAgentsSkills::Agents.config[:default_cline_cli_args],
-            #   skills: XAeonAgentsSkills::Agents.config[:default_cline_skills]
-            # }
-          }
+          **agent_params
         )
       end
 
