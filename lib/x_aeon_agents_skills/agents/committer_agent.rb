@@ -16,20 +16,17 @@ module XAeonAgentsSkills
       def run(**_input_artifacts)
         # If nothing is staged, stage everything
         Helpers.git.add(all: true) if Helpers.git_diff_cached.empty?
-        diff_interpreter_agent = DiffInterpreterAgent.new(**Models.free_simple)
-        change_intent = diff_interpreter_agent.run(files_diff: Helpers.artifact_files_diffs(:cached))[:change_intent]
-        one_line_summary = OneLineCodeDiffSummarizerAgent.new(**Models.free_simple).run(change_intent:)[:one_line_summary]
-
+        git_diff_interpreter_agent_output = GitDiffInterpreterAgent.new.run(git_ref_base: 'cached')
         commit_file = '.x-aeon_agents/commit.md'
         FileUtils.mkdir_p File.dirname(commit_file)
         File.write(
           commit_file,
           <<~EO_COMMIT
-            #{one_line_summary.strip}
+            #{git_diff_interpreter_agent_output[:one_line_summary].strip}
 
-            #{change_intent.strip}
+            #{git_diff_interpreter_agent_output[:change_intent].strip}
 
-            Co-authored by: X-Aeon Agent #{diff_interpreter_agent.name} (#{diff_interpreter_agent.model})
+            Co-authored by: X-Aeon Agent #{git_diff_interpreter_agent_output[:agent_author].strip}
           EO_COMMIT
         )
         begin
