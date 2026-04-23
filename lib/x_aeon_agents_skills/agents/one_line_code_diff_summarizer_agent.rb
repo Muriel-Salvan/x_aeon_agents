@@ -4,6 +4,20 @@ module XAeonAgentsSkills
     class OneLineCodeDiffSummarizerAgent < ComposableAgents::AiAgents::Agent
       prepend ComposableAgents::Mixins::ArtifactContract
 
+      # Define input artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      def input_artifacts_contracts
+        { change_intent: 'Full description of the code changes, their meaning and intent' }
+      end
+
+      # Define output artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      def output_artifacts_contracts
+        { one_line_summary: '1-line summary of the code change intent' }
+      end
+
       # Constructor
       #
       # @param agent_params [Hash<Symbol, Object>] Parameters driving the agent model selection
@@ -37,20 +51,6 @@ module XAeonAgentsSkills
           EO_CONSTRAINTS
           **agent_params
         )
-      end
-
-      # Define input artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
-      def input_artifacts_contracts
-        { change_intent: 'Full description of the code changes, their meaning and intent' }
-      end
-
-      # Define output artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
-      def output_artifacts_contracts
-        { one_line_summary: '1-line summary of the code change intent' }
       end
     end
   end

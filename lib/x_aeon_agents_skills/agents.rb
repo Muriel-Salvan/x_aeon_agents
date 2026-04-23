@@ -119,18 +119,18 @@ module XAeonAgentsSkills
       # Interpret current code diffs
       #
       # Parameters::
-      # * *base* (Object): Git base (sha, objectish...) with which we diff [default = 'HEAD']
+      # * *git_ref_base* (Object): Git base (sha, objectish...) with which we diff [default = 'HEAD']
       # Result::
       # * String: Code diffs interpretation
-      def interpret_diffs(base = 'HEAD')
-        with_runner do
-          puts <<~EO_Diffs.strip
-            
-            ===== Code diffs interpretation:
+      def interpret_diffs(git_ref_base = 'HEAD')
+        git_diff_interpreter_agent_output = GitDiffInterpreterAgent.new.run(git_ref_base:)
+        puts <<~EO_OUTPUT
+          ===== Code diffs interpretation:
 
-            #{code_diffs(base).join("\n\n")}
-          EO_Diffs
-        end
+          #{git_diff_interpreter_agent_output[:one_line_summary].strip}
+
+          #{git_diff_interpreter_agent_output[:change_intent].strip}
+        EO_OUTPUT
       end
 
       # Implement a Github issue

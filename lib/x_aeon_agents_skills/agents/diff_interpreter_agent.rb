@@ -4,6 +4,20 @@ module XAeonAgentsSkills
     class DiffInterpreterAgent < ComposableAgents::AiAgents::Agent
       prepend ComposableAgents::Mixins::ArtifactContract
 
+      # Define input artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      def input_artifacts_contracts
+        { files_diff: 'Full list of files changes and differences that have been done' }
+      end
+
+      # Define output artifacts contracts
+      #
+      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      def output_artifacts_contracts
+        { change_intent: 'Full explanation of the changes, as in a git commit description' }
+      end
+
       # Constructor
       #
       # @param agent_params [Hash<Symbol, Object>] Parameters driving the agent model selection
@@ -55,20 +69,6 @@ module XAeonAgentsSkills
           EO_CONSTRAINTS
           **agent_params
         )
-      end
-
-      # Define input artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
-      def input_artifacts_contracts
-        { files_diff: 'Full list of files changes and differences that have been done' }
-      end
-
-      # Define output artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
-      def output_artifacts_contracts
-        { change_intent: 'Full explanation of the changes, as in a git commit description' }
       end
     end
   end
