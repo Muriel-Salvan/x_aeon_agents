@@ -2,9 +2,5 @@
 
 require 'x_aeon_agents_skills'
 
-XAeonAgentsSkills::Agents.configure(
-  openrouter_api_key: Bundler.with_unbundled_env { `launcher safe -- "OpenRouter API key"`.match(/\[PASSWORD\][^:]+: ([^\n]+)\n/)[1] },
-  # debug: true
-)
-
+XAeonAgentsSkills::Agents.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
 XAeonAgentsSkills::Agents.commit

@@ -13,6 +13,24 @@ module XAeonAgentsSkills
 
       include Logger
 
+      # Retrieve API keys needed for the agents from the X-Aeon launcher
+      #
+      # @return [Hash<Symbol, String>] The keys retrieved
+      def keys_from_launcher
+        keys = {
+          cline_api_key: 'Cline API key',
+          github_token: 'Github API token',
+          openrouter_api_key: 'OpenRouter API key'
+        }
+        launcher_keys = {}
+        Bundler.with_unbundled_env { `launcher safe -- #{keys.values.map { |launcher_key| "\"#{launcher_key}\"" }.join(' ')}` }.each_line do |line|
+          next unless line =~ /^\[PASSWORD\] \[([^\]]+)\]: (.+)$/
+
+          launcher_keys[Regexp.last_match(1)] = Regexp.last_match(2)
+        end
+        keys.to_h { |key, launcher_key| [key, launcher_keys[launcher_key]] }
+      end
+
       # Setup a temporary directory.
       # In case of debug activated, create the temporary directory from the current one and don't delete it, following this pattern:
       # .x-aeon_agents/#{sub_dir}/{unique_id}#{suffix}

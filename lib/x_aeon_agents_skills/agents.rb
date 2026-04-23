@@ -29,7 +29,7 @@ module XAeonAgentsSkills
       # * *default_cline_cli_args* (String): Default Cline CLI arguments [default: '--thinking 1024']
       # * *default_cline_skills* (Array<string>): Default Cline skills [default: []]
       # * *github_token* (String): GitHub token for Octokit authentication [default: ENV['GITHUB_TOKEN']]
-      # * *debug* (Boolean): Do we activate debug mode? [default: false]
+      # * *debug* (Boolean): Do we activate debug mode? [default: ENV['X_AEON_AGENTS_SKILLS_DEBUG'] == '1']
       def configure(
         cline_api_key: ENV['CLINE_API_KEY'],
         openrouter_api_key: ENV['OPENROUTER_API_KEY'],
@@ -70,7 +70,7 @@ module XAeonAgentsSkills
         default_cline_cli_args: '--thinking 1024',
         default_cline_skills: [],
         github_token: ENV['GITHUB_TOKEN'],
-        debug: false
+        debug: ENV['X_AEON_AGENTS_SKILLS_DEBUG'] == '1'
       )
         @config = {
           cline_api_key:,
