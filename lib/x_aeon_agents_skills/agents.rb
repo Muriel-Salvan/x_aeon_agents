@@ -22,7 +22,9 @@ module XAeonAgentsSkills
       # Parameters::
       # * *prompt* (String): The prompt for this task
       def execute_simple_task(prompt)
-        puts ComposableAgents::AiAgents::Agent.new(**Models.free_simple).run(user_message: prompt)[:conversation].last['message']
+        agent = ExecutorAgent.new(**Models.free_simple)
+        agent.run(user_message: prompt)
+        puts agent.conversation.last[:message]
       end
 
       # Commit current code diffs.
