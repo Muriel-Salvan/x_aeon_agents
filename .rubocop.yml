@@ -7,6 +7,10 @@ AllCops:
 Layout/LineLength:
   Max: 160
 
+# Keep indentations consistent
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
 # Not all plugins use all keyword arguments, it's normal.
 Lint/UnusedMethodArgument:
   AllowUnusedKeywordArguments: true
@@ -16,12 +20,16 @@ Metrics/AbcSize:
   Max: 50
 
 # It's ok to have longer methods, while keeping readability.
+Metrics/BlockNesting:
+  Max: 5
+
+# It's ok to have longer methods, while keeping readability.
 Metrics/CyclomaticComplexity:
   Max: 15
 
 # It's ok to have longer methods, while keeping readability.
 Metrics/MethodLength:
-  Max: 50
+  Max: 70
 
 # kwargs should not count towards max parameters list.
 Metrics/ParameterLists:
@@ -42,6 +50,10 @@ Security/MarshalLoad:
 # I don't want to pollute my code with something that should be integrated in the language
 Style/FrozenStringLiteralComment:
   EnforcedStyle: never
+
+# Multiline block chains can be readable too
+Style/MultilineBlockChain:
+  Enabled: false
 
 # I don't want to pollute my code with something that should be integrated in the language
 Style/MutableConstant:

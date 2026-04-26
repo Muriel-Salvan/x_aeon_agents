@@ -30,7 +30,7 @@
     * Make sure tools are working perfectly: when they are not the agent will try plenty of workarounds and that will contribute A LOT to context dilution later.
   * Repeatitive safe guard rails on check lists and validations, hence need for prompt generation and optimization.
   * If it can be technically automated in a script, do it. Leave prompts for things that depend on context or on reasoning decisions.
-  * Better results under Linux envs: models were trained like taht and their default conventions or CLI will often be Linux based, even if they can later correct for Windows.
+  * Better results under Linux envs: models were trained like that and their default conventions or CLI will often be Linux based, even if they can later correct for Windows. LF/CRLF and paths separators issues will be avoided too.
   * Use Plan and Act modes.
   * Different models have different behaviors: well-formed prompts are very important but even when it is well written, some models won't follow prompt instructions, especially when those instructions become large (like test + doc + commit + push).
   * For Cline, there is no need for double checks (upon completion) when models are good. That can reduce tokens usage.
@@ -40,3 +40,7 @@
 * Check anthropic's skill-creator skill: https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
 * Check security warnings that we got from installation and fix them.
 * Move the Cline Ruby connector into a Rubygem.
+* Split helpers in Utils / Git/Github/Generators/Skills...
+* Rename in x_aeon_agents because it's not about skills only anymore.
+* Yank old Rubygems.
+* Migrate comments to YARD.
