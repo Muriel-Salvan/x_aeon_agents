@@ -215,6 +215,52 @@ module XAeonAgentsSkills
         @github_repo ||= github_remote.url.match(%r{github\.com[:/](.+)\.git})[1]
       end
 
+      # Allow user to review and edit content before using it
+      #
+      # @param name [String] Name used for the temporary file
+      # @param description [String] Description shown to the user
+      # @param editable [Boolean] Indicates if user can edit the content
+      # @param promptable [Boolean] Indicates if user can issue a prompt as an answer
+      # @param content [String] Initial content to present
+      # @return [Array<String>] 2 values are returned:
+      #   0. [String] Final content after user review (same as content if editable is false)
+      #   1. [String] User prompt
+      def review_content(
+        name: 'content.txt',
+        description: 'Content to be reviewed',
+        editable: true,
+        promptable: false,
+        content: ''
+      )
+        require 'launchy'
+        
+        content_file = ".x-aeon_agents/#{Time.now.utc.strftime('%F-%H-%M-%S')}-#{name}"
+        FileUtils.mkdir_p File.dirname(content_file)
+        File.write(content_file, content)
+        begin
+          Launchy.open(content_file)
+          puts
+          puts <<~EO_STDOUT
+            Review the following content: #{description}.
+            #{
+              (
+                (editable ? ['Modify the file and save it to take your changes into consideration'] : []) + [
+                  'Hit Enter to continue',
+                  'Hit Ctrl-C to cancel and interrupt'
+                ] + (promptable ? ['Any other input will be used to prompt again the generation of this content'] : [])
+              ).map { |option| "* #{option}" }.join("\n")
+            }
+          EO_STDOUT
+          user_prompt = $stdin.gets
+          [
+            editable ? File.read(content_file).strip : content,
+            user_prompt.strip
+          ]
+        ensure
+          FileUtils.rm_f content_file
+        end
+      end
+
     end
 
   end
