@@ -6,5 +6,5 @@ prompt = ARGV[0]
 
 require 'x_aeon_agents_skills'
 
-XAeonAgentsSkills::Agents.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
+XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
 XAeonAgentsSkills::Agents.execute_simple_task(prompt)

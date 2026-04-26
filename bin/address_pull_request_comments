@@ -8,5 +8,5 @@ run_id = ARGV[1]
 
 require 'x_aeon_agents_skills'
 
-XAeonAgentsSkills::Agents.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
+XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
 XAeonAgentsSkills::Agents.address_pull_request_comments(pull_request_number, run_id:)

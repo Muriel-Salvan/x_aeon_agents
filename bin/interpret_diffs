@@ -6,5 +6,5 @@ base = ARGV[0] || 'HEAD'
 
 require 'x_aeon_agents_skills'
 
-XAeonAgentsSkills::Agents.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
+XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
 XAeonAgentsSkills::Agents.interpret_diffs(base)

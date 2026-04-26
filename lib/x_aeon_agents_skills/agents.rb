@@ -17,90 +17,6 @@ module XAeonAgentsSkills
 
       include Logger
 
-      attr_reader :config
-
-      # Configure agents
-      #
-      # Parameters::
-      # * *cline_api_key* (String): Cline API key to be used [default: ENV['CLINE_API_KEY']]
-      # * *openrouter_api_key* (String): OpenRouter API key to be used [default: ENV['OPENROUTER_API_KEY']]
-      # * *default_cline_model* (String): Default Cline model [default: 'clinecli/qwen/qwen3.6-plus-preview:free']
-      # * *default_cline_config* (Hash): Default Cline config [default: See signature]
-      # * *default_cline_cli_args* (String): Default Cline CLI arguments [default: '--thinking 1024']
-      # * *default_cline_skills* (Array<string>): Default Cline skills [default: []]
-      # * *github_token* (String): GitHub token for Octokit authentication [default: ENV['GITHUB_TOKEN']]
-      # * *debug* (Boolean): Do we activate debug mode? [default: ENV['X_AEON_AGENTS_SKILLS_DEBUG'] == '1']
-      def configure(
-        cline_api_key: ENV['CLINE_API_KEY'],
-        openrouter_api_key: ENV['OPENROUTER_API_KEY'],
-        default_cline_model: 'clinecli/arcee-ai/trinity-large-preview:free',
-        default_cline_config: {
-          actModeReasoningEffort: 'xhigh',
-          autoApprovalSettings: {
-            actions: {
-              readFiles: true,
-              readFilesExternally: true,
-              editFiles: true,
-              editFilesExternally: true,
-              executeSafeCommands: true,
-              executeAllCommands: true,
-              useBrowser: true,
-              useMcp: true
-            },
-            enabled: true
-          },
-          clineWebToolsEnabled: true,
-          customPrompt: 'compact',
-          defaultTerminalProfile: 'powershell-legacy',
-          doubleCheckCompletionEnabled: true,
-          enableParallelToolCalling: true,
-          focusChainSettings: {
-            enabled: true,
-            remindClineInterval: 3
-          },
-          multiRootEnabled: false,
-          nativeToolCallEnabled: true,
-          planModeReasoningEffort: 'xhigh',
-          planModeThinkingBudgetTokens: 1024,
-          strictPlanModeEnabled: true,
-          subagentsEnabled: true,
-          telemetrySetting: 'disabled',
-          useAutoCondense: true
-        },
-        default_cline_cli_args: '--thinking 1024',
-        default_cline_skills: [],
-        github_token: ENV['GITHUB_TOKEN'],
-        debug: ENV['X_AEON_AGENTS_SKILLS_DEBUG'] == '1'
-      )
-        @config = {
-          cline_api_key:,
-          openrouter_api_key:,
-          default_cline_model:,
-          default_cline_config:,
-          default_cline_cli_args:,
-          default_cline_skills:,
-          github_token:,
-          debug:
-        }
-
-        # Register our providers
-        RubyLLM::Provider.register(:clinecli, XAeonAgentsSkills::Providers::ClineCli)
-
-        # Initialize our dependencies
-        ENV['RUBYLLM_DEBUG'] = '1' if config[:debug]
-        Logger.debug = config[:debug]
-        ::Agents.configure do |ai_agents_config|
-          ai_agents_config.debug = config[:debug]
-        end
-        RubyLLM.configure do |ruby_llm_config|
-          ruby_llm_config.cline_api_key = config[:cline_api_key]
-          ruby_llm_config.openrouter_api_key = config[:openrouter_api_key]
-        end
-
-        # Discover all the models
-        RubyLLM::Models.refresh!
-      end
-
       # Execute a simple task
       #
       # Parameters::
@@ -139,13 +55,13 @@ module XAeonAgentsSkills
       # * *github_issue_number* (Integer): The Github issue number to implement
       # * *run_id* (String or nil): The associated run ID, or nil if no persistence needed [default: nil]
       def implement_github_issue(github_issue_number, run_id: nil)
-        issue = github.issue(github_repo, github_issue_number)
-        issue_comments = github.issue_comments(github_repo, github_issue_number)
+        issue = Helpers.github.issue(Helpers.github_repo, github_issue_number)
+        issue_comments = Helpers.github.issue_comments(Helpers.github_repo, github_issue_number)
         sections = [
           <<~EO_Section
             # #{issue.title}
             
-            #{align_markdown_headers(issue.body, level: 2)}
+            #{ComposableAgents::Utils::Markdown.align_markdown_headers(issue.body, level: 2)}
           EO_Section
         ]
         sections << <<~EO_Section unless issue_comments.empty?
@@ -261,8 +177,8 @@ module XAeonAgentsSkills
       def address_pull_request_comments(pull_request_number, run_id: nil)
         with_runner(run_id) do
           step(:aprc_a_gather_comments) do
-            owner, repo = github_repo.split('/')
-            pr_json = github.post('/graphql',
+            owner, repo = Helpers.github_repo.split('/')
+            pr_json = Helpers.github.post('/graphql',
               {
                 query: File.read("#{__dir__}/gh_comments.gql"),
                 variables: {
@@ -326,11 +242,11 @@ module XAeonAgentsSkills
             log_debug "Found #{open_comments_to_agents.size} PR review comments that need X-Aeon Agents to reply for PR ##{pull_request_number}:\n#{open_comments_to_agents.map { |comment| "* #{comment[:body]}" }.join("\n")}"
 
             step(:aprc_b_extract_requirements) do
-              pr = github.pull_request(github_repo, pull_request_number)
+              pr = Helpers.github.pull_request(Helpers.github_repo, pull_request_number)
               @artifacts[:pr_description] = <<~EO_Description.strip
                 # #{pr.title}
 
-                #{align_markdown_headers(pr.body, level: 2)}
+                #{ComposableAgents::Utils::Markdown.align_markdown_headers(pr.body, level: 2)}
               EO_Description
               @artifacts[:pr_files_diffs] = Helpers.git.diff("#{pr.base.sha}...#{pr.head.sha}").to_s
               @artifacts[:conversations] = JSON.pretty_generate(pr_conversations)
@@ -353,7 +269,7 @@ module XAeonAgentsSkills
               step("aprc_c#{comment_idx}_reply_to_comment".to_sym) do
                 @artifacts[:open_comment_for_reply] = JSON.pretty_generate(comment)
                 run(review_responder_agent)
-                reply = github.create_pull_request_comment_reply(github_repo, pull_request_number, "[X-Aeon Agent (#{review_responder_agent.model})] - #{@artifacts[:reply]}", comment[:comment_id])
+                reply = Helpers.github.create_pull_request_comment_reply(Helpers.github_repo, pull_request_number, "[X-Aeon Agent (#{review_responder_agent.model})] - #{@artifacts[:reply]}", comment[:comment_id])
                 log_debug "Successfully replied to comment ##{comment[:comment_id]}: #{reply[:html_url]}"
               end
             end
@@ -378,40 +294,9 @@ module XAeonAgentsSkills
           <<~EO_Comment
             ## #{comment.user.login} at #{comment.created_at.utc.strftime('%F %T UTC')}
             
-            #{align_markdown_headers(comment.body, level: 3)}
+            #{ComposableAgents::Utils::Markdown.align_markdown_headers(comment.body, level: 3)}
           EO_Comment
         end.join("\n")
-      end
-
-      # Get a Github Octokit API instance.
-      # Keep a cache of it.
-      #
-      # Result::
-      # * Octokit::Client: The Octokit client
-      def github
-        @github_octokit ||= Octokit::Client.new(access_token: config[:github_token])
-      end
-
-      # Get the Github remote from the Git remotes.
-      # Keep a cache of it.
-      #
-      # Result::
-      # * Git::Remote: The Github remote instance
-      def github_remote
-        @github_remote ||= begin
-          remote = Helpers.git.remotes.find { |remote| remote.url.match(%r{github\.com[:/].+\.git}) }
-          raise 'Can\'t find a Github remote in this repository' if remote.nil?
-          remote
-        end
-      end
-
-      # Get the current repository name from the Git remote URL.
-      # Keep a cache of it.
-      #
-      # Result::
-      # * String: The repository name in the format "owner/repo"
-      def github_repo
-        @github_repo ||= github_remote.url.match(%r{github\.com[:/](.+)\.git})[1]
       end
 
       # Get the read-only configuration used by agents that are planning and analyzing code
@@ -420,7 +305,7 @@ module XAeonAgentsSkills
       # * Hash: The read-only configuration
       def read_only_config
         @read_only_config ||= Helpers.deep_merge(
-          config[:default_cline_config],
+          Configuration.config[:default_cline_config],
           {
             autoApprovalSettings: {
               actions: {
@@ -822,15 +707,15 @@ module XAeonAgentsSkills
 
       # Create a Pull Request if it does not exist already for the current branch against main
       def create_pr
-        repo_name = github_repo
+        repo_name = Helpers.github_repo
         head_branch = Helpers.git.current_branch
 
         # Push the branch on the git_remote using --force-with-lease as it may have been rebased
         # TODO: Use force_with_lease when it will be supported by ruby-git
-        Helpers.git.push(github_remote, head_branch, force: true)
+        Helpers.git.push(Helpers.github_remote, head_branch, force: true)
        
         # Check if PR already exists for the current branch
-        existing_pr = github.pull_requests(repo_name, state: 'open').find { |pull_request| pull_request.head.ref == head_branch }
+        existing_pr = Helpers.github.pull_requests(repo_name, state: 'open').find { |pull_request| pull_request.head.ref == head_branch }
         if existing_pr.nil?
           # Create new PR
           title, description = code_diffs(@artifacts[:base_sha])
@@ -838,19 +723,19 @@ module XAeonAgentsSkills
           sections << <<~EO_Section if @artifacts[:requirements]
               # Initial requirements given
               
-              #{align_markdown_headers(@artifacts[:requirements], level: 2)}
+              #{ComposableAgents::Utils::Markdown.align_markdown_headers(@artifacts[:requirements], level: 2)}
           EO_Section
           sections << <<~EO_Section unless @artifacts[:user_feedbacks].nil?
               # User guidance and feedback to agents
               
-              #{align_markdown_headers(@artifacts[:user_feedbacks], level: 2)}
+              #{ComposableAgents::Utils::Markdown.align_markdown_headers(@artifacts[:user_feedbacks], level: 2)}
           EO_Section
           sections << <<~EO_Section unless @artifacts[:agents_run].nil?
             # Co-authored by X-Aeon AI Agents
             
             #{@artifacts[:agents_run].each_line.uniq.join}
           EO_Section
-          new_pr = github.create_pull_request(
+          new_pr = Helpers.github.create_pull_request(
             repo_name,
             'main',
             head_branch,
@@ -999,11 +884,11 @@ module XAeonAgentsSkills
       # * *constraints* (String): Constraints to be respected [default: '']
       # * *input_artifacts* (Array<Hash>): Set of artifacts this agent expects as input [default: []]
       # * *output_artifacts* (Array<Hash>): Set of artifacts this agent is expected to output [default: []]
-      # * *model* (String): Model to be used [default: Agents.config[:default_cline_model]]
+      # * *model* (String): Model to be used [default: Configuration.config[:default_cline_model]]
       # * *plan_mode* (Boolean): Are we executing in Plan mode? [default: false]
-      # * *config* (Hash): Cline config to be used [default: Agents.config[:default_cline_config]]
-      # * *cli_args* (String): Cline CLI additional arguments [default: Agents.config[:default_cline_cli_args]]
-      # * *skills* (Array<String>): List of skills to be associated to this agent [default: Agents.config[:default_cline_skills]]
+      # * *config* (Hash): Cline config to be used [default: Configuration.config[:default_cline_config]]
+      # * *cli_args* (String): Cline CLI additional arguments [default: Configuration.config[:default_cline_cli_args]]
+      # * *skills* (Array<String>): List of skills to be associated to this agent [default: Configuration.config[:default_cline_skills]]
       def cline_agent(
         name: 'Executor',
         role: "You are a #{name} agent",
@@ -1012,11 +897,11 @@ module XAeonAgentsSkills
         constraints: '',
         input_artifacts: [],
         output_artifacts: [],
-        model: Agents.config[:default_cline_model],
+        model: Configuration.config[:default_cline_model],
         plan_mode: false,
-        config: Agents.config[:default_cline_config],
-        cli_args: Agents.config[:default_cline_cli_args],
-        skills: Agents.config[:default_cline_skills]
+        config: Configuration.config[:default_cline_config],
+        cli_args: Configuration.config[:default_cline_cli_args],
+        skills: Configuration.config[:default_cline_skills]
       )
         ::Agents::Agent.new(
           model:,
@@ -1124,24 +1009,6 @@ module XAeonAgentsSkills
           replies << next_parent_reply unless next_parent_reply.nil?
         end
         replies.map { |c| [c] + comment_replies(comments, c) }.flatten(1)
-      end
-
-      # Align markdown headers in a String to a given level.
-      # This method parses the String as a markdown document, sees the minimum current header level,
-      # and changes it while preserving the structure and hierarchy so that this min level is equal to `level`.
-      #
-      # Parameters::
-      # * *markdown* (String): The markdown content to align
-      # * *level* (Integer): The target level for the minimum header [default: 2]
-      # Result::
-      # * String: The aligned markdown content
-      def align_markdown_headers(markdown, level: 2)
-        doc = Commonmarker.parse(markdown)
-        min_level = find_minimum_header_level(doc)
-        return markdown if min_level.nil? || min_level == level
-        
-        adjust_header_levels(doc, level - min_level)
-        doc.to_commonmark
       end
 
       # Find the minimum header level in a CommonMarker document

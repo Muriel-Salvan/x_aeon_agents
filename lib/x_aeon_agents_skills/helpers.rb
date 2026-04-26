@@ -184,6 +184,37 @@ module XAeonAgentsSkills
         end
       end
 
+      # Get a Github Octokit API instance.
+      # Keep a cache of it.
+      #
+      # Result::
+      # * Octokit::Client: The Octokit client
+      def github
+        @github ||= Octokit::Client.new(access_token: Configuration.config[:github_token])
+      end
+
+      # Get the Github remote from the Git remotes.
+      # Keep a cache of it.
+      #
+      # Result::
+      # * Git::Remote: The Github remote instance
+      def github_remote
+        @github_remote ||= begin
+          remote = git.remotes.find { |remote| remote.url.match(%r{github\.com[:/].+\.git}) }
+          raise 'Can\'t find a Github remote in this repository' if remote.nil?
+          remote
+        end
+      end
+
+      # Get the current repository name from the Git remote URL.
+      # Keep a cache of it.
+      #
+      # Result::
+      # * String: The repository name in the format "owner/repo"
+      def github_repo
+        @github_repo ||= github_remote.url.match(%r{github\.com[:/](.+)\.git})[1]
+      end
+
     end
 
   end
