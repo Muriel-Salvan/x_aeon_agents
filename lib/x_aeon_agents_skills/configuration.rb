@@ -77,7 +77,10 @@ module XAeonAgentsSkills
         RubyLLM::Provider.register(:clinecli, XAeonAgentsSkills::Providers::ClineCli)
 
         # Initialize our dependencies
-        ENV['RUBYLLM_DEBUG'] = '1' if config[:debug]
+        if config[:debug]
+          ENV['RUBYLLM_DEBUG'] = '1'
+          ENV['COMPOSABLE_AGENTS_DEBUG'] = '1'
+        end
         Logger.debug = config[:debug]
         ::Agents.configure do |ai_agents_config|
           ai_agents_config.debug = config[:debug]
