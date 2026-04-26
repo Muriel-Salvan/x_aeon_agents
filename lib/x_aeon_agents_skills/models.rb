@@ -25,7 +25,31 @@ module XAeonAgentsSkills
             #   config: XAeonAgentsSkills::Agents.read_only_config.merge(
             #     doubleCheckCompletionEnabled: false
             #   ),
-            #   cli_args: XAeonAgentsSkills::Agents.config[:default_cline_cli_args],
+            #   cli_args: Configuration.config[:default_cline_cli_args],
+            #   skills: %w[
+            #     applying-ruby-conventions
+            #     applying-test-conventions
+            #     editing-files (for coders)
+            #     updating-doc (for documenters)
+            #     enforcing-project-rules
+            #   ]
+            # }
+          }
+        }
+      end
+
+      # Complex task, using a free model for planning (Read-Only)
+      #
+      # @return [Hash<Symbol, Object>] Corresponding model parameters
+      def free_complex_planning
+        {
+          model: 'clinecli/arcee-ai/trinity-large-preview:free',
+          strategy: ComposableAgents::PromptRenderingStrategy::Markdown,
+          params: {
+            # cline: {
+            #   plan_mode: true,
+            #   config: XAeonAgentsSkills::Agents.read_only_config,
+            #   cli_args: Configuration.config[:default_cline_cli_args],
             #   skills: %w[
             #     applying-ruby-conventions
             #     applying-test-conventions
