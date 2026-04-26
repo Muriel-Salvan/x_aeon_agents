@@ -1,12 +1,33 @@
 #!/usr/bin/env ruby
 
-# Parameters:
-# * *requirements* (String): The requirements to implement
-# * *run_id* (String): [Optional] The run ID for persistence
-requirements = ARGV[0]
-run_id = ARGV[1]
-
+require 'thor'
 require 'x_aeon_agents_skills'
 
-XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.implement_requirements(requirements, run_id:)
+module XAeonAgentsSkills
+  module CLI
+    # CLI for implementing requirements
+    class ImplementRequirements < Thor
+      class_option :run_id, type: :string, desc: 'Run ID for persistence'
+      class_option :commit, type: :boolean, default: false, desc: 'Commit files at every step'
+      class_option :pr, type: :boolean, default: false, desc: 'Create a Github Pull Request with this implementation'
+
+      desc 'implement REQUIREMENTS', 'Implement the given requirements'
+      def implement(requirements)
+        XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
+        XAeonAgentsSkills::Agents.implement_requirements(
+          requirements,
+          run_id: options[:run_id],
+          commit: options[:commit],
+          pull_request: options[:pr]
+        )
+      end
+      default_task :implement
+
+      def self.exit_on_failure?
+        true
+      end
+    end
+  end
+end
+
+XAeonAgentsSkills::CLI::ImplementRequirements.start(ARGV)
