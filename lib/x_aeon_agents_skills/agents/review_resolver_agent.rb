@@ -90,8 +90,8 @@ module XAeonAgentsSkills
                 #{ComposableAgents::Utils::Markdown.align_markdown_headers(pr.body, level: 2)}
               EO_DESCRIPTION
               pr_files_diffs: Helpers.git.diff("#{pr.base.sha}...#{pr.head.sha}").to_s,
-              conversations: JSON.pretty_generate(pr_conversations),
-              open_comments_to_agents: JSON.pretty_generate(open_comments_to_agents),
+              conversations: JSON.dump(pr_conversations),
+              open_comments_to_agents: JSON.dump(open_comments_to_agents),
               user_instructions: {
                 ordered_list: [
                   <<~EO_INSTRUCTION,
