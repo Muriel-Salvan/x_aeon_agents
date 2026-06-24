@@ -34,9 +34,8 @@ module XAeonAgentsSkills
       #
       # @param base_sha [String] The git reference of the base of the branch.
       # @param requirements [String] The initial requirements.
-      # @param input_artifacts [Hash<Symbol,Object>] The input artifacts content
       # @return Hash<Symbol,Object> Output artifacts content
-      def run(base_sha:, requirements:, **_input_artifacts)
+      def run(base_sha:, requirements:)
         repo_name = Helpers.github_repo
         head_branch = Helpers.git.current_branch
 

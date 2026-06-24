@@ -32,9 +32,8 @@ module XAeonAgentsSkills
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param git_ref_base [String] The git reference to diff with. Use 'cached' for the staging area.
-      # @param input_artifacts [Hash<Symbol,Object>] The input artifacts content
       # @return Hash<Symbol,Object> Output artifacts content
-      def run(git_ref_base:, **_input_artifacts)
+      def run(git_ref_base:)
         change_intent = diff_interpreter_agent.run(
           files_diff: Helpers.artifact_files_diffs(git_ref_base == 'cached' ? :cached : git_ref_base)
         )[:change_intent]

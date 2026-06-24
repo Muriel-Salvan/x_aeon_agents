@@ -11,6 +11,10 @@ Layout/LineLength:
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
 
+# Keep indentations consistent
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
+
 # Not all plugins use all keyword arguments, it's normal.
 Lint/UnusedMethodArgument:
   AllowUnusedKeywordArguments: true

@@ -38,9 +38,8 @@ module XAeonAgentsSkills
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param requirements [String] Requirements to be implemented
-      # @param input_artifacts [Hash<Symbol,Object>] The input artifacts content
       # @return Hash<Symbol,Object> Output artifacts content
-      def run(requirements:, **_input_artifacts)
+      def run(requirements:)
         # Initial artifacts
         step(:setup_requirements) do
           @artifacts.merge!(
