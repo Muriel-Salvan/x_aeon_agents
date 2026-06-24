@@ -3,3 +3,8 @@ Gemfile.lock
 
 # Generated skills test directory
 /skills.test
+
+# This repo uses cline-rb that needs some node modules.
+node_modules/
+package.json
+package-lock.json

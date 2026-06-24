@@ -17,24 +17,9 @@ module XAeonAgentsSkills
       # @return [Hash<Symbol, Object>] Corresponding model parameters
       def free_complex
         {
-          model: 'clinecli/arcee-ai/trinity-large-preview:free',
-          strategy: ComposableAgents::PromptRenderingStrategy::Markdown,
-          params: {
-            # cline: {
-            #   plan_mode: false,
-            #   config: XAeonAgentsSkills::Agents.read_only_config.merge(
-            #     doubleCheckCompletionEnabled: false
-            #   ),
-            #   cli_args: Configuration.config[:default_cline_cli_args],
-            #   skills: %w[
-            #     applying-ruby-conventions
-            #     applying-test-conventions
-            #     editing-files (for coders)
-            #     updating-doc (for documenters)
-            #     enforcing-project-rules
-            #   ]
-            # }
-          }
+          model: 'deepseek/deepseek-v4-flash',
+          api_key: Configuration.config[:cline_api_key],
+          cli_options: Configuration.config[:default_cline_cli_args]
         }
       end
 
@@ -43,20 +28,17 @@ module XAeonAgentsSkills
       # @return [Hash<Symbol, Object>] Corresponding model parameters
       def free_complex_planning
         {
-          model: 'clinecli/arcee-ai/trinity-large-preview:free',
-          strategy: ComposableAgents::PromptRenderingStrategy::Markdown,
-          params: {
-            # cline: {
-            #   plan_mode: true,
-            #   config: XAeonAgentsSkills::Agents.read_only_config,
-            #   cli_args: Configuration.config[:default_cline_cli_args],
-            #   skills: %w[
-            #     applying-ruby-conventions
-            #     applying-test-conventions
-            #     enforcing-project-rules
-            #   ]
-            # }
-          }
+          # model: 'deepseek/deepseek-v4-flash',
+          model: 'stepfun/step-3.7-flash',
+          api_key: Configuration.config[:cline_api_key],
+          cli_options: Configuration.config[:default_cline_cli_args].merge(
+            {
+              plan: true
+            }
+          ),
+          configure_global: proc do |global_settings|
+            global_settings.disabled_tools = %w[editor run_commands]
+          end
         }
       end
     end

@@ -2,6 +2,8 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for git committing locally staged or modified files
     class CommitterAgent < ComposableAgents::Agent
+      prepend XAeonAgentsSkills::AgentDefaults
+
       # Constructor
       #
       # @param user_review [Boolean] Should the agent ask for user's git comment review?

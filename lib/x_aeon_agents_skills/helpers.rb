@@ -217,6 +217,7 @@ module XAeonAgentsSkills
 
       # Allow user to review and edit content before using it
       #
+      # @param x_aeon_session_dir [String] Session directory that can be used for temporary files
       # @param name [String] Name used for the temporary file
       # @param description [String] Description shown to the user
       # @param editable [Boolean] Indicates if user can edit the content
@@ -226,6 +227,7 @@ module XAeonAgentsSkills
       #   0. [String] Final content after user review (same as content if editable is false)
       #   1. [String] User prompt
       def review_content(
+        x_aeon_session_dir: '.x-aeon_agents',
         name: 'content.txt',
         description: 'Content to be reviewed',
         editable: true,
@@ -234,7 +236,7 @@ module XAeonAgentsSkills
       )
         require 'launchy'
         
-        content_file = ".x-aeon_agents/#{Time.now.utc.strftime('%F-%H-%M-%S')}-#{name}"
+        content_file = "#{x_aeon_session_dir}/reviews/#{Time.now.utc.strftime('%F-%H-%M-%S')}-#{name}"
         FileUtils.mkdir_p File.dirname(content_file)
         File.write(content_file, content)
         begin
@@ -257,7 +259,7 @@ module XAeonAgentsSkills
             user_prompt.strip
           ]
         ensure
-          FileUtils.rm_f content_file
+          FileUtils.rm_f content_file unless Configuration.config[:debug]
         end
       end
 

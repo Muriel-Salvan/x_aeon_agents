@@ -3,14 +3,15 @@ module XAeonAgentsSkills
     # Agent responsible for creating a Pull Request of the current branch against its base reference on Github.
     class PullRequestCreatorAgent < ComposableAgents::Agent
       prepend ComposableAgents::Mixins::ArtifactContract
+      prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         {
-          base_sha: 'Git ref of the base of the feature branch',
-          requirements: 'Initial requirements'
+          base_sha: 'The git ref of the base of the feature branch',
+          requirements: 'The initial requirements'
         }
       end
 

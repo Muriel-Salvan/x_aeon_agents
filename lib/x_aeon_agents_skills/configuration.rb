@@ -7,6 +7,7 @@ module XAeonAgentsSkills
     class << self
       include Logger
 
+      # @return [Hash{Symbol => Object}] The configuration
       attr_reader :config
 
       # Configure X-Aeon Agents
@@ -16,7 +17,7 @@ module XAeonAgentsSkills
       # @param openrouter_api_key [String] OpenRouter API key to be used
       # @param default_cline_model [String] Default Cline model
       # @param default_cline_config [Hash] Default Cline config
-      # @param default_cline_cli_args [String] Default Cline CLI arguments
+      # @param default_cline_cli_args [Hash{Symbol => Object}] Default Cline CLI arguments
       # @param default_cline_skills [Array<string>] Default Cline skills
       # @param github_token [String] GitHub token for Octokit authentication
       # @param debug [Boolean] Do we activate debug mode?
@@ -57,7 +58,7 @@ module XAeonAgentsSkills
           telemetrySetting: 'disabled',
           useAutoCondense: true
         },
-        default_cline_cli_args: '--thinking 1024',
+        default_cline_cli_args: { thinking: 'xhigh' },
         default_cline_skills: [],
         github_token: ENV.fetch('GITHUB_TOKEN', nil),
         debug: ENV['X_AEON_AGENTS_SKILLS_DEBUG'] == '1'

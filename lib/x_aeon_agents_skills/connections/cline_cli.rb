@@ -179,7 +179,7 @@ module XAeonAgentsSkills
               puts '===== Please input your feedback:'
               feedback = $stdin.gets.strip
               
-              # If the user has responded something else than ok or an empty string, 
+              # If the user has responded something else than ok or an empty string,
               # then call @cline.user_feedback and log_ask, and set feedback_given to true
               if feedback.downcase != 'ok' && !feedback.empty?
                 @cline.user_feedback(feedback)

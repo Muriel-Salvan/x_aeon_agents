@@ -5,6 +5,7 @@ module XAeonAgentsSkills
     # For the staging area diff, use cached as the git_ref_base content.
     class GitDiffInterpreterAgent < ComposableAgents::Agent
       prepend ComposableAgents::Mixins::ArtifactContract
+      prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
       #

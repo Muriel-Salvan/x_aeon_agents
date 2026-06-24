@@ -3,19 +3,25 @@ module XAeonAgentsSkills
     # Agent responsible for analyzing files differences in a repository
     class DiffInterpreterAgent < ComposableAgents::AiAgents::Agent
       prepend ComposableAgents::Mixins::ArtifactContract
+      prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        { files_diff: 'Full list of files changes and differences that have been done' }
+        { files_diff: 'The full list of files changes and differences that have been done' }
       end
 
       # Define output artifacts contracts
       #
       # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
-        { change_intent: 'Full explanation of the changes, as in a git commit description' }
+        {
+          change_intent: {
+            description: 'The full explanation of the changes, as in a git commit description',
+            type: :text
+          }
+        }
       end
 
       # Constructor

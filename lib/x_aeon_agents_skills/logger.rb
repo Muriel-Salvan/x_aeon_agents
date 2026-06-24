@@ -1,7 +1,5 @@
 module XAeonAgentsSkills
-
   module Logger
-
     class << self
       # Global debug switch.
       attr_accessor :debug
@@ -20,7 +18,5 @@ module XAeonAgentsSkills
         puts "[DEBUG] - #{msg}"
       end
     end
-
   end
-
 end

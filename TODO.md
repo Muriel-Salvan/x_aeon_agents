@@ -44,3 +44,4 @@
 * Rename in x_aeon_agents because it's not about skills only anymore.
 * Yank old Rubygems.
 * Migrate comments to YARD.
+* Check useless methods, require and gems after separating the code properly.
