@@ -1,3 +1,28 @@
+# [v1.0.19](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.18...v1.0.19) (2026-06-24 14:54:52)
+
+### Patches
+
+* [refactor: Use composable_agents for agents resolving PR feedback](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/d764698d928868c1ded065d3c040972d9ac76e71)
+* [feat: enhance CoderAgent with session defaults and updated prompts](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/bef9834d3f4b4d8e7fcc28a89bc245967b84edfe)
+* [fix(config): Enable COMPOSABLE_AGENTS_DEBUG when debug mode is activated](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/3e2b88954d489741f49b8f6c7a644ee52415fe58)
+* [feat(bin): Rewrite implement_requirements with Thor CLI & add new option flags](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/1dd1039018744b52cfb25e7d8346ab661d8a8464)
+* [refactor: Extract implement_requirements workflow into dedicated DeveloperAgent](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/791791012e286c1f6f9117ae428856f596f75697)
+* [refactor(agents): Use dedicated ExecutorAgent for simple task execution](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/39fcc653918b395f4e09fdbe2f2160482990db17)
+* [feat(committer-agent): add configurable staging, co-authors and review workflow](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/90f57abd303a2445589763c128b6daa407ac8b3e)
+* [refactor: Move configuration from Agents to dedicated Configuration module](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/c668aafed6677efc7fd7ddab445aefc569ff1ab9)
+* [chore: adjust rubocop linter rules and update project TODO list](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/59f7fdd89952496b51360a526ec8c8bc68bb7d4f)
+* [Refactor: introduce GitDiffInterpreterAgent pipeline for structured git diff interpretation and one-line summarization](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/a2c087d0785aa85385f34a508e3301f4169b54ba)
+* [feat(xAeonAgentsSkills): replace runner abstraction with explicit agent instantiation and structured response parsing](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/4378bae59a8d5d0a92952c635faa878fb23836a7)
+* [Refactor configuration with keys_from_launcher helper for DRY API key management and environment-based debug mode](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/3211b96b7fcb3ee3f873d7ed99f574eccd450c3c)
+* [refactor: use keyword args in committer_agent and optimize deep_merge helper](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/dbe391f93575449f126eb3fc71167f3f4a159c02)
+* [feat(models, agents): introduce flexible parameterization for AI model configuration](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/38d6b85da48cfef82e29b25defc36e58e1f6df3b)
+* [feat(xaeon_agents_skills): simplify CommitterAgent namespace reference in commit method](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/f3dc45e73a1a768374ecfc846144acdec11b2a37)
+* [feat(diff-interpreter, one-line-summarizer): extract contract methods for input/output artifacts](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/5fa9eb18e0ce7ba882f19e4aec55d5a8f3a06bca)
+* [refactor: Standardize project naming, update imports, CI and auth config](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/51b6003169a9d069d7e57c95ef658a997fcf3315)
+* [chore: Add initial RuboCop configuration with rubocop-rspec linting plugin](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/2bcdbac79cff907ec0d1b98b198078ac52920322)
+* [chore(deps): Update ai-agents to ~>0.10 stable, remove github fork override](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/ef04a4badf6c1b02406e0221afc5474f9fb05e6c)
+* [refactor: Update agent runner impl, default LLM model, add rubocop dev dep](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/4e327d8e44526c5e7d2538e3e4ab19480546982f)
+
 # [v1.0.18](https://github.com/Muriel-Salvan/x-aeon_agents_skills/compare/v1.0.17...v1.0.18) (2026-04-02 18:29:45)
 
 ## Global changes
