@@ -1,3 +1,10 @@
+# [v1.0.20](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.19...v1.0.20) (2026-06-25 12:46:28)
+
+### Patches
+
+* [refactor: use agent.full_name for consistent identification](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/a727dea1002e37a7c013780610a75802349d1eec)
+* [refactor(agents): replace JSON.pretty_generate with JSON.dump](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/3614db41bd5197533bef4a95d5fa3b82a5c7fa5a)
+
 # [v1.0.19](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.18...v1.0.19) (2026-06-24 14:54:52)
 
 ### Patches
