@@ -1,3 +1,10 @@
+# [v1.0.21](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.20...v1.0.21) (2026-06-25 13:18:17)
+
+### Patches
+
+* [docs: add note about .x-aeon_agents directory placement](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/5ed025ec848ae11ef85b67775dede57f598fbea5)
+* [refactor(agents): standardize initialization parameters across agents](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/263796ab03e32c5ca713ba02818692c66a97d68e)
+
 # [v1.0.20](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.19...v1.0.20) (2026-06-25 12:46:28)
 
 ### Patches
