@@ -123,11 +123,12 @@ module XAeonAgentsSkills
             @artifacts[:plan] = 'No implementation plan'
             @artifacts[:files_diffs] = 'No changes'
           else
-            XAeonAgentsSkills::Agents.implement_requirements(
-              @artifacts[:requirements],
-              run_id: @run_id,
-              commit: true,
-              pull_request: true
+            step_agent(
+              DeveloperAgent.new(
+                commit: true,
+                pull_request: true,
+                run_id: @run_id ? "#{@run_id}-developer" : nil
+              )
             )
           end
 
