@@ -1,3 +1,9 @@
+# [v1.0.22](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.21...v1.0.22) (2026-06-25 13:23:28)
+
+### Patches
+
+* [feat(review_resolver): propagate run_id to implement_requirements](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/137812efa2eba087bdfe2d7b1263e06ec4e0eb71)
+
 # [v1.0.21](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.20...v1.0.21) (2026-06-25 13:18:17)
 
 ### Patches
