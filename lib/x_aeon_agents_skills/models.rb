@@ -7,7 +7,7 @@ module XAeonAgentsSkills
       # @return [Hash<Symbol, Object>] Corresponding model parameters
       def free_simple
         {
-          model: 'inclusionai/ling-2.6-flash:free',
+          model: 'cohere/north-mini-code:free',
           strategy: ComposableAgents::PromptRenderingStrategy::Markdown
         }
       end
