@@ -9,12 +9,10 @@ module XAeonAgentsSkills
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         super.merge(
-          {
-            pr_description: 'The Pull Request description (context)',
-            pr_files_diffs: 'The files modifications that were done in this Pull Request (context)',
-            conversations: 'All Pull Request conversations and comments to be considered (context)',
-            open_comments_to_agents: 'The exact list of agent-directed comments that need to be addressed'
-          }
+          pr_description: 'The Pull Request description (context)',
+          pr_files_diffs: 'The files modifications that were done in this Pull Request (context)',
+          conversations: 'All Pull Request conversations and comments to be considered (context)',
+          open_comments_to_agents: 'The exact list of agent-directed comments that need to be addressed'
         )
       end
 
@@ -22,12 +20,12 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
-        {
+        super.merge(
           requirements: {
             description: 'The requirements that will implement what is needed by the agent-directed comments (reply "No requirements" if there is no implementation needed)',
             type: :markdown
           }
-        }
+        )
       end
 
       # Constructor

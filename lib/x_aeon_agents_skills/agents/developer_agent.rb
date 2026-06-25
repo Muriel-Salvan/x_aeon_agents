@@ -12,16 +12,7 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        {
-          requirements: 'The initial requirements that need to be implemented'
-        }
-      end
-
-      # Define output artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
-      def output_artifacts_contracts
-        {}
+        { requirements: 'The initial requirements that need to be implemented' }
       end
 
       # Constructor

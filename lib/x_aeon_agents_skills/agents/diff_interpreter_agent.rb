@@ -9,19 +9,19 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        { files_diff: 'The full list of files changes and differences that have been done' }
+        super.merge(files_diff: 'The full list of files changes and differences that have been done')
       end
 
       # Define output artifacts contracts
       #
       # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
-        {
+        super.merge(
           change_intent: {
             description: 'The full explanation of the changes, as in a git commit description',
             type: :text
           }
-        }
+        )
       end
 
       # Constructor

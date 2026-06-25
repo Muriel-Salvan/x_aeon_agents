@@ -8,16 +8,7 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        {
-          plan: 'The implementation plan that you must follow'
-        }
-      end
-
-      # Define output artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
-      def output_artifacts_contracts
-        {}
+        super.merge(plan: 'The implementation plan that you must follow')
       end
 
       # Constructor

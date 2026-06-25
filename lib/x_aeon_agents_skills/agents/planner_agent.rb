@@ -8,23 +8,19 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        super.merge(
-          {
-            requirements: 'The initial requirements for which you need to devise an implementation plan'
-          }
-        )
+        super.merge(requirements: 'The initial requirements for which you need to devise an implementation plan')
       end
 
       # Define output artifacts contracts
       #
       # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
-        {
+        super.merge(
           plan: {
             description: "The full and detailed implementation plan in Markdown format, that should implement the requirements given by the artifact named `#{artifact_ref(:requirements)}`",
             type: :markdown
           }
-        }
+        )
       end
 
       # Constructor

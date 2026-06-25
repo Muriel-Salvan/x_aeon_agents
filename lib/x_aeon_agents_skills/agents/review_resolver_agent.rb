@@ -10,9 +10,7 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        {
-          pull_request_number: 'The Pull Request number to address comments for'
-        }
+        { pull_request_number: 'The Pull Request number to address comments for' }
       end
 
       # Define output artifacts contracts

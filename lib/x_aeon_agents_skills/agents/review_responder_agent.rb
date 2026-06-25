@@ -23,12 +23,12 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
-        {
+        super.merge(
           reply: {
             description: 'The exact reply text to post',
             type: :text
           }
-        }
+        )
       end
 
       # Constructor

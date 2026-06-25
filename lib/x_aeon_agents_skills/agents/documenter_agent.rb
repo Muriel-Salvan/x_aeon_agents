@@ -8,11 +8,11 @@ module XAeonAgentsSkills
       #
       # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        {
+        super.merge(
           requirements: 'The initial requirements',
           plan: 'Implementation plan that introduced features and fixes to be documented',
           files_diffs: 'Full list of files changes and differences that have been done to implement the initial requirements following the implementation plan'
-        }
+        )
       end
 
       # Constructor
