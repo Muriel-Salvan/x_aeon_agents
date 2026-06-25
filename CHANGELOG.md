@@ -1,3 +1,10 @@
+# [v1.0.26](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.25...v1.0.26) (2026-06-25 15:16:05)
+
+### Patches
+
+* [chore: remove unused debug gem from Gemfile](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/f838ca06e4676f266cf85dfe59d3986c4c05422d)
+* [refactor(agents): simplify return values and update free model](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/cd21ffa9815f2db979bbf8e02ee160e7ba35fc12)
+
 # [v1.0.25](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.24...v1.0.25) (2026-06-25 14:48:43)
 
 ### Patches
