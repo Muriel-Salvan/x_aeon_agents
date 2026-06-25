@@ -1,3 +1,9 @@
+# [v1.0.24](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.23...v1.0.24) (2026-06-25 14:15:52)
+
+### Patches
+
+* [refactor(agents): Migrate to structured agent params and artifact refs](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/d28770dbd574c41d61c3dc0a67304de4d07eb0b3)
+
 # [v1.0.23](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.22...v1.0.23) (2026-06-25 14:05:41)
 
 ### Patches
