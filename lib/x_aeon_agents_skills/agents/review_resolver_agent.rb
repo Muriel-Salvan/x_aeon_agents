@@ -132,7 +132,12 @@ module XAeonAgentsSkills
             @artifacts[:plan] = 'No implementation plan'
             @artifacts[:files_diffs] = 'No changes'
           else
-            XAeonAgentsSkills::Agents.implement_requirements(@artifacts[:requirements], commit: true, pull_request: true)
+            XAeonAgentsSkills::Agents.implement_requirements(
+              @artifacts[:requirements],
+              run_id: @run_id,
+              commit: true,
+              pull_request: true
+            )
           end
 
           open_comments_to_agents.each.with_index do |comment, comment_idx|
