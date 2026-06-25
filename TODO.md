@@ -1,5 +1,5 @@
-* Create a Cline rubygem that handles tasks and CLI and use it here.
 * Don't put .x-aeon_agents dir in the project dir: it confuses the LLMs.
+* Don't use project skills and rules: it adds noise to the LLMs that scan the files and code base. Use only global objects from dedicated config dirs.
 * Add desktop notification when user input is needed.
 * Test with other models.
 * Provide a unified CLI with Thor and actions to not pollute the user CLI environment too much.

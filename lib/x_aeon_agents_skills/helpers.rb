@@ -2,15 +2,12 @@ require 'fileutils'
 require 'open3'
 
 module XAeonAgentsSkills
-
   module Helpers
-
     # Exception class used to identify commands not returning the expected exit status
     class UnexpectedExitStatusError < StandardError
     end
 
     class << self
-
       include Logger
 
       # Retrieve API keys needed for the agents from the X-Aeon launcher
@@ -29,50 +26,6 @@ module XAeonAgentsSkills
           launcher_keys[Regexp.last_match(1)] = Regexp.last_match(2)
         end
         keys.to_h { |key, launcher_key| [key, launcher_keys[launcher_key]] }
-      end
-
-      # Setup a temporary directory.
-      # In case of debug activated, create the temporary directory from the current one and don't delete it, following this pattern:
-      # .x-aeon_agents/#{sub_dir}/{unique_id}#{suffix}
-      # {unique_id} is computed using Time.now in utc and gets an extra index to avoid conflicts.
-      #
-      # Parameters::
-      # * *sub_dir* (String): Sub-directory appended to the temp dir. Only used in case of debug. [default: '/tmp']
-      # * *suffix* (String): Suffix used after the directory name [default: '']
-      # * *block* (Proc): Code called with the temp dir created
-      #   * Parameters::
-      #     * *temp_dir* (String): The temporary directory
-      def with_temp_dir(sub_dir: 'tmp', suffix: '', &block)
-        if Logger.debug
-          temp_dir = nil
-          unique_idx = 0
-          loop do
-            temp_dir = ".x-aeon_agents/#{sub_dir}/#{Time.now.utc.strftime('%Y-%m-%d-%H-%M-%S')}-#{unique_idx}#{suffix}"
-            break unless File.exist?(temp_dir)
-            unique_idx += 1
-          end
-          FileUtils.mkdir_p temp_dir
-          block.call(temp_dir)
-        else
-          Dir.mktmpdir(&block)
-        end
-      end
-
-      # Deep merge two hashes recursively, preserving nested structures
-      #
-      # Parameters::
-      # * *target* (Hash): Hash in which we merge the source
-      # * *source* (Hash): Hash that we meerge in the target (overriding its values)
-      # Result::
-      # * Hash: Merged hash
-      def deep_merge(target, source)
-        target.merge(source) do |_key, oldval, newval|
-          if oldval.is_a?(Hash) && newval.is_a?(Hash)
-            deep_merge(oldval, newval)
-          else
-            newval
-          end
-        end
       end
 
       # Execute a command while capturing its output in real time
@@ -262,9 +215,6 @@ module XAeonAgentsSkills
           FileUtils.rm_f content_file unless Configuration.config[:debug]
         end
       end
-
     end
-
   end
-
 end

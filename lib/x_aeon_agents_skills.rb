@@ -2,8 +2,8 @@ require 'zeitwerk'
 
 Zeitwerk::Loader.for_gem.setup
 
+# Provide skills, tools, agents and workflows that allow AI to be used in X-Aeon projects.
 module XAeonAgentsSkills
-
   # Return the current AI agent name
   #
   # Result::
@@ -34,5 +34,4 @@ module XAeonAgentsSkills
   def self.agent_signature
     "\n\nCo-authored by: #{agent_name}"
   end
-
 end
