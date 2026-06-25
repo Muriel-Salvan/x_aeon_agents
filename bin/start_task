@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+puts 'Branch name:'
+branch = $stdin.gets.strip
+dir = ".worktrees/#{branch.gsub('/', '_')}"
+
+puts "Setting worktree #{dir} to work on branch #{branch}..."
+
+# Create the branch if it does not exist (without checking it out)
+system "git branch #{branch}"
+
+# Call git worktree add on existing branches only
+system "git worktree add #{dir} #{branch}", exception: true
+
+# Push to remote if branch doesn't exist there yet
+system "git push --set-upstream github #{branch}", exception: true
+system "VSCodium.exe \"#{dir}\"", exception: true
