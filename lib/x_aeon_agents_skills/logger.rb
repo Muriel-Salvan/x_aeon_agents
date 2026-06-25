@@ -1,4 +1,5 @@
 module XAeonAgentsSkills
+  # Mixin adding logging capabilities
   module Logger
     class << self
       # Global debug switch.
@@ -13,10 +14,10 @@ module XAeonAgentsSkills
     #   * Result::
     #     * String: Debug message
     def log_debug(msg = nil)
-      if Logger.debug
-        msg = yield if block_given?
-        puts "[DEBUG] - #{msg}"
-      end
+      return unless Logger.debug
+
+      msg = yield if block_given?
+      puts "[DEBUG] - #{msg}"
     end
   end
 end

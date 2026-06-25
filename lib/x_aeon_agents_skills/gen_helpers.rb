@@ -1,10 +1,8 @@
 require 'yaml'
 
 module XAeonAgentsSkills
-
   # Helper methods for generating skill content
   module GenHelpers
-
     # Define a skill metadata.
     # This should always be the first call in a skill ERB file.
     # It also returns the corresponding YAML frontmatter.
@@ -293,7 +291,5 @@ module XAeonAgentsSkills
       min_indent = lines.reject { |l| l.strip.empty? }.map { |l| l.match(/^(\s*)/)[1].length }.min || 0
       erb_buffer << yield(lines.map { |l| l.strip.empty? ? "\n" : l[min_indent..] }.join)
     end
-
   end
-
 end
