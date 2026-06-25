@@ -28,9 +28,9 @@ module XAeonAgentsSkills
       #
       # @param commit [Boolean] Should we commit files at every step?
       # @param pull_request [Boolean] Should we create a Github Pull Request with this implementation?
-      # @param kwargs [Hash<Symbol, Object>] Agent parameters
-      def initialize(commit: false, pull_request: false, **kwargs)
-        super(name: 'Developer', **kwargs)
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(commit: false, pull_request: false, **agent_params)
+        super(name: 'Developer', **agent_params)
         @commit = commit
         @pull_request = pull_request
       end

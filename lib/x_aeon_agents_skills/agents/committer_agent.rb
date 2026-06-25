@@ -12,8 +12,9 @@ module XAeonAgentsSkills
       #   * if_empty: Stage all files only if the staging aread is empty
       #   * none: Don't stage anything
       # @param authors [Array<Agent>] List of agents that should be credited as authors of this commit
-      def initialize(user_review: true, stage: :if_empty, authors: [])
-        super(name: 'Committer')
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(user_review: true, stage: :if_empty, authors: [], **agent_params)
+        super(name: 'Committer', **agent_params)
         @user_review = user_review
         @stage = stage
         @authors = authors
