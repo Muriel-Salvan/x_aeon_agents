@@ -65,6 +65,7 @@ module XAeonAgentsSkills
           puts
           puts 'Commit created successfully.'
         end
+        {}
       end
     end
   end

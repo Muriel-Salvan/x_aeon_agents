@@ -15,13 +15,6 @@ module XAeonAgentsSkills
         }
       end
 
-      # Define output artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
-      def output_artifacts_contracts
-        {}
-      end
-
       # Constructor
       #
       # @param authors [Array<Agent>] List of agents that should be credited as authors of this commit
@@ -130,6 +123,7 @@ module XAeonAgentsSkills
         else
           log_debug "A Pull Request for branch #{head_branch} already exists: #{existing_pr.html_url}"
         end
+        {}
       end
     end
   end

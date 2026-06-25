@@ -246,6 +246,8 @@ module XAeonAgentsSkills
 
         puts
         puts 'Requirements implemented successfully'
+
+        @artifacts
       end
     end
   end

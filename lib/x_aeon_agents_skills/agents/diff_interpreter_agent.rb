@@ -58,9 +58,9 @@ module XAeonAgentsSkills
               Create an artifact named `#{artifact_ref(:change_intent)}` to explain properly the changes reported by the artifact named `#{artifact_ref(:files_diff)}`
 
               - You MUST create an artifact named `change_intent` that contains:
-              1. A general explanation of the changes, their meaning and intent in the context of this project.
-              2. The types of changes (feature, bug fix, documentation, etc.).
-              3. The impacted architectural components (backend, login screen, CLI, etc.).
+                1. A general explanation of the changes, their meaning and intent in the context of this project.
+                2. The types of changes (feature, bug fix, documentation, etc.).
+                3. The impacted architectural components (backend, login screen, CLI, etc.).
               - Describe those changes in a way similar to a git commit comment or a pull request description.
               - ONLY cover changes from the artifact named `#{artifact_ref(:files_diff)}`.
               - Do NOT explain changes for other files.

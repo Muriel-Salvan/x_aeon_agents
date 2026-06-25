@@ -13,13 +13,6 @@ module XAeonAgentsSkills
         { pull_request_number: 'The Pull Request number to address comments for' }
       end
 
-      # Define output artifacts contracts
-      #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
-      def output_artifacts_contracts
-        {}
-      end
-
       # Constructor
       #
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
