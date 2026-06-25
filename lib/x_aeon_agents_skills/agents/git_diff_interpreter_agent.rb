@@ -25,8 +25,10 @@ module XAeonAgentsSkills
       end
 
       # Constructor
-      def initialize
-        super(name: 'Git Diff Interpreter')
+      #
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(**agent_params)
+        super(name: 'Git Diff Interpreter', **agent_params)
       end
 
       # Execute the agent to generate some output artifacts based on some input artifacts.

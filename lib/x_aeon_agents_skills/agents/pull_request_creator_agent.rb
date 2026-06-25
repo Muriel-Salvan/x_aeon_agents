@@ -25,8 +25,9 @@ module XAeonAgentsSkills
       # Constructor
       #
       # @param authors [Array<Agent>] List of agents that should be credited as authors of this commit
-      def initialize(authors: [])
-        super(name: 'Pull Request Creator')
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(authors: [], **agent_params)
+        super(name: 'Pull Request Creator', **agent_params)
         @authors = authors
       end
 

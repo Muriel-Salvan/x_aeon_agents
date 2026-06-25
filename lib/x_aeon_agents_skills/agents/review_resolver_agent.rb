@@ -24,9 +24,9 @@ module XAeonAgentsSkills
 
       # Constructor
       #
-      # @param kwargs [Hash<Symbol, Object>] Agent parameters
-      def initialize(**kwargs)
-        super(name: 'ReviewResolver', **kwargs)
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(**agent_params)
+        super(name: 'ReviewResolver', **agent_params)
       end
 
       # Execute the agent to address Pull Request review comments

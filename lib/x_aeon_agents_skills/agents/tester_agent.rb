@@ -29,7 +29,7 @@ module XAeonAgentsSkills
 
       # Constructor
       #
-      # @param agent_params [Hash<Symbol, Object>] Parameters driving the agent model selection
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(**agent_params)
         super(
           name: 'Tester',
