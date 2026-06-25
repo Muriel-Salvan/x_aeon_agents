@@ -1,3 +1,9 @@
+# [v1.0.23](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.22...v1.0.23) (2026-06-25 14:05:41)
+
+### Patches
+
+* [refactor(agents): centralize artifact contracts via ArtifactContract mixin](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/617bb3d3df830900dc96b1912d371f201a87787e)
+
 # [v1.0.22](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.21...v1.0.22) (2026-06-25 13:23:28)
 
 ### Patches
