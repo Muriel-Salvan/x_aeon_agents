@@ -46,7 +46,7 @@ module XAeonAgentsSkills
             Co-authored by X-Aeon AI Agents:
             #{
               (@authors + [git_diff_interpreter_agent.diff_interpreter_agent]).map do |agent|
-                "* #{agent.name}#{" (#{agent.model})" if agent.respond_to?(:model)}"
+                "* #{agent.full_name}"
               end.join("\n")
             }
           EO_COMMIT

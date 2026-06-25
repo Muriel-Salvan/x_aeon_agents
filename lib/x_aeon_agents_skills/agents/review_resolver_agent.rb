@@ -177,7 +177,7 @@ module XAeonAgentsSkills
                   ]
                 }
               )
-              full_reply = "[X-Aeon Agent (#{ReviewResponderAgent.new.model})] - #{@artifacts[:reply]}"
+              full_reply = "[X-Aeon Agent #{review_responder_agent.full_name}] - #{@artifacts[:reply]}"
               @artifacts[:replies] ||= []
               @artifacts[:replies] << { comment_id: comment[:comment_id], reply: full_reply }
               Helpers.github.create_pull_request_comment_reply(Helpers.github_repo, pull_request_number, full_reply, comment[:comment_id])

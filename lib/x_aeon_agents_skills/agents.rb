@@ -367,7 +367,7 @@ module XAeonAgentsSkills
         end
         # Keep the log of the agent's run in an artifact
         @artifacts[:agents_run] = '' if @artifacts[:agents_run].nil?
-        @artifacts[:agents_run] << "* #{agent.name}: #{agent.model}\n"
+        @artifacts[:agents_run] << "* #{agent.full_name}\n"
         result.output
       end
 
