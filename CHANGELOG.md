@@ -1,3 +1,10 @@
+# [v1.0.27](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.26...v1.0.27) (2026-06-25 15:49:37)
+
+### Patches
+
+* [feat: add start_task script to create worktree from branch](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/ed8e8d7ac148c0edd9359ef35587f0c9de24a1a3)
+* [refactor(agents): replace direct implement_requirements with DeveloperAgent step](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/46b4a2e525f8bce4f3eb234a8be39e301675c0e3)
+
 # [v1.0.26](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.25...v1.0.26) (2026-06-25 15:16:05)
 
 ### Patches
