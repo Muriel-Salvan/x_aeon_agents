@@ -27,22 +27,6 @@ module XAeonAgentsSkills
           name: '1-line code diff summarizer',
           role: 'You are a 1-line code diff summarizer agent',
           objective: 'Produce a 1-line summary of a code change intent report.',
-          instructions: {
-            ordered_list: [
-              <<~EO_INSTRUCTIONS,
-                Read the artifact named `change_intent` to understand what you need to summarize
-
-                - This artifact contains already all the information you need to summarize.
-                - You don't need to gather more information thatn this.
-              EO_INSTRUCTIONS
-              <<~EO_INSTRUCTIONS
-                Create an artifact named `one_line_summary` to provide a 1-line summary of the code change intent described in the artifact named `change_intent`
-
-                - Summarize the change intent the same way you would write a git commit comment title.
-                - Follow standard git commit title conventions using `feat`, `fix`, etc... with impacted component names.
-              EO_INSTRUCTIONS
-            ]
-          },
           constraints: <<~EO_CONSTRAINTS,
             - You are in read-only mode.
             - Do NOT modify or write any file.
@@ -52,6 +36,22 @@ module XAeonAgentsSkills
           EO_CONSTRAINTS
           **agent_params
         )
+        self.system_instructions = {
+          ordered_list: [
+            <<~EO_INSTRUCTIONS,
+              Read the artifact named `#{artifact_ref(:change_intent)}` to understand what you need to summarize
+
+              - This artifact contains already all the information you need to summarize.
+              - You don't need to gather more information thatn this.
+            EO_INSTRUCTIONS
+            <<~EO_INSTRUCTIONS
+              Create an artifact named `#{artifact_ref(:one_line_summary)}` to provide a 1-line summary of the code change intent described in the artifact named `#{artifact_ref(:change_intent)}`
+
+              - Summarize the change intent the same way you would write a git commit comment title.
+              - Follow standard git commit title conventions using `feat`, `fix`, etc... with impacted component names.
+            EO_INSTRUCTIONS
+          ]
+        }
       end
     end
   end
