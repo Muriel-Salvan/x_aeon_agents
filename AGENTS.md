@@ -10,7 +10,6 @@
 - **applying-test-conventions**: Applies idiomatic test conventions, structure, and best practices when writing or modifying unit tests. What this does is defining a set of rules to follow when dealing with any test file. Use this when the user is asking to create, edit, refactor, or review test files or when the project contains test scenarios. Use this skill also in Plan mode.
 - **committing-changes**: Commits changes and pushes them on GitHub. What this does is stage relevant files, create a git commit and push it on GitHub. Use this when development and testing has been done and changes are ready to be committed and pushed to GitHub.
 - **creating-pull-request**: Creates a Pull Request for the current git branch on GitHub. Use this when a Pull Request needs to be created to track the current feature branch changes on GitHub.
-- **editing-files**: Edits text files of any kind. What this does is defining a set of rules to follow when editing or creating any file. Use this when the user is asking to create or edit any file or when you need to create or edit files.
 - **enforcing-project-rules**: Enforces project-level operational rules that govern how the agent interacts with the workspace, CLI, and version control. What this does is enumerating governance rules that you should always follow when working in a project. Use this in ALL tasks executed inside a repository to ensure compliance with project constraints such as working directory rules and git branch restrictions. Use this skill also in Plan mode.
 - **implementing-github-issue**: Implements what is described in a GitHub issue. What this does is first devise an implementation plan from the issue, execute the plan and validate production qualiy gates. Use this when the user is asking you to implement a GitHub issue. Use this skill also in Plan mode.
 - **improving-agent-reflection**: Proposes focused, high-value improvements to your active rules and skills. What this does is reflect on the user feedback and guidance, then suggests changes in Cline rules and skills. Use this when you are about to complete a task that involved user feedback provided at any point during the conversation, or involved multiple non-trivial steps (e.g., multiple file edits, complex logic generation).
@@ -72,19 +71,15 @@ Skills provide specialized capabilities and domain knowledge.
 
 <skill>
 <name>committing-changes</name>
-<description>Commits changes and pushes them on GitHub. What this does is stage relevant files, create a git commit and push it on GitHub. Use this when development and testing has been done and changes are ready to be committed and pushed to GitHub.</description>
+<description>Commits changes and pushes them on GitHub. What this does is stage relevant files, create a git commit and push it on GitHub. Use this when development and testing has been done and changes are ready to be committed and pushed to GitHub.
+</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>creating-pull-request</name>
-<description>Creates a Pull Request for the current git branch on GitHub. Use this when a Pull Request needs to be created to track the current feature branch changes on GitHub.</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>editing-files</name>
-<description>Edits text files of any kind. What this does is defining a set of rules to follow when editing or creating any file. Use this when the user is asking to create or edit any file or when you need to create or edit files.</description>
+<description>Creates a Pull Request for the current git branch on GitHub. Use this when a Pull Request needs to be created to track the current feature branch changes on GitHub.
+</description>
 <location>project</location>
 </skill>
 
@@ -102,25 +97,29 @@ Skills provide specialized capabilities and domain knowledge.
 
 <skill>
 <name>improving-agent-reflection</name>
-<description>Proposes focused, high-value improvements to your active rules and skills. What this does is reflect on the user feedback and guidance, then suggests changes in Cline rules and skills. Use this when you are about to complete a task that involved user feedback provided at any point during the conversation, or involved multiple non-trivial steps (e.g., multiple file edits, complex logic generation).</description>
+<description>Proposes focused, high-value improvements to your active rules and skills. What this does is reflect on the user feedback and guidance, then suggests changes in Cline rules and skills. Use this when you are about to complete a task that involved user feedback provided at any point during the conversation, or involved multiple non-trivial steps (e.g., multiple file edits, complex logic generation).
+</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>running-cli-in-wsl-portable</name>
-<description>Runs Bash command lines in a Portable installation under WSL. What this does is execute the command line inside a Portable bash installation in WSL. Use this when a command line should be run under a WSL portable environment.</description>
+<description>Runs Bash command lines in a Portable installation under WSL. What this does is execute the command line inside a Portable bash installation in WSL. Use this when a command line should be run under a WSL portable environment.
+</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>syncing-branch-with-base</name>
-<description>Syncs the current branch with its base. What this does is check the remote base branch, rebase the current one on the updated base and push it back to the remote. Use this when the base branch of the current branch may have diverged and you want to be sure that the current branch gets all latest changes of its base. This Skill is the canonical way to keep a branch up-to-date with its base. It must be used instead of merging the base branch, and always performs a rebase.</description>
+<description>Syncs the current branch with its base. What this does is check the remote base branch, rebase the current one on the updated base and push it back to the remote. Use this when the base branch of the current branch may have diverged and you want to be sure that the current branch gets all latest changes of its base. This Skill is the canonical way to keep a branch up-to-date with its base. It must be used instead of merging the base branch, and always performs a rebase.
+</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>updating-doc</name>
-<description>Update the documentation of the project. What this does is update the README file of the project, its CLI usage and its Table of Content. Use this when a new development has been completed or when the user is asking for documentation or README to be updated.</description>
+<description>Update the documentation of the project. What this does is update the README file of the project, its CLI usage and its Table of Content. Use this when a new development has been completed or when the user is asking for documentation or README to be updated.
+</description>
 <location>project</location>
 </skill>
 

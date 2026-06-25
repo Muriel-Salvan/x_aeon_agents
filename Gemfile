@@ -1,5 +1,9 @@
 source 'https://rubygems.org'
 
+gem 'cline-rb', path: '../../../cline-rb'
+gem 'composable_agents', path: '../../../composable_agents'
+gem 'pty_compat', path: '../../../pty_compat'
+
 gemspec
 
 gem 'rspec', '~> 3.13'
