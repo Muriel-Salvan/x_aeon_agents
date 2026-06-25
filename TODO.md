@@ -1,4 +1,5 @@
 * Create a Cline rubygem that handles tasks and CLI and use it here.
+* Don't put .x-aeon_agents dir in the project dir: it confuses the LLMs.
 * Add desktop notification when user input is needed.
 * Test with other models.
 * Provide a unified CLI with Thor and actions to not pollute the user CLI environment too much.
