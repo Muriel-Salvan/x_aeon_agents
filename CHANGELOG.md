@@ -1,3 +1,9 @@
+# [v1.0.25](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.24...v1.0.25) (2026-06-25 14:48:43)
+
+### Patches
+
+* [feat: switch free_simple model to cohere/north-mini-code](https://github.com/Muriel-Salvan/x_aeon_agents_skills/commit/83c12a2baa9d815c5fa73b8895142c995de47a7c)
+
 # [v1.0.24](https://github.com/Muriel-Salvan/x_aeon_agents_skills/compare/v1.0.23...v1.0.24) (2026-06-25 14:15:52)
 
 ### Patches
