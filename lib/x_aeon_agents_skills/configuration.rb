@@ -43,7 +43,6 @@ module XAeonAgentsSkills
           ai_agents_config.debug = config[:debug]
         end
         RubyLLM.configure do |ruby_llm_config|
-          ruby_llm_config.cline_api_key = config[:cline_api_key]
           ruby_llm_config.openrouter_api_key = config[:openrouter_api_key]
         end
 
