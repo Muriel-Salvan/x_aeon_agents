@@ -32,6 +32,15 @@ module XAeonAgentsSkills
         CommitterAgent.new.run
       end
 
+      # Generate the README.md file.
+      # If the staging area is empty, add everything.
+      # Ask for a confirmation on the message from an editor.
+      #
+      # @param run_id [String, nil] The associated run ID, or nil if no persistence needed.
+      def generate_readme(run_id: nil)
+        ReadmeGeneratorAgent.new(run_id:).run
+      end
+
       # Interpret current code diffs
       #
       # Parameters::

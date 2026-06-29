@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'x_aeon_agents_skills'
+
+XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
+XAeonAgentsSkills::Agents.generate_readme
