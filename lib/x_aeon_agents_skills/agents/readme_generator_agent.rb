@@ -235,8 +235,8 @@ module XAeonAgentsSkills
 
               #{ComposableAgents::Utils::Markdown.align_markdown_headers(@artifacts[:about], level: 3).strip}
             EO_HEADER
-            if sections.size >= 1 && sections.first.level.zero?
-              sections[0] = header_content
+            if sections.size >= 1 && sections.first[:level].zero?
+              sections[0][:body] = header_content
             else
               sections.unshift(
                 level: 0,
@@ -286,7 +286,7 @@ module XAeonAgentsSkills
                 found_previous_section_index + 1,
                 {
                   level: 2,
-                  title: title,
+                  title: section_title,
                   body: content
                 }
               )
@@ -424,19 +424,10 @@ module XAeonAgentsSkills
       # @param markdown [String] The full Markdown document content.
       # @return [String] The generated Table of Contents as a Markdown list.
       def generate_table_of_contents(markdown)
-        headers = []
-        # Remove fenced code blocks (```...``` sections) to avoid headers inside them
-        markdown.gsub(/```.+?```/m, '').each_line do |line|
-          match = line.match(/\A(#+)\s+(.+)/)
-          next unless match
-
-          headers << { level: match[1].length, title: match[2].strip }
-        end
-        # Build the TOC as a Markdown list with indentation matching header level
-        # We anchor using the same convention as GitHub: lowercase, replace non-alnum chars with hyphens
-        headers.map do |header|
-          "#{'  ' * (header[:level] - 1)}- [#{header[:title]}](#{header[:title].downcase.gsub(/[^a-z0-9]+/, '-').gsub(/-+/, '-').gsub(/\A-|-\z/, '')})"
-        end.join("\n")
+        temp_file = "#{@x_aeon_session_dir}/tmp/content_to_be_toced.md"
+        FileUtils.mkdir_p File.dirname(temp_file)
+        File.write(temp_file, markdown)
+        `npx doctoc --github --notitle --stdout #{temp_file}`.gsub(/==================\n.+$/m, '').strip
       end
     end
   end
