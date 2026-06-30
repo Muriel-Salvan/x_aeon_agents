@@ -57,6 +57,8 @@ module XAeonAgentsSkills
       # * *github_issue_number* (Integer): The Github issue number to implement
       # * *run_id* (String or nil): The associated run ID, or nil if no persistence needed [default: nil]
       def implement_github_issue(github_issue_number, run_id: nil)
+        raise 'Unable to find the Github repository' unless Helpers.github_repo
+
         issue = Helpers.github.issue(Helpers.github_repo, github_issue_number)
         issue_comments = Helpers.github.issue_comments(Helpers.github_repo, github_issue_number)
         sections = [

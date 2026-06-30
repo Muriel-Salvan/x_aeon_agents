@@ -30,6 +30,8 @@ module XAeonAgentsSkills
       # @param requirements [String] The initial requirements.
       # @return Hash<Symbol,Object> Output artifacts content
       def run(base_sha:, requirements:)
+        raise 'Unable to find the Github repository' unless Helpers.github_repo
+
         repo_name = Helpers.github_repo
         head_branch = Helpers.git.current_branch
 
