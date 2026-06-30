@@ -31,35 +31,39 @@ module XAeonAgentsSkills
           owner, repo = Helpers.github_repo.split('/')
           pr_json = Helpers.github.post(
             '/graphql',
-            {
-              query: File.read("#{__dir__}/../gh_comments.gql"),
-              variables: {
-                owner:,
-                repo:,
-                pr: pull_request_number
-              }
-            }.to_json
-          )[:data][:repository][:pullRequest]
-          @artifacts[:pr_conversations] = pr_json[:reviewThreads][:edges].select do |review_thread|
-            !review_thread[:node][:isResolved] &&
-              review_thread[:node][:comments][:nodes].any? do |comment|
-                comment[:needAIReply] = comment[:body].start_with?('/agent') &&
-                  comment_replies(review_thread[:node][:comments][:nodes], comment).none? { |reply| reply[:body].match(/^\[X-Aeon Agent \([^)]+\)\]/) }
-                comment[:needAIReply]
-              end
-          end.map do |review_thread|
-            review_thread[:node][:comments][:nodes].sort_by { |comment| comment[:createdAt] }.map do |comment|
+            JSON.dump(
               {
-                comment_id: comment[:databaseId],
-                created_at: comment[:createdAt],
-                reply_to_comment_id: comment.dig(:replyTo, :databaseId),
-                author: comment[:author][:login],
-                body: comment[:body],
-                path: comment[:path],
-                need_ai_reply: comment[:needAIReply]
+                query: File.read("#{__dir__}/../gh_comments.gql"),
+                variables: {
+                  owner:,
+                  repo:,
+                  pr: pull_request_number
+                }
               }
+            )
+          )[:data][:repository][:pullRequest]
+          @artifacts[:pr_conversations] = JSON.dump(
+            pr_json[:reviewThreads][:edges].select do |review_thread|
+              !review_thread[:node][:isResolved] &&
+                review_thread[:node][:comments][:nodes].any? do |comment|
+                  comment[:needAIReply] = comment[:body].start_with?('/agent') &&
+                    comment_replies(review_thread[:node][:comments][:nodes], comment).none? { |reply| reply[:body].match(/^\[X-Aeon Agent \([^)]+\)\]/) }
+                  comment[:needAIReply]
+                end
+            end.map do |review_thread|
+              review_thread[:node][:comments][:nodes].sort_by { |comment| comment[:createdAt] }.map do |comment|
+                {
+                  comment_id: comment[:databaseId],
+                  created_at: comment[:createdAt],
+                  reply_to_comment_id: comment.dig(:replyTo, :databaseId),
+                  author: comment[:author][:login],
+                  body: comment[:body],
+                  path: comment[:path],
+                  need_ai_reply: comment[:needAIReply]
+                }
+              end
             end
-          end.to_json
+          )
         end
 
         pr_conversations = JSON.parse(@artifacts[:pr_conversations], symbolize_names: true)

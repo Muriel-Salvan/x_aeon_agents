@@ -115,7 +115,7 @@ module XAeonAgentsSkillsTest
       items.each do |item|
         db.execute(
           'INSERT INTO ItemTable (key, value) VALUES (?, ?)',
-          [item[:key], item[:value].to_json]
+          [item[:key], JSON.dump(item[:value])]
         )
       end
 
