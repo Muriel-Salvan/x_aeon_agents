@@ -165,6 +165,17 @@ module XAeonAgentsSkills
         @github_repo ||= github_remote&.url.match(%r{github\.com[:/](.+)\.git})[1]
       end
 
+      # Get the Ruby gem name from the gemspec file, if any.
+      # Returns nil if no gemspec exists.
+      #
+      # @return [String, nil] The gem name, or nil
+      def gem_name
+        @gem_name ||= begin
+          gemspec_files = Dir['*.gemspec']
+          Gem::Specification.load(gemspec_files.first).name unless gemspec_files.empty?
+        end
+      end
+
       # Allow user to review and edit content before using it
       #
       # @param x_aeon_session_dir [String] Session directory that can be used for temporary files
