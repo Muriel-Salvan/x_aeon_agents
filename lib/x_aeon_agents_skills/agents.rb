@@ -30,8 +30,41 @@ module XAeonAgentsSkills
       # Ask for a confirmation on the message from an editor.
       #
       # @param run_id [String, nil] The associated run ID, or nil if no persistence needed.
-      def generate_readme(run_id: nil)
-        ReadmeGeneratorAgent.new(run_id:).run
+      # @param gen_about [Boolean] Generate the about/header section (name, description, badges, TOC).
+      # @param gen_quick_start [Boolean] Generate the "Quick start" section.
+      # @param gen_requirements [Boolean] Generate the "Requirements" section.
+      # @param gen_features [Boolean] Generate the "Features" section.
+      # @param gen_public_api [Boolean] Generate the "Public API" section.
+      # @param gen_documentation [Boolean] Generate the "Documentation" section.
+      # @param gen_how_it_works [Boolean] Generate the "How it works" section.
+      # @param gen_development [Boolean] Generate the "Development" section.
+      # @param gen_contributing [Boolean] Generate the "Contributing" section.
+      # @param gen_license [Boolean] Generate the "License" section.
+      def generate_readme(
+        run_id: nil,
+        gen_about: true,
+        gen_quick_start: true,
+        gen_requirements: true,
+        gen_features: true,
+        gen_public_api: true,
+        gen_documentation: true,
+        gen_how_it_works: true,
+        gen_development: true,
+        gen_contributing: true,
+        gen_license: true
+      )
+        ReadmeGeneratorAgent.new(run_id:).run(
+          gen_about:,
+          gen_quick_start:,
+          gen_requirements:,
+          gen_features:,
+          gen_public_api:,
+          gen_documentation:,
+          gen_how_it_works:,
+          gen_development:,
+          gen_contributing:,
+          gen_license:
+        )
       end
 
       # Interpret current code diffs
