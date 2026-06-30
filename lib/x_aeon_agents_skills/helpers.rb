@@ -152,23 +152,17 @@ module XAeonAgentsSkills
       # Get the Github remote from the Git remotes.
       # Keep a cache of it.
       #
-      # Result::
-      # * Git::Remote: The Github remote instance
+      # @return [Git::Remote, nil] The Github remote instance, or nil if none
       def github_remote
-        @github_remote ||= begin
-          remote = git.remotes.find { |remote| remote.url.match(%r{github\.com[:/].+\.git}) }
-          raise 'Can\'t find a Github remote in this repository' if remote.nil?
-          remote
-        end
+        @github_remote ||= git.remotes.find { |remote| remote.url.match(%r{github\.com[:/].+\.git}) }
       end
 
       # Get the current repository name from the Git remote URL.
       # Keep a cache of it.
       #
-      # Result::
-      # * String: The repository name in the format "owner/repo"
+      # @return [String, nil] The Github repository name in the format "owner/repo", or nil if none
       def github_repo
-        @github_repo ||= github_remote.url.match(%r{github\.com[:/](.+)\.git})[1]
+        @github_repo ||= github_remote&.url.match(%r{github\.com[:/](.+)\.git})[1]
       end
 
       # Allow user to review and edit content before using it
@@ -190,8 +184,6 @@ module XAeonAgentsSkills
         promptable: false,
         content: ''
       )
-        require 'launchy'
-        
         content_file = "#{x_aeon_session_dir}/reviews/#{Time.now.utc.strftime('%F-%H-%M-%S')}-#{name}"
         FileUtils.mkdir_p File.dirname(content_file)
         File.write(content_file, content)

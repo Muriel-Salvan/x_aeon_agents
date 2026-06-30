@@ -25,6 +25,8 @@ module XAeonAgentsSkills
       # @param pull_request_number [Integer] The Pull Request number to address comments for
       # @return Hash<Symbol,Object> Output artifacts content
       def run(pull_request_number:)
+        raise 'Unable to find the Github repository' unless Helpers.github_repo
+
         step(:gather_comments) do
           owner, repo = Helpers.github_repo.split('/')
           pr_json = Helpers.github.post(
