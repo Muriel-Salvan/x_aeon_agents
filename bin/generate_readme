@@ -2,5 +2,7 @@
 
 require 'x_aeon_agents_skills'
 
+run_id = ARGV[0]
+
 XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.generate_readme
+XAeonAgentsSkills::Agents.generate_readme(run_id:)
