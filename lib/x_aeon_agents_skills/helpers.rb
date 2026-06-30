@@ -1,4 +1,7 @@
 require 'fileutils'
+require 'git'
+require 'launchy'
+require 'octokit'
 require 'open3'
 
 module XAeonAgentsSkills

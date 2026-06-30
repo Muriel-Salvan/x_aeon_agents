@@ -1,12 +1,5 @@
 require 'agents'
-require 'commonmarker'
 require 'composable_agents'
-require 'front_matter_parser'
-require 'git'
-require 'json'
-require 'launchy'
-require 'octokit'
-require 'ruby_llm/model/info'
 require 'time'
 
 module XAeonAgentsSkills
