@@ -260,8 +260,7 @@ module XAeonAgentsSkills
           ordered_sections.each.with_index do |(section_title, art_name), idx_section|
             next unless @artifacts[art_name]
 
-            # TODO: If the content contains a grouping header, remove it.
-            content = "## #{section_title}\n\n#{ComposableAgents::Utils::Markdown.align_markdown_headers(@artifacts[art_name], level: 3).strip}"
+            content = "## #{section_title}\n\n#{ComposableAgents::Utils::Markdown.align_markdown_headers(strip_grouping_header(@artifacts[art_name]), level: 3).strip}"
             # Find the section of this title if any
             existing_idx = sections.index { |section| section[:title] == section_title }
             if existing_idx
@@ -382,6 +381,42 @@ module XAeonAgentsSkills
           }
         end
         sections
+      end
+
+      # If the markdown content has exactly 1 heading at the smallest level present,
+      # remove it. This strips the "grouping" header that AI-generated sections
+      # sometimes produce (e.g. a single `#` or `##` wrapping the rest of the content).
+      #
+      # @param markdown [String] The markdown content to process.
+      # @return [String] The markdown content with the grouping header removed,
+      #   or the original if there are 0 or 2+ headings at the smallest level.
+      def strip_grouping_header(markdown)
+        # Collect all heading nodes with their levels
+        heading_nodes = []
+        min_level = nil
+        Commonmarker.parse(markdown).walk do |node|
+          next unless node.type == :heading
+
+          heading_nodes << node
+          min_level = node.header_level if min_level.nil? || node.header_level < min_level
+        end
+        # No headings at all — nothing to strip
+        return markdown if heading_nodes.empty? || min_level.nil?
+
+        # Find headings at the minimum level
+        min_level_nodes = heading_nodes.select { |node| node.header_level == min_level }
+        # Only strip when there is exactly 1 heading at the minimum level
+        return markdown unless min_level_nodes.size == 1
+
+        heading_node = min_level_nodes.first
+        start_line = heading_node.source_position[:start_line] # 1-indexed
+        # Only strip if it is on the top of the document
+        return markdown unless start_line == 1
+
+        end_line = heading_node.source_position[:end_line] # 1-indexed
+        lines = markdown.lines.map(&:chomp)
+        # Remove the heading lines (only the heading, not trailing blank lines that belong to content)
+        (lines[0...(start_line - 1)] + lines[end_line..]).join("\n").strip
       end
 
       # Generate a Table of Contents (String) from a Markdown document string.
