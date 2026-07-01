@@ -25,8 +25,10 @@ jobs:
       - name: Run unit tests
         run: bundle exec rspec --format documentation
 
-      - name: Test packaging
-        run: bundle exec gem build x_aeon_agents_skills.gemspec
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   package:
     needs: test

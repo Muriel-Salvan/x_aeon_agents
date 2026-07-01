@@ -67,6 +67,7 @@ Style/MutableConstant:
 RSpec/DescribeClass:
   Exclude:
     - 'spec/scenarios/code_quality_spec.rb'
+    - 'spec/scenarios/documentation_spec.rb'
     - 'spec/scenarios/packaging_spec.rb'
 
 # It's ok to have test scenarios having several expectations

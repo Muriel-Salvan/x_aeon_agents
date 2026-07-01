@@ -1,3 +1,10 @@
+require 'simplecov'
+SimpleCov.start do
+  minimum_coverage 99
+end
+require 'simplecov-cobertura'
+SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
+
 require 'x_aeon_agents_skills'
 require 'zeitwerk'
 
