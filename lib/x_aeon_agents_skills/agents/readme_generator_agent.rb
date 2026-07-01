@@ -328,7 +328,12 @@ module XAeonAgentsSkills
             "[![License](https://img.shields.io/github/license/#{Helpers.github_repo})](LICENSE)"
           )
         end
-        badges.push("[![Gem Version](https://badge.fury.io/rb/#{Helpers.gem_name}.svg)](https://badge.fury.io/rb/#{Helpers.gem_name})") if Helpers.gem_name
+        if Helpers.gem_name
+          badges.push(
+            "[![Gem Version](https://img.shields.io/gem/v/#{Helpers.gem_name})](https://rubygems.org/gems/#{Helpers.gem_name})",
+            "[![Gem Total Downloads](https://img.shields.io/gem/dt/#{Helpers.gem_name})](https://rubygems.org/gems/#{Helpers.gem_name})"
+          )
+        end
         badges
       end
 
