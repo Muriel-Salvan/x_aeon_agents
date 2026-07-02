@@ -5,9 +5,9 @@ require 'yaml'
 RSpec.describe 'Gem packaging' do
   it 'successfully builds the gem and creates the correct file in specific test location' do
     Dir.mktmpdir do |temp_dir|
-      gem_file = File.join(temp_dir, "composable_agents-#{ComposableAgents::VERSION}.gem")
+      gem_file = File.join(temp_dir, "x_aeon_agents-#{XAeonAgents::VERSION}.gem")
       # Run gem build command with explicit output to our test directory
-      stdout = `gem build composable_agents.gemspec --output #{gem_file}`
+      stdout = `gem build x_aeon_agents.gemspec --output #{gem_file}`
 
       expect($CHILD_STATUS.exitstatus).to eq(0)
       expect(stdout).to include('Successfully built RubyGem')
@@ -28,8 +28,8 @@ RSpec.describe 'Gem packaging' do
           Symbol
         ]
       )
-      expect(gem_spec.name).to eq('composable_agents')
-      expect(gem_spec.version.to_s).to eq(ComposableAgents::VERSION)
+      expect(gem_spec.name).to eq('x_aeon_agents')
+      expect(gem_spec.version.to_s).to eq(XAeonAgents::VERSION)
     end
   end
 end
