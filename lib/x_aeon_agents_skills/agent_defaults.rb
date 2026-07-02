@@ -5,23 +5,23 @@ module XAeonAgentsSkills
     class << self
       # Get the singleton session ID.
       # If it is the first time it is invoked, use a default session ID.
-      def singleton_x_aeon_session_id
-        @singleton_x_aeon_session_id ||= Time.now.utc.strftime('%Y-%m-%d-%H-%M-%S-%N')
+      def singleton_session_id
+        @singleton_session_id ||= Time.now.utc.strftime('%Y-%m-%d-%H-%M-%S-%N')
       end
     end
 
     # Constructor
     #
     # @param args [Array] Agent's constructor arguments
-    # @param x_aeon_session_id [String, nil] Specific X-Aeon session id to be used, or nil if none
+    # @param session_id [String, nil] Specific X-Aeon session id to be used, or nil if none
     # @param kwargs [Array] Agent's constructor kwargs
-    def initialize(*args, x_aeon_session_id: nil, **kwargs)
-      @x_aeon_session_id = x_aeon_session_id || AgentDefaults.singleton_x_aeon_session_id
-      @x_aeon_session_dir = ".x-aeon_agents/sessions/#{@x_aeon_session_id}"
+    def initialize(*args, session_id: nil, **kwargs)
+      @session_id = session_id || AgentDefaults.singleton_session_id
+      @session_dir = ".x-aeon_agents/sessions/#{@session_id}"
       super(
         *args,
-        composable_agents_dir: "#{@x_aeon_session_dir}/composable_agents",
-        run_id: "#{@x_aeon_session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
+        composable_agents_dir: "#{@session_dir}/composable_agents",
+        run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
         **kwargs
       )
     end
@@ -34,7 +34,7 @@ module XAeonAgentsSkills
     # @param kwargs [Hash] Constructor kwargs
     # @return [ComposableAgents::Agent] The new agent
     def new_agent(agent_class, *args, **kwargs)
-      agent_class.new(*args, x_aeon_session_id: @x_aeon_session_id, **kwargs)
+      agent_class.new(*args, session_id: @session_id, **kwargs)
     end
 
     # Hook called when this mixin is prepended in a class

@@ -2,11 +2,11 @@
 
 # Parameters:
 # * *pull_request_number* (Integer): The Pull Request number to look for comments
-# * *run_id* (String): [Optional] The run ID for persistence
+# * *session_id* (String): [Optional] The session ID for persistence
 pull_request_number = Integer(ARGV[0])
-run_id = ARGV[1]
+session_id = ARGV[1]
 
 require 'x_aeon_agents_skills'
 
 XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.address_pull_request_comments(pull_request_number, run_id:)
+ReviewResolverAgent.new(session_id:).run(pull_request_number:)

@@ -2,11 +2,58 @@
 
 # Parameters:
 # * *github_issue_number* (Integer): The Github issue number to implement
-# * *run_id* (String): [Optional] The run ID for persistence
+# * *session_id* (String): [Optional] The session ID for persistence
 github_issue_number = Integer(ARGV[0])
-run_id = ARGV[1]
+session_id = ARGV[1]
 
 require 'x_aeon_agents_skills'
+require 'composable_agents'
+
+# Format comments for use in artifacts
+#
+# Parameters::
+# * *comments* (Array<Octokit::IssueComment>): Comments to format
+# Result::
+# * String: Formatted comments as markdown
+def format_comments_for_artifact(comments)
+  return 'No comments' if comments.empty?
+
+  comments.sort_by(&:created_at).map do |comment|
+    <<~EO_COMMENT
+      ## #{comment.user.login} at #{comment.created_at.utc.strftime('%F %T UTC')}
+
+      #{ComposableAgents::Utils::Markdown.align_markdown_headers(comment.body, level: 3)}
+    EO_COMMENT
+  end.join("\n")
+end
 
 XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.implement_github_issue(github_issue_number, run_id:)
+raise 'Unable to find the Github repository' unless XAeonAgentsSkills::Helpers.github_repo
+
+issue = XAeonAgentsSkills::Helpers.github.issue(XAeonAgentsSkills::Helpers.github_repo, github_issue_number)
+issue_comments = XAeonAgentsSkills::Helpers.github.issue_comments(XAeonAgentsSkills::Helpers.github_repo, github_issue_number)
+sections = [
+  <<~EO_SECTION
+    # #{issue.title}
+
+    #{ComposableAgents::Utils::Markdown.align_markdown_headers(issue.body, level: 2)}
+  EO_SECTION
+]
+sections << <<~EO_SECTION unless issue_comments.empty?
+  # Comments
+
+  This is the conversation log that happened in this issue.
+  This is provided as a reference to better understand the requirements.
+
+  #{format_comments_for_artifact(issue_comments)}
+EO_SECTION
+sections << <<~EO_SECTION
+  # Associated Github issue
+
+  - Number: #{issue.number}
+  - Labels: #{issue.labels.map(&:name).join(', ')}
+  - State: #{issue.state}
+  - URL: #{issue.html_url}
+EO_SECTION
+requirements = sections.map(&:strip).join("\n\n")
+DeveloperAgent.new(commit: true, pull_request: true, session_id:).run(requirements:)
