@@ -1,0 +1,484 @@
+#!/usr/bin/env ruby
+
+require 'erb'
+require 'fileutils'
+require 'front_matter_parser'
+require 'pathname'
+require 'thor'
+require 'x_aeon_agents'
+
+module XAeonAgents
+  module CLI
+    # Main X-Aeon Agents CLI
+    class Main < Thor
+      # --------------------------------------------------------------------------- #
+      # review-comments: Address Pull Request review comments
+      # --------------------------------------------------------------------------- #
+
+      desc 'review-comments PULL_REQUEST_NUMBER', 'Address review comments on a GitHub Pull Request'
+      long_desc <<~LONGDESC
+        Reads Pull Request comments addressed to the agent, improves or fixes
+        the code based on those comments, and replies to each one. The Pull
+        Request is identified by its number in the current GitHub repository.
+
+        Examples:
+
+          \x5   xaa review-comments 42
+
+          \x5   xaa review-comments 42 --session-id my-session
+      LONGDESC
+      option :session_id, type: :string, desc: 'Session ID for persistence'
+      def review_comments(pull_request_number)
+        configure!
+        XAeonAgents::Agents::ReviewResolverAgent.new(session_id: options[:session_id]).run(
+          pull_request_number: Integer(pull_request_number)
+        )
+      end
+
+      # --------------------------------------------------------------------------- #
+      # commit: Commit staged changes with an AI-generated message
+      # --------------------------------------------------------------------------- #
+
+      desc 'commit', 'Commit staged changes with an AI-generated commit message'
+      long_desc <<~LONGDESC
+        Analyzes the currently staged changes and generates a meaningful commit
+        message before committing.
+
+        Example:
+
+          \x5   xaa commit
+      LONGDESC
+      def commit
+        configure!
+        XAeonAgents::Agents::CommitterAgent.new.run
+      end
+
+      # --------------------------------------------------------------------------- #
+      # generate-readme: Generate or update the project README
+      # --------------------------------------------------------------------------- #
+
+      desc 'generate-readme', 'Generate a comprehensive README from the codebase'
+      long_desc <<~LONGDESC
+        Uses AI to analyze the project and generate a README file with the
+        following sections (all enabled by default):
+
+          --about
+          --quick-start
+          --requirements
+          --features
+          --public-api
+          --documentation
+          --how-it-works
+          --development
+          --contributing
+          --license
+
+        Disable individual sections with --no-<section>.
+
+        Examples:
+
+          \x5   xaa generate-readme
+
+          \x5   xaa generate-readme --no-features --no-license --session-id my-session
+      LONGDESC
+      option :session_id, type: :string, desc: 'Session ID for persistence'
+      option :about, type: :boolean, default: true, desc: 'Generate the About section'
+      option :quick_start, type: :boolean, default: true, desc: 'Generate the Quick Start section'
+      option :requirements, type: :boolean, default: true, desc: 'Generate the Requirements section'
+      option :features, type: :boolean, default: true, desc: 'Generate the Features section'
+      option :public_api, type: :boolean, default: true, desc: 'Generate the Public API section'
+      option :documentation, type: :boolean, default: true, desc: 'Generate the Documentation section'
+      option :how_it_works, type: :boolean, default: true, desc: 'Generate the How It Works section'
+      option :development, type: :boolean, default: true, desc: 'Generate the Development section'
+      option :contributing, type: :boolean, default: true, desc: 'Generate the Contributing section'
+      option :license, type: :boolean, default: true, desc: 'Generate the License section'
+      def generate_readme
+        configure!
+        XAeonAgents::Agents::ReadmeGeneratorAgent.new(session_id: options[:session_id]).run(
+          gen_about: options[:about],
+          gen_quick_start: options[:quick_start],
+          gen_requirements: options[:requirements],
+          gen_features: options[:features],
+          gen_public_api: options[:public_api],
+          gen_documentation: options[:documentation],
+          gen_how_it_works: options[:how_it_works],
+          gen_development: options[:development],
+          gen_contributing: options[:contributing],
+          gen_license: options[:license]
+        )
+      end
+
+      # --------------------------------------------------------------------------- #
+      # generate-skills: Generate skill files from ERB templates
+      # --------------------------------------------------------------------------- #
+
+      desc 'generate-skills', 'Generate skill files from ERB templates in skills.src/'
+      long_desc <<~LONGDESC
+        Processes the skills.src/ directory and writes generated skill files to
+        the output directory (default: skills/).  ERB templates (.erb) are
+        evaluated; all other files are copied as-is.
+
+        Examples:
+
+          \x5   xaa generate-skills
+
+          \x5   xaa generate-skills --output-dir custom_skills
+      LONGDESC
+      option :output_dir, type: :string, default: 'skills', desc: 'Output directory for generated skills'
+      def generate_skills
+        transformations = {
+          '.erb' => proc { |src_file| XAeonAgents::GenHelpers::ErbEvaluator.new(src_file).result }
+        }.freeze
+
+        src_dir = File.expand_path('skills.src')
+        src_pathname = Pathname.new(src_dir)
+        dest_dir = File.expand_path(options[:output_dir])
+
+        FileUtils.mkdir_p(dest_dir)
+
+        failed = false
+        Dir.glob(File.join(src_dir, '**', '*'), File::FNM_DOTMATCH).
+          select { |f| File.file?(f) && File.basename(f) != '.skill_config.yml' }.
+          each do |src_file|
+            relative_path = Pathname.new(src_file).relative_path_from(src_pathname).to_s
+            file_ext = File.extname(relative_path)
+            dst_file = File.join(
+              dest_dir,
+              transformations.key?(file_ext) ? relative_path.sub(/#{Regexp.escape(file_ext)}$/, '') : relative_path
+            )
+            puts "Processing: #{relative_path}"
+            puts "    Output: #{dst_file}"
+            begin
+              FileUtils.mkdir_p(File.dirname(dst_file))
+              if transformations.key?(file_ext)
+                File.write(dst_file, transformations[file_ext].call(src_file))
+              else
+                FileUtils.cp(src_file, dst_file)
+              end
+              puts '    Status: ✓ Processed successfully'
+            rescue StandardError => e
+              puts "    Status: ✗ Error - #{e.message}\n    #{e.backtrace.first}"
+              failed = true
+            end
+            puts
+          end
+
+        puts
+        if failed
+          puts 'Skills generated with some errors (see above).'
+          exit 1
+        else
+          puts 'Skills generated successfully.'
+        end
+      end
+
+      # --------------------------------------------------------------------------- #
+      # implement-issue: Implement a GitHub issue
+      # --------------------------------------------------------------------------- #
+
+      desc 'implement-issue ISSUE_NUMBER', 'Implement a GitHub issue using AI'
+      long_desc <<~LONGDESC
+        Reads the content (and comments) of a GitHub issue and delegates the
+        implementation to the Developer agent.  The agent commits changes and
+        opens a Pull Request automatically.
+
+        Examples:
+
+          \x5   xaa implement-issue 15
+
+          \x5   xaa implement-issue 15 --session-id my-session
+      LONGDESC
+      option :session_id, type: :string, desc: 'Session ID for persistence'
+      def implement_issue(github_issue_number)
+        configure!
+        require 'composable_agents'
+
+        raise 'Unable to find the Github repository' unless XAeonAgents::Helpers.github_repo
+
+        issue = XAeonAgents::Helpers.github.issue(
+          XAeonAgents::Helpers.github_repo,
+          Integer(github_issue_number)
+        )
+        issue_comments = XAeonAgents::Helpers.github.issue_comments(
+          XAeonAgents::Helpers.github_repo,
+          Integer(github_issue_number)
+        )
+
+        sections = [
+          <<~EO_SECTION
+            # #{issue.title}
+
+            #{ComposableAgents::Utils::Markdown.align_markdown_headers(issue.body, level: 2)}
+          EO_SECTION
+        ]
+        unless issue_comments.empty?
+          sections << <<~EO_SECTION
+            # Comments
+
+            This is the conversation log that happened in this issue.
+            This is provided as a reference to better understand the requirements.
+
+            #{format_comments_for_artifact(issue_comments)}
+          EO_SECTION
+        end
+        sections << <<~EO_SECTION
+          # Associated Github issue
+
+          - Number: #{issue.number}
+          - Labels: #{issue.labels.map(&:name).join(', ')}
+          - State: #{issue.state}
+          - URL: #{issue.html_url}
+        EO_SECTION
+
+        requirements = sections.map(&:strip).join("\n\n")
+        XAeonAgents::Agents::DeveloperAgent.new(
+          commit: true,
+          pull_request: true,
+          session_id: options[:session_id]
+        ).run(requirements:)
+      end
+
+      # --------------------------------------------------------------------------- #
+      # implement: Implement arbitrary requirements
+      # --------------------------------------------------------------------------- #
+
+      desc 'implement REQUIREMENTS', 'Implement given requirements with AI'
+      long_desc <<~LONGDESC
+        Pass free-form requirements to the Developer agent, which will analyze
+        the codebase and produce the requested changes.
+
+        Examples:
+
+          \x5   xaa implement "Add authentication middleware"
+
+          \x5   xaa implement "Refactor the database layer" --commit --pr --session-id my-session
+      LONGDESC
+      option :session_id, type: :string, desc: 'Session ID for persistence'
+      option :commit, type: :boolean, default: false, desc: 'Commit files at every step'
+      option :pr, type: :boolean, default: false, desc: 'Create a GitHub Pull Request for the changes'
+      def implement(requirements)
+        configure!
+        XAeonAgents::Agents::DeveloperAgent.new(
+          commit: options[:commit],
+          pull_request: options[:pr],
+          session_id: options[:session_id]
+        ).run(requirements:)
+      end
+
+      # --------------------------------------------------------------------------- #
+      # interpret-diffs: Summarize current git diffs
+      # --------------------------------------------------------------------------- #
+
+      desc 'interpret-diffs [BASE]', 'Summarize git diffs relative to a base ref'
+      long_desc <<~LONGDESC
+        Produces a one-line summary and a description of the intent behind the
+        changes in the working tree relative to BASE (default: HEAD).
+
+        Examples:
+
+          \x5   xaa interpret-diffs
+
+          \x5   xaa interpret-diffs main
+
+          \x5   xaa interpret-diffs HEAD~3
+      LONGDESC
+      def interpret_diffs(base = 'HEAD')
+        configure!
+        output = XAeonAgents::Agents::GitDiffInterpreterAgent.new.run(git_ref_base: base)
+        puts <<~EO_OUTPUT
+          ===== Code diffs interpretation:
+
+          #{output[:one_line_summary].strip}
+
+          #{output[:change_intent].strip}
+        EO_OUTPUT
+      end
+
+      # --------------------------------------------------------------------------- #
+      # prompt: Send a one-shot prompt to the AI agent
+      # --------------------------------------------------------------------------- #
+
+      desc 'prompt PROMPT', 'Send a one-shot prompt to the AI agent and print the response'
+      long_desc <<~LONGDESC
+        Executes a single prompt against the free simple AI model and prints
+        the last message of the conversation.
+
+        Examples:
+
+          \x5   xaa prompt "What is the capital of France?"
+
+          \x5   xaa prompt "Explain this code: puts 'hello'"
+      LONGDESC
+      def prompt(user_prompt)
+        configure!
+        agent = XAeonAgents::Agents::ExecutorAgent.new(**XAeonAgents::Models.free_simple)
+        agent.run(user_instructions: user_prompt)
+        puts agent.conversation.last[:message]
+      end
+
+      # --------------------------------------------------------------------------- #
+      # install-skills: Install skills from the .skills manifest
+      # --------------------------------------------------------------------------- #
+
+      desc 'install-skills', 'Install skills and their dependencies from the .skills manifest'
+      long_desc <<~LONGDESC
+        Reads the .skills manifest file and installs every listed skill,
+        together with their recursively-resolved dependencies.
+
+        Example:
+
+          \x5   xaa install-skills
+
+          \x5   xaa install-skills --agent cline
+      LONGDESC
+      option :agent, type: :string, default: 'cline', desc: 'Agent name to be used to install skills'
+      def install_skills
+        agent_name = options[:agent].to_sym
+        original_no_color = ENV['NO_COLOR']
+        ENV['NO_COLOR'] = '1'
+        begin
+          list_lines = `skillkit manifest`.split("\n")
+        ensure
+          ENV['NO_COLOR'] = original_no_color
+        end
+        list_lines = list_lines[list_lines.index('Skills:') + 1..]
+        list_lines[0..list_lines.index('') - 1].each_slice(2) do |repo_desc, skills_desc|
+          install_skills_recursive(
+            repo_desc[4..].strip,
+            skills_desc[12..].split(',').map(&:strip),
+            agent_name
+          )
+        end
+
+        puts
+        puts 'Skills identified in the skillkit manifest and their dependencies have been installed successfully'
+      end
+
+      # --------------------------------------------------------------------------- #
+      # start-task: Open a new git worktree for a task
+      # --------------------------------------------------------------------------- #
+
+      desc 'start-task', 'Open a new git worktree for a feature branch'
+      long_desc <<~LONGDESC
+        Interactive command that prompts for a branch name, creates the branch
+        (if it does not exist), sets up a git worktree in .worktrees/, pushes
+        the branch upstream, and opens it in VSCodium.
+
+        Example:
+
+          \x5   xaa start-task
+      LONGDESC
+      def start_task
+        puts 'Branch name:'
+        branch = $stdin.gets.strip
+        dir = ".worktrees/#{branch.tr('/', '_')}"
+
+        puts "Setting worktree #{dir} to work on branch #{branch}..."
+
+        # Create the branch if it does not exist (without checking it out)
+        system "git branch #{branch}"
+
+        # Call git worktree add on existing branches only
+        system "git worktree add #{dir} #{branch}", exception: true
+
+        # Push to remote if branch doesn't exist there yet
+        system "git push --set-upstream github #{branch}", exception: true
+        system "VSCodium.exe \"#{dir}\"", exception: true
+      end
+
+      # --------------------------------------------------------------------------- #
+      # Helper methods
+      # --------------------------------------------------------------------------- #
+
+      no_commands do
+        # Configure X-Aeon Agents before running a command.
+        def configure!
+          XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+        end
+
+        # Format issue comments for use in artifacts.
+        #
+        # @param comments [Array<Octokit::IssueComment>] Comments to format
+        # @return [String] Formatted comments as markdown
+        def format_comments_for_artifact(comments)
+          return 'No comments' if comments.empty?
+
+          comments.sort_by(&:created_at).map do |comment|
+            <<~EO_COMMENT
+              ## #{comment.user.login} at #{comment.created_at.utc.strftime('%F %T UTC')}
+
+              #{ComposableAgents::Utils::Markdown.align_markdown_headers(comment.body, level: 3)}
+            EO_COMMENT
+          end.join("\n")
+        end
+
+        # Install skills using skillkit, including dependencies recursively.
+        #
+        # @param repo [String] Repository
+        # @param skills [Array<String>] Skills to install
+        # @param agent [Symbol] Agent to use
+        def install_skills_recursive(repo, skills, agent)
+          return if skills.empty?
+
+          agents_config = {
+            cline: { skills_dir: '.cline/skills' }
+          }
+          skills_dir = agents_config[agent][:skills_dir]
+
+          puts "Install skills #{repo} / #{skills.join(',')}..."
+          system "skillkit install #{repo} --yes --skills=#{skills.join(',')} --agent=#{agent}", exception: true
+          fix_skills_metadata(skills, agent)
+
+          # Resolve dependencies
+          deps_per_repo = {}
+          skills.each do |skill|
+            deps = FrontMatterParser::Parser.parse_file("#{skills_dir}/#{skill}/SKILL.md").front_matter.dig('metadata', 'dependencies')
+            next if deps.nil?
+
+            deps.each do |skill_dep|
+              skill_dep = "#{repo}:#{skill_dep}" unless skill_dep.include?(':')
+              skill_dep_repo, skill_dep_name = skill_dep.split(':')
+              unless File.exist?("#{skills_dir}/#{skill_dep_name}/SKILL.md")
+                deps_per_repo[skill_dep_repo] ||= []
+                deps_per_repo[skill_dep_repo] << skill_dep_name unless deps_per_repo[skill_dep_repo].include?(skill_dep_name)
+              end
+            end
+          end
+
+          deps_per_repo.each { |dep_repo, dep_skills| install_skills_recursive(dep_repo, dep_skills, agent) }
+        end
+
+        # Fix the .skillkit.json subpath property after skillkit install.
+        #
+        # @param skills [Array<String>] Installed skills
+        # @param agent [Symbol] Agent used
+        def fix_skills_metadata(skills, agent)
+          require 'json'
+
+          agents_config = { cline: { skills_dir: '.cline/skills' } }
+          skills_dir = agents_config[agent][:skills_dir]
+
+          skills.each do |skill_name|
+            json_file = "#{skills_dir}/#{skill_name}/.skillkit.json"
+            json = JSON.parse(File.read(json_file))
+            next if json['subpath'].start_with?('skills/')
+
+            json['subpath'] = "skills/#{json['subpath']}"
+            puts "Fix subpath of #{json_file}"
+            File.write(json_file, JSON.pretty_generate(json))
+          end
+        end
+      end
+
+      # --------------------------------------------------------------------------- #
+      # Exit on failure for consistent scripting
+      # --------------------------------------------------------------------------- #
+
+      def self.exit_on_failure?
+        true
+      end
+    end
+  end
+end
+
+XAeonAgents::CLI::Main.start(ARGV)

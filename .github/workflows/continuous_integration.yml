@@ -58,7 +58,7 @@ jobs:
         run: npm install @semantic-release/git@9.0.1 @semantic-release/changelog@5.0.1 @semantic-release/exec@5.0.0 semantic-release-rubygem -D
 
       - name: Generate skills from their source
-        run: bundle exec bin/generate_skills
+        run: bundle exec ruby bin/xaa generate-skills
 
       - name: Stage added skills
         run: git add :/skills

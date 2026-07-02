@@ -50,7 +50,7 @@ Those principles allow for a safe agent interaction, while keeping its agility.
 Some skills are written as ERB templates (files ending with `.erb`) to allow dynamic content generation. To generate the final skill files from these templates, run the following executable:
 
 ```bash
-bundle exec ruby bin/generate_skills
+bundle exec ruby bin/xaa generate-skills
 ```
 
 This will:
