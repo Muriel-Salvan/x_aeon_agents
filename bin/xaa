@@ -127,50 +127,11 @@ module XAeonAgents
       LONGDESC
       option :output_dir, type: :string, default: 'skills', desc: 'Output directory for generated skills'
       def generate_skills
-        transformations = {
-          '.erb' => proc { |src_file| XAeonAgents::GenHelpers::ErbEvaluator.new(src_file).result }
-        }.freeze
-
-        src_dir = File.expand_path('skills.src')
-        src_pathname = Pathname.new(src_dir)
-        dest_dir = File.expand_path(options[:output_dir])
-
-        FileUtils.mkdir_p(dest_dir)
-
-        failed = false
-        Dir.glob(File.join(src_dir, '**', '*'), File::FNM_DOTMATCH).
-          select { |f| File.file?(f) && File.basename(f) != '.skill_config.yml' }.
-          each do |src_file|
-            relative_path = Pathname.new(src_file).relative_path_from(src_pathname).to_s
-            file_ext = File.extname(relative_path)
-            dst_file = File.join(
-              dest_dir,
-              transformations.key?(file_ext) ? relative_path.sub(/#{Regexp.escape(file_ext)}$/, '') : relative_path
-            )
-            puts "Processing: #{relative_path}"
-            puts "    Output: #{dst_file}"
-            begin
-              FileUtils.mkdir_p(File.dirname(dst_file))
-              if transformations.key?(file_ext)
-                File.write(dst_file, transformations[file_ext].call(src_file))
-              else
-                FileUtils.cp(src_file, dst_file)
-              end
-              puts '    Status: ✓ Processed successfully'
-            rescue StandardError => e
-              puts "    Status: ✗ Error - #{e.message}\n    #{e.backtrace.first}"
-              failed = true
-            end
-            puts
-          end
-
-        puts
-        if failed
-          puts 'Skills generated with some errors (see above).'
-          exit 1
-        else
-          puts 'Skills generated successfully.'
-        end
+        configure!
+        result = XAeonAgents::Agents::SkillGeneratorAgent.new(session_id: options[:session_id]).run(
+          output_dir: options[:output_dir]
+        )
+        exit 1 unless result[:success]
       end
 
       # --------------------------------------------------------------------------- #
@@ -191,51 +152,11 @@ module XAeonAgents
       LONGDESC
       def implement_issue(github_issue_number)
         configure!
-        require 'composable_agents'
-
-        raise 'Unable to find the Github repository' unless XAeonAgents::Helpers.github_repo
-
-        issue = XAeonAgents::Helpers.github.issue(
-          XAeonAgents::Helpers.github_repo,
-          Integer(github_issue_number)
-        )
-        issue_comments = XAeonAgents::Helpers.github.issue_comments(
-          XAeonAgents::Helpers.github_repo,
-          Integer(github_issue_number)
-        )
-
-        sections = [
-          <<~EO_SECTION
-            # #{issue.title}
-
-            #{ComposableAgents::Utils::Markdown.align_markdown_headers(issue.body, level: 2)}
-          EO_SECTION
-        ]
-        unless issue_comments.empty?
-          sections << <<~EO_SECTION
-            # Comments
-
-            This is the conversation log that happened in this issue.
-            This is provided as a reference to better understand the requirements.
-
-            #{format_comments_for_artifact(issue_comments)}
-          EO_SECTION
-        end
-        sections << <<~EO_SECTION
-          # Associated Github issue
-
-          - Number: #{issue.number}
-          - Labels: #{issue.labels.map(&:name).join(', ')}
-          - State: #{issue.state}
-          - URL: #{issue.html_url}
-        EO_SECTION
-
-        requirements = sections.map(&:strip).join("\n\n")
-        XAeonAgents::Agents::DeveloperAgent.new(
+        XAeonAgents::Agents::IssueImplementerAgent.new(
           commit: true,
           pull_request: true,
           session_id: options[:session_id]
-        ).run(requirements:)
+        ).run(github_issue_number: Integer(github_issue_number))
       end
 
       # --------------------------------------------------------------------------- #
@@ -332,25 +253,10 @@ module XAeonAgents
       LONGDESC
       option :agent, type: :string, default: 'cline', desc: 'Agent name to be used to install skills'
       def install_skills
-        agent_name = options[:agent].to_sym
-        original_no_color = ENV['NO_COLOR']
-        ENV['NO_COLOR'] = '1'
-        begin
-          list_lines = `skillkit manifest`.split("\n")
-        ensure
-          ENV['NO_COLOR'] = original_no_color
-        end
-        list_lines = list_lines[list_lines.index('Skills:') + 1..]
-        list_lines[0..list_lines.index('') - 1].each_slice(2) do |repo_desc, skills_desc|
-          install_skills_recursive(
-            repo_desc[4..].strip,
-            skills_desc[12..].split(',').map(&:strip),
-            agent_name
-          )
-        end
-
-        puts
-        puts 'Skills identified in the skillkit manifest and their dependencies have been installed successfully'
+        configure!
+        XAeonAgents::Agents::SkillInstallerAgent.new(session_id: options[:session_id]).run(
+          agent: options[:agent].to_sym
+        )
       end
 
       # --------------------------------------------------------------------------- #
@@ -368,21 +274,10 @@ module XAeonAgents
           \x5   xaa start-task
       LONGDESC
       def start_task
+        configure!
         puts 'Branch name:'
         branch = $stdin.gets.strip
-        dir = ".worktrees/#{branch.tr('/', '_')}"
-
-        puts "Setting worktree #{dir} to work on branch #{branch}..."
-
-        # Create the branch if it does not exist (without checking it out)
-        system "git branch #{branch}"
-
-        # Call git worktree add on existing branches only
-        system "git worktree add #{dir} #{branch}", exception: true
-
-        # Push to remote if branch doesn't exist there yet
-        system "git push --set-upstream github #{branch}", exception: true
-        system "VSCodium.exe \"#{dir}\"", exception: true
+        XAeonAgents::Agents::TaskStarterAgent.new(session_id: options[:session_id]).run(branch_name: branch)
       end
 
       # --------------------------------------------------------------------------- #
@@ -393,79 +288,6 @@ module XAeonAgents
         # Configure X-Aeon Agents before running a command.
         def configure!
           XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
-        end
-
-        # Format issue comments for use in artifacts.
-        #
-        # @param comments [Array<Octokit::IssueComment>] Comments to format
-        # @return [String] Formatted comments as markdown
-        def format_comments_for_artifact(comments)
-          return 'No comments' if comments.empty?
-
-          comments.sort_by(&:created_at).map do |comment|
-            <<~EO_COMMENT
-              ## #{comment.user.login} at #{comment.created_at.utc.strftime('%F %T UTC')}
-
-              #{ComposableAgents::Utils::Markdown.align_markdown_headers(comment.body, level: 3)}
-            EO_COMMENT
-          end.join("\n")
-        end
-
-        # Install skills using skillkit, including dependencies recursively.
-        #
-        # @param repo [String] Repository
-        # @param skills [Array<String>] Skills to install
-        # @param agent [Symbol] Agent to use
-        def install_skills_recursive(repo, skills, agent)
-          return if skills.empty?
-
-          agents_config = {
-            cline: { skills_dir: '.cline/skills' }
-          }
-          skills_dir = agents_config[agent][:skills_dir]
-
-          puts "Install skills #{repo} / #{skills.join(',')}..."
-          system "skillkit install #{repo} --yes --skills=#{skills.join(',')} --agent=#{agent}", exception: true
-          fix_skills_metadata(skills, agent)
-
-          # Resolve dependencies
-          deps_per_repo = {}
-          skills.each do |skill|
-            deps = FrontMatterParser::Parser.parse_file("#{skills_dir}/#{skill}/SKILL.md").front_matter.dig('metadata', 'dependencies')
-            next if deps.nil?
-
-            deps.each do |skill_dep|
-              skill_dep = "#{repo}:#{skill_dep}" unless skill_dep.include?(':')
-              skill_dep_repo, skill_dep_name = skill_dep.split(':')
-              unless File.exist?("#{skills_dir}/#{skill_dep_name}/SKILL.md")
-                deps_per_repo[skill_dep_repo] ||= []
-                deps_per_repo[skill_dep_repo] << skill_dep_name unless deps_per_repo[skill_dep_repo].include?(skill_dep_name)
-              end
-            end
-          end
-
-          deps_per_repo.each { |dep_repo, dep_skills| install_skills_recursive(dep_repo, dep_skills, agent) }
-        end
-
-        # Fix the .skillkit.json subpath property after skillkit install.
-        #
-        # @param skills [Array<String>] Installed skills
-        # @param agent [Symbol] Agent used
-        def fix_skills_metadata(skills, agent)
-          require 'json'
-
-          agents_config = { cline: { skills_dir: '.cline/skills' } }
-          skills_dir = agents_config[agent][:skills_dir]
-
-          skills.each do |skill_name|
-            json_file = "#{skills_dir}/#{skill_name}/.skillkit.json"
-            json = JSON.parse(File.read(json_file))
-            next if json['subpath'].start_with?('skills/')
-
-            json['subpath'] = "skills/#{json['subpath']}"
-            puts "Fix subpath of #{json_file}"
-            File.write(json_file, JSON.pretty_generate(json))
-          end
         end
       end
 
