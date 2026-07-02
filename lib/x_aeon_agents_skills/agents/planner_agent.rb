@@ -1,7 +1,7 @@
 module XAeonAgentsSkills
   module Agents
-    # Agent responsible for producing detailed implementation plans from requirements
-    class PlannerAgent < ComposableAgents::Cline::Agent
+    # Agent responsible for producing an implementation plan acceptable to the user.
+    class PlannerAgent < ComposableAgents::Agent
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
@@ -23,27 +23,53 @@ module XAeonAgentsSkills
         )
       end
 
-      # Constructor
+      # Execute the agent to generate some output artifacts based on some input artifacts.
       #
-      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
-      def initialize(**agent_params)
-        super(
-          name: 'Planner',
-          role: 'You are a Planner agent',
-          objective: 'Produce a full and detailed implementation plan that can be used to implement some requirements.',
-          constraints: <<~EO_CONSTRAINTS,
-            - You are in read-only mode.
-            - Do NOT modify or write any file.
-            - You may only analyze and propose plans.
-            - Do NOT execute the plan yourself.
-          EO_CONSTRAINTS
-          skills: %w[
-            applying-ruby-conventions
-            applying-test-conventions
-            enforcing-project-rules
-          ],
-          **agent_params
-        )
+      # @param requirements [String] The initial requirements.
+      # @return Hash<Symbol,Object> Output artifacts content
+      def run(requirements:)
+        plan_generator_agent = new_agent(PlanGeneratorAgent, **Models.free_complex_planning)
+        user_instructions = {
+          ordered_list: [
+            "Read the initial requirements from the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
+            'Analyze the project files',
+            "Create an artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a complete and detailed step-by-step implementation plan in Markdown format"
+          ]
+        }
+        loop do
+          step_agent(plan_generator_agent, user_instructions:)
+          @artifacts[:plan].strip!
+          content, user_prompt = Helpers.review_content(
+            x_aeon_session_dir: @x_aeon_session_dir,
+            name: 'plan.md',
+            description: 'Implementation plan',
+            editable: true,
+            promptable: true,
+            content: @artifacts[:plan]
+          )
+          diffs = @artifacts[:plan] == content ? nil : Diffy::Diff.new(@artifacts[:plan], content, context: 3, include_diff_info: true).to_s
+          @artifacts[:plan] = content
+          break if user_prompt.empty?
+
+          user_instructions = <<~EO_INSTRUCTIONS
+            #{user_prompt}
+
+            Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account
+          EO_INSTRUCTIONS
+          user_instructions << <<~EO_INSTRUCTIONS if diffs
+
+            The user performed the following modifications on your implementation plan.
+            You have to take them into account while revising the plan.
+
+            ```
+            #{
+              # Remove the 2 first lines (headers of temporary file names), and last line (missing new line at end of file).
+              diffs.to_s.split("\n")[2..-2].join("\n").strip
+            }
+            ```
+          EO_INSTRUCTIONS
+        end
+        { plan: @artifacts[:plan] }
       end
     end
   end

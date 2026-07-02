@@ -2,8 +2,6 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for addressing Pull Request review comments directed at X-Aeon Agents
     class ReviewResolverAgent < ComposableAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
-      prepend ComposableAgents::Mixins::Resumable
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
@@ -78,7 +76,7 @@ module XAeonAgentsSkills
 
           step(:extract_requirements) do
             pr = Helpers.github.pull_request(Helpers.github_repo, pull_request_number)
-            feedback_analyst_agent = FeedbackAnalystAgent.new(**Models.free_complex_planning)
+            feedback_analyst_agent = new_agent(FeedbackAnalystAgent, **Models.free_complex_planning)
             step_agent(
               feedback_analyst_agent,
               pr_description: <<~EO_DESCRIPTION.strip,
@@ -129,18 +127,12 @@ module XAeonAgentsSkills
             @artifacts[:plan] = 'No implementation plan'
             @artifacts[:files_diffs] = 'No changes'
           else
-            step_agent(
-              DeveloperAgent.new(
-                commit: true,
-                pull_request: true,
-                run_id: @run_id ? "#{@run_id}-developer" : nil
-              )
-            )
+            step_agent(new_agent(DeveloperAgent, commit: true, pull_request: true))
           end
 
           open_comments_to_agents.each.with_index do |comment, comment_idx|
             step(:"reply_to_comment_#{comment_idx}") do
-              review_responder_agent = ReviewResponderAgent.new(**Models.free_complex_planning)
+              review_responder_agent = new_agent(ReviewResponderAgent, **Models.free_complex_planning)
               step_agent(
                 review_responder_agent,
                 open_comment_for_reply: JSON.pretty_generate(comment),

@@ -2,7 +2,6 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for git committing locally staged or modified files
     class CommitterAgent < ComposableAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Constructor

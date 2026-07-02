@@ -4,7 +4,6 @@ module XAeonAgentsSkills
     # The git ref base is given in the git_ref_base input artifact.
     # For the staging area diff, use cached as the git_ref_base content.
     class GitDiffInterpreterAgent < ComposableAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
@@ -41,7 +40,7 @@ module XAeonAgentsSkills
         )[:change_intent]
         {
           change_intent:,
-          one_line_summary: OneLineCodeDiffSummarizerAgent.new(**Models.free_simple).run(change_intent:)[:one_line_summary]
+          one_line_summary: new_agent(OneLineCodeDiffSummarizerAgent, **Models.free_simple).run(change_intent:)[:one_line_summary]
         }
       end
 
@@ -49,7 +48,7 @@ module XAeonAgentsSkills
       #
       # @return [Agent] The Diff Interpreter agent
       def diff_interpreter_agent
-        @diff_interpreter_agent ||= DiffInterpreterAgent.new(**Models.free_simple)
+        @diff_interpreter_agent ||= new_agent(DiffInterpreterAgent, **Models.free_simple)
       end
     end
   end
