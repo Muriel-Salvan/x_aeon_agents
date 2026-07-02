@@ -126,7 +126,7 @@ module XAeonAgents
               Provide links to more complete documentation next to the usecase example so that users can refer to more details about this specific public API.
               Links can be (by order of preference):
               - Links to the RubyDoc.info documentation for a Ruby public method (for example `https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Agents#config-class_method`).
-              - Links to the Github pages (for example `https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/commit`).
+              - Links to the Github pages (for example `https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa`).
             EO_INSTRUCTIONS
           )
         end

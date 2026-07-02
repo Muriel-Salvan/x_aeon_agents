@@ -41,19 +41,19 @@ module XAeonAgentsTest
       end
     end
 
-    # Run the generate_skills executable from the workspace directory
+    # Run the generate_skills Thor command from the workspace directory
     # Assumes @workspace_dir is set by with_skills_src
     #
     # Parameters::
     # * *dest_dir* (String): Optional destination directory argument [default = nil, uses 'skills']
-    # * *expect_failure* (Boolean): Expect the generate_skills executable to fail? [default = false]
+    # * *expect_failure* (Boolean): Expect the generate_skills command to fail? [default = false]
     # Returns::
     # * String: The output from the generate_skills command
     def run_generate_skills(dest_dir = nil, expect_failure: false)
-      full_script_path = File.expand_path('./bin/generate_skills')
+      full_script_path = File.expand_path('./bin/xaa')
       output = nil
       Dir.chdir(@workspace_dir) do
-        output = `ruby "#{full_script_path}"#{dest_dir ? " --output-dir #{dest_dir}" : ''} 2>&1`
+        output = `ruby "#{full_script_path}" generate-skills#{dest_dir ? " --output-dir #{dest_dir}" : ''} 2>&1`
         raise "Command failed: #{output}" if !$?.success? && !expect_failure
       end
       output
