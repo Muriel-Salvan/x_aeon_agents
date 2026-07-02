@@ -7,4 +7,6 @@ prompt = ARGV[0]
 require 'x_aeon_agents_skills'
 
 XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.execute_simple_task(prompt)
+agent = ExecutorAgent.new(**XAeonAgentsSkills::Models.free_simple)
+agent.run(user_instructions: prompt)
+puts agent.conversation.last[:message]

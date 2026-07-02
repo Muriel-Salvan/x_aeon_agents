@@ -427,7 +427,7 @@ module XAeonAgentsSkills
       # @param markdown [String] The full Markdown document content.
       # @return [String] The generated Table of Contents as a Markdown list.
       def generate_table_of_contents(markdown)
-        temp_file = "#{@x_aeon_session_dir}/tmp/content_to_be_toced.md"
+        temp_file = "#{@session_dir}/tmp/content_to_be_toced.md"
         FileUtils.mkdir_p File.dirname(temp_file)
         File.write(temp_file, markdown)
         `npx doctoc --github --notitle --stdout #{temp_file}`.gsub(/==================\n.+$/m, '').strip

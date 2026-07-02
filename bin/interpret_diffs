@@ -7,4 +7,11 @@ base = ARGV[0] || 'HEAD'
 require 'x_aeon_agents_skills'
 
 XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.interpret_diffs(base)
+git_diff_interpreter_agent_output = GitDiffInterpreterAgent.new.run(git_ref_base: base)
+puts <<~EO_OUTPUT
+  ===== Code diffs interpretation:
+
+  #{git_diff_interpreter_agent_output[:one_line_summary].strip}
+
+  #{git_diff_interpreter_agent_output[:change_intent].strip}
+EO_OUTPUT

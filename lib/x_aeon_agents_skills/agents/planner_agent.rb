@@ -40,7 +40,7 @@ module XAeonAgentsSkills
           step_agent(plan_generator_agent, user_instructions:)
           @artifacts[:plan].strip!
           content, user_prompt = Helpers.review_content(
-            x_aeon_session_dir: @x_aeon_session_dir,
+            session_dir: @session_dir,
             name: 'plan.md',
             description: 'Implementation plan',
             editable: true,

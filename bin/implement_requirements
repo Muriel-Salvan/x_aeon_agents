@@ -7,19 +7,18 @@ module XAeonAgentsSkills
   module CLI
     # CLI for implementing requirements
     class ImplementRequirements < Thor
-      class_option :run_id, type: :string, desc: 'Run ID for persistence'
+      class_option :session_id, type: :string, desc: 'Session ID for persistence'
       class_option :commit, type: :boolean, default: false, desc: 'Commit files at every step'
       class_option :pr, type: :boolean, default: false, desc: 'Create a Github Pull Request with this implementation'
 
       desc 'implement REQUIREMENTS', 'Implement the given requirements'
       def implement(requirements)
         XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-        XAeonAgentsSkills::Agents.implement_requirements(
-          requirements,
-          run_id: options[:run_id],
+        DeveloperAgent.new(
           commit: options[:commit],
-          pull_request: options[:pr]
-        )
+          pull_request: options[:pr],
+          session_id: options[:session_id]
+        ).run(requirements:)
       end
       default_task :implement
 

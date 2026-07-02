@@ -3,4 +3,4 @@
 require 'x_aeon_agents_skills'
 
 XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.commit
+CommitterAgent.new.run

@@ -2,7 +2,18 @@
 
 require 'x_aeon_agents_skills'
 
-run_id = ARGV[0]
+session_id = ARGV[0]
 
 XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-XAeonAgentsSkills::Agents.generate_readme(run_id:)
+ReadmeGeneratorAgent.new(session_id:).run(
+  gen_about: true,
+  gen_quick_start: true,
+  gen_requirements: true,
+  gen_features: true,
+  gen_public_api: true,
+  gen_documentation: true,
+  gen_how_it_works: true,
+  gen_development: true,
+  gen_contributing: true,
+  gen_license: true
+)
