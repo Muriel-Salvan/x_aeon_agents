@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'thor'
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
-module XAeonAgentsSkills
+module XAeonAgents
   module CLI
     # CLI for implementing requirements
     class ImplementRequirements < Thor
@@ -13,8 +13,8 @@ module XAeonAgentsSkills
 
       desc 'implement REQUIREMENTS', 'Implement the given requirements'
       def implement(requirements)
-        XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-        DeveloperAgent.new(
+        XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+        XAeonAgents::Agents::DeveloperAgent.new(
           commit: options[:commit],
           pull_request: options[:pr],
           session_id: options[:session_id]
@@ -29,4 +29,4 @@ module XAeonAgentsSkills
   end
 end
 
-XAeonAgentsSkills::CLI::ImplementRequirements.start(ARGV)
+XAeonAgents::CLI::ImplementRequirements.start(ARGV)

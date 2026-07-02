@@ -4,9 +4,9 @@
 # * *prompt* (String): The prompt to give to the AI agent
 prompt = ARGV[0]
 
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
-XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-agent = ExecutorAgent.new(**XAeonAgentsSkills::Models.free_simple)
+XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+agent = XAeonAgents::Agents::ExecutorAgent.new(**XAeonAgents::Models.free_simple)
 agent.run(user_instructions: prompt)
 puts agent.conversation.last[:message]

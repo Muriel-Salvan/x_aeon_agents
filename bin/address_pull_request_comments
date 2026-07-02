@@ -6,7 +6,7 @@
 pull_request_number = Integer(ARGV[0])
 session_id = ARGV[1]
 
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
-XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-ReviewResolverAgent.new(session_id:).run(pull_request_number:)
+XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+XAeonAgents::Agents::ReviewResolverAgent.new(session_id:).run(pull_request_number:)

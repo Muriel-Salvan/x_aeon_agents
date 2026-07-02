@@ -6,13 +6,13 @@ require 'erb'
 require 'fileutils'
 require 'pathname'
 require 'thor'
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
 class GenerateSkillsCLI < Thor
 
   # Define possible transformations based on the file extension
   TRANSFORMATIONS = {
-    '.erb' => proc { |src_file| XAeonAgentsSkills::GenHelpers::ErbEvaluator.new(src_file).result }
+    '.erb' => proc { |src_file| XAeonAgents::GenHelpers::ErbEvaluator.new(src_file).result }
   }
   
   desc 'generate', 'Generate skills (default task)'

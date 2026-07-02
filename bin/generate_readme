@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
 session_id = ARGV[0]
 
-XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-ReadmeGeneratorAgent.new(session_id:).run(
+XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+XAeonAgents::Agents::ReadmeGeneratorAgent.new(session_id:).run(
   gen_about: true,
   gen_quick_start: true,
   gen_requirements: true,

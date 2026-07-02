@@ -1,6 +1,6 @@
 require 'tmpdir'
 
-describe XAeonAgentsSkills do
+describe XAeonAgents do
 
   describe '.agent_name' do
 
