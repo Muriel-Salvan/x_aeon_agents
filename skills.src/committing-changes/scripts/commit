@@ -3,7 +3,7 @@
 # Usage: commit <description_file>
 
 require 'tmpdir'
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
 description_file = ARGV[0]
 
@@ -11,7 +11,7 @@ raise 'Missing description file' if description_file.nil?
 
 Dir.mktmpdir do |temp_dir|
   comment_file = "#{temp_dir}/comment.txt"
-  File.write(comment_file, File.read(description_file) + XAeonAgentsSkills.agent_signature)
+  File.write(comment_file, File.read(description_file) + XAeonAgents.agent_signature)
   system "git commit --file \"#{comment_file}\"", exception: true
 end
 

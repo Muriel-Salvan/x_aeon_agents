@@ -1,4 +1,4 @@
-describe XAeonAgentsSkills::GenHelpers do
+describe XAeonAgents::GenHelpers do
 
   describe 'ordered_todo_list' do
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
-XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-CommitterAgent.new.run
+XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+XAeonAgents::Agents::CommitterAgent.new.run

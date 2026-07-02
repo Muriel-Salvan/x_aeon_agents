@@ -6,7 +6,7 @@
 github_issue_number = Integer(ARGV[0])
 session_id = ARGV[1]
 
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 require 'composable_agents'
 
 # Format comments for use in artifacts
@@ -27,11 +27,11 @@ def format_comments_for_artifact(comments)
   end.join("\n")
 end
 
-XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-raise 'Unable to find the Github repository' unless XAeonAgentsSkills::Helpers.github_repo
+XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+raise 'Unable to find the Github repository' unless XAeonAgents::Helpers.github_repo
 
-issue = XAeonAgentsSkills::Helpers.github.issue(XAeonAgentsSkills::Helpers.github_repo, github_issue_number)
-issue_comments = XAeonAgentsSkills::Helpers.github.issue_comments(XAeonAgentsSkills::Helpers.github_repo, github_issue_number)
+issue = XAeonAgents::Helpers.github.issue(XAeonAgents::Helpers.github_repo, github_issue_number)
+issue_comments = XAeonAgents::Helpers.github.issue_comments(XAeonAgents::Helpers.github_repo, github_issue_number)
 sections = [
   <<~EO_SECTION
     # #{issue.title}
@@ -56,4 +56,4 @@ sections << <<~EO_SECTION
   - URL: #{issue.html_url}
 EO_SECTION
 requirements = sections.map(&:strip).join("\n\n")
-DeveloperAgent.new(commit: true, pull_request: true, session_id:).run(requirements:)
+XAeonAgents::Agents::DeveloperAgent.new(commit: true, pull_request: true, session_id:).run(requirements:)

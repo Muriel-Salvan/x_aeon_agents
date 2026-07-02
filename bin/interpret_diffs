@@ -4,10 +4,10 @@
 # * *base* (Object): Git base (sha, objectish...) with which we diff [default = 'HEAD']
 base = ARGV[0] || 'HEAD'
 
-require 'x_aeon_agents_skills'
+require 'x_aeon_agents'
 
-XAeonAgentsSkills::Configuration.configure(**XAeonAgentsSkills::Helpers.keys_from_launcher)
-git_diff_interpreter_agent_output = GitDiffInterpreterAgent.new.run(git_ref_base: base)
+XAeonAgents::Configuration.configure(**XAeonAgents::Helpers.keys_from_launcher)
+git_diff_interpreter_agent_output = XAeonAgents::Agents::GitDiffInterpreterAgent.new.run(git_ref_base: base)
 puts <<~EO_OUTPUT
   ===== Code diffs interpretation:
 

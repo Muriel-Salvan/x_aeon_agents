@@ -1,4 +1,4 @@
-describe XAeonAgentsSkills::GenHelpers do
+describe XAeonAgents::GenHelpers do
 
   describe '#when_to_use' do
 

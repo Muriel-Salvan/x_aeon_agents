@@ -55,12 +55,12 @@ bundle exec ruby bin/generate_skills
 
 This will:
 - Find all `.erb` files in the `skills/` directory
-- Process them using the ERB engine (with `XAeonAgentsSkills::GenHelpers` available)
+- Process them using the ERB engine (with `XAeonAgents::GenHelpers` available)
 - Generate the corresponding output files (removing the `.erb` extension)
 
 The following helper methods are available in ERB templates:
-- `XAeonAgentsSkills::GenHelpers.init_skill_checklist` - Returns the "Create Execution Checklist (MANDATORY)" section
-- `XAeonAgentsSkills::GenHelpers.validate_skill_checklist` - Returns the "Final Verification (MANDATORY)" section
+- `XAeonAgents::GenHelpers.init_skill_checklist` - Returns the "Create Execution Checklist (MANDATORY)" section
+- `XAeonAgents::GenHelpers.validate_skill_checklist` - Returns the "Final Verification (MANDATORY)" section
 
 ## License
 

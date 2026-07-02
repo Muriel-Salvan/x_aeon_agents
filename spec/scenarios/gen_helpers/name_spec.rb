@@ -1,4 +1,4 @@
-describe XAeonAgentsSkills::GenHelpers do
+describe XAeonAgents::GenHelpers do
 
   describe 'name' do
 
