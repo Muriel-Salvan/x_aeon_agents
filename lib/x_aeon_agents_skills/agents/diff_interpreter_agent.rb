@@ -2,7 +2,6 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for analyzing files differences in a repository
     class DiffInterpreterAgent < ComposableAgents::AiAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts

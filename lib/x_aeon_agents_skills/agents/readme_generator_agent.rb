@@ -4,8 +4,6 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for writing the README.md file of a project.
     class ReadmeGeneratorAgent < ComposableAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
-      prepend ComposableAgents::Mixins::Resumable
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
@@ -55,7 +53,7 @@ module XAeonAgentsSkills
       )
         # Each section of the README has a dedicated agent who generates its content in an artifact.
         if gen_about
-          about_analyzer_agent = Readme::AboutAnalyzerAgent.new(**Models.free_complex_planning)
+          about_analyzer_agent = new_agent(Readme::AboutAnalyzerAgent, **Models.free_complex_planning)
           step_agent(
             about_analyzer_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -74,7 +72,7 @@ module XAeonAgentsSkills
         end
 
         if gen_quick_start
-          quick_start_agent = Readme::QuickStartAgent.new(**Models.free_complex_planning)
+          quick_start_agent = new_agent(Readme::QuickStartAgent, **Models.free_complex_planning)
           step_agent(
             quick_start_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -87,7 +85,7 @@ module XAeonAgentsSkills
         end
 
         if gen_requirements
-          requirements_agent = Readme::RequirementsAgent.new(**Models.free_complex_planning)
+          requirements_agent = new_agent(Readme::RequirementsAgent, **Models.free_complex_planning)
           step_agent(
             requirements_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -101,7 +99,7 @@ module XAeonAgentsSkills
         end
 
         if gen_features
-          features_agent = Readme::FeaturesAgent.new(**Models.free_complex_planning)
+          features_agent = new_agent(Readme::FeaturesAgent, **Models.free_complex_planning)
           step_agent(
             features_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -114,7 +112,7 @@ module XAeonAgentsSkills
         end
 
         if gen_public_api
-          public_api_agent = Readme::PublicApiAgent.new(**Models.free_complex_planning)
+          public_api_agent = new_agent(Readme::PublicApiAgent, **Models.free_complex_planning)
           step_agent(
             public_api_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -134,7 +132,7 @@ module XAeonAgentsSkills
         end
 
         if gen_documentation
-          documentation_agent = Readme::DocumentationAgent.new(**Models.free_complex_planning)
+          documentation_agent = new_agent(Readme::DocumentationAgent, **Models.free_complex_planning)
           step_agent(
             documentation_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -149,7 +147,7 @@ module XAeonAgentsSkills
         end
 
         if gen_how_it_works
-          how_it_works_agent = Readme::HowItWorksAgent.new(**Models.free_complex_planning)
+          how_it_works_agent = new_agent(Readme::HowItWorksAgent, **Models.free_complex_planning)
           step_agent(
             how_it_works_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -162,7 +160,7 @@ module XAeonAgentsSkills
         end
 
         if gen_development
-          development_agent = Readme::DevelopmentAgent.new(**Models.free_complex_planning)
+          development_agent = new_agent(Readme::DevelopmentAgent, **Models.free_complex_planning)
           step_agent(
             development_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -174,7 +172,7 @@ module XAeonAgentsSkills
         end
 
         if gen_contributing
-          contributing_agent = Readme::ContributingAgent.new(**Models.free_complex_planning)
+          contributing_agent = new_agent(Readme::ContributingAgent, **Models.free_complex_planning)
           step_agent(
             contributing_agent,
             user_instructions: <<~EO_INSTRUCTIONS
@@ -188,7 +186,7 @@ module XAeonAgentsSkills
         end
 
         if gen_license
-          license_agent = Readme::LicenseAgent.new(**Models.free_complex_planning)
+          license_agent = new_agent(Readme::LicenseAgent, **Models.free_complex_planning)
           step_agent(
             license_agent,
             user_instructions: <<~EO_INSTRUCTIONS

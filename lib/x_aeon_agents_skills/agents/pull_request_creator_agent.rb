@@ -2,7 +2,6 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for creating a Pull Request of the current branch against its base reference on Github.
     class PullRequestCreatorAgent < ComposableAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts

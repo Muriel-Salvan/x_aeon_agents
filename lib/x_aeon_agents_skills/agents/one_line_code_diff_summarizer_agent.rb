@@ -2,7 +2,6 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for summarizing code change intent into a single line
     class OneLineCodeDiffSummarizerAgent < ComposableAgents::AiAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts

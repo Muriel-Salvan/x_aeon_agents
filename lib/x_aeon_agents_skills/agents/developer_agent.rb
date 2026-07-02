@@ -4,8 +4,6 @@ module XAeonAgentsSkills
   module Agents
     # Agent responsible for developing some requirements
     class DeveloperAgent < ComposableAgents::Agent
-      prepend ComposableAgents::Mixins::ArtifactContract
-      prepend ComposableAgents::Mixins::Resumable
       prepend XAeonAgentsSkills::AgentDefaults
 
       # Define input artifacts contracts
@@ -39,51 +37,9 @@ module XAeonAgentsSkills
           )
         end
 
-        planner_agent = PlannerAgent.new(**Models.free_complex_planning)
+        step_agent(new_agent(PlannerAgent))
 
-        step(:plan) do
-          @artifacts[:user_instructions] = {
-            ordered_list: [
-              "Read the initial requirements from the artifact named `#{planner_agent.artifact_ref(:requirements)}`",
-              'Analyze the project files',
-              "Create an artifact named `#{planner_agent.artifact_ref(:plan)}` with a complete and detailed step-by-step implementation plan in Markdown format"
-            ]
-          }
-          loop do
-            step_agent(planner_agent)
-            @artifacts[:plan].strip!
-            content, user_prompt = Helpers.review_content(
-              x_aeon_session_dir: @x_aeon_session_dir,
-              name: 'plan.md',
-              description: 'Implementation plan',
-              editable: true,
-              promptable: true,
-              content: @artifacts[:plan]
-            )
-            diffs = @artifacts[:plan] == content ? nil : Diffy::Diff.new(@artifacts[:plan], content, context: 3, include_diff_info: true).to_s
-            @artifacts[:plan] = content
-            @artifacts[:user_instructions] = <<~EO_INSTRUCTIONS
-              #{user_prompt}
-
-              Re-create the artifact named `#{planner_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account
-            EO_INSTRUCTIONS
-            @artifacts[:user_instructions] << <<~EO_INSTRUCTIONS if diffs
-
-              The user performed the following modifications on your implementation plan.
-              You have to take them into account while revising the plan.
-
-              ```
-              #{
-                # Remove the 2 first lines (headers of temporary file names), and last line (missing new line at end of file).
-                diffs.to_s.split("\n")[2..-2].join("\n").strip
-              }
-              ```
-            EO_INSTRUCTIONS
-            break if user_prompt.empty?
-          end
-        end
-
-        coder_agent = CoderAgent.new(**Models.free_complex)
+        coder_agent = new_agent(CoderAgent, **Models.free_complex)
 
         step_agent(
           coder_agent,
@@ -91,9 +47,9 @@ module XAeonAgentsSkills
         )
         puts "===== Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
-        step_agent(CommitterAgent.new(user_review: false, stage: :all, authors: [coder_agent])) if @commit
+        step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent])) if @commit
 
-        tester_agent = TesterAgent.new(**Models.free_complex)
+        tester_agent = new_agent(TesterAgent, **Models.free_complex)
 
         step(:test) do
           tests_cmd = 'bundle exec rspec --format documentation'
@@ -157,14 +113,14 @@ module XAeonAgentsSkills
 
               EO_PLAN
             end
-            step_agent(CommitterAgent.new(user_review: false, stage: :all, authors: [tester_agent])) if @commit
+            step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
             idx_test += 1
           end
         end
 
-        step_agent(CommitterAgent.new(user_review: false, stage: :all, authors: [tester_agent])) if @commit
+        step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
 
-        documenter_agent = DocumenterAgent.new(**Models.free_complex)
+        documenter_agent = new_agent(DocumenterAgent, **Models.free_complex)
         @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
 
         step_agent(
@@ -240,9 +196,9 @@ module XAeonAgentsSkills
         )
         puts "===== Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
-        step_agent(CommitterAgent.new(user_review: false, stage: :all, authors: [documenter_agent])) if @commit
+        step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [documenter_agent])) if @commit
 
-        step_agent(PullRequestCreatorAgent.new(authors: [planner_agent, coder_agent, tester_agent, documenter_agent])) if @pull_request
+        step_agent(new_agent(PullRequestCreatorAgent, authors: [planner_agent, coder_agent, tester_agent, documenter_agent])) if @pull_request
 
         puts
         puts 'Requirements implemented successfully'
