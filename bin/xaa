@@ -52,7 +52,7 @@ module XAeonAgents
       LONGDESC
       def commit
         configure!
-        XAeonAgents::Agents::CommitterAgent.new.run
+        XAeonAgents::Agents::CommitterAgent.new(session_id: options[:session_id]).run
       end
 
       # --------------------------------------------------------------------------- #
@@ -204,7 +204,7 @@ module XAeonAgents
       LONGDESC
       def interpret_diffs(base = 'HEAD')
         configure!
-        output = XAeonAgents::Agents::GitDiffInterpreterAgent.new.run(git_ref_base: base)
+        output = XAeonAgents::Agents::GitDiffInterpreterAgent.new(session_id: options[:session_id]).run(git_ref_base: base)
         puts <<~EO_OUTPUT
           ===== Code diffs interpretation:
 
@@ -231,7 +231,7 @@ module XAeonAgents
       LONGDESC
       def prompt(user_prompt)
         configure!
-        agent = XAeonAgents::Agents::ExecutorAgent.new(**XAeonAgents::Models.free_simple)
+        agent = XAeonAgents::Agents::ExecutorAgent.new(session_id: options[:session_id], **XAeonAgents::Models.free_simple)
         agent.run(user_instructions: user_prompt)
         puts agent.conversation.last[:message]
       end
