@@ -431,6 +431,7 @@ module XAeonAgents
         temp_file = "#{@session_dir}/tmp/content_to_be_toced.md"
         FileUtils.mkdir_p File.dirname(temp_file)
         File.write(temp_file, markdown)
+        log_debug 'Generating Table of Contents using doctoc...'
         `npx doctoc --github --notitle --stdout #{temp_file}`.gsub(/==================\n.+$/m, '').strip
       end
     end

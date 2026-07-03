@@ -1,3 +1,40 @@
+<div align="center">
+
+# x_aeon_agents
+
+A Ruby CLI and skill library providing a suite of AI agents to automate development workflows for X-Aeon projects.
+
+[![Build](https://github.com/Muriel-Salvan/x_aeon_agents/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/Muriel-Salvan/x_aeon_agents/actions/workflows/continuous_integration.yml)
+[![Test Coverage](https://img.shields.io/codecov/c/gh/Muriel-Salvan/x_aeon_agents)](https://codecov.io/gh/Muriel-Salvan/x_aeon_agents)
+[![GitHub stars](https://img.shields.io/github/stars/Muriel-Salvan/x_aeon_agents)](https://github.com/Muriel-Salvan/x_aeon_agents/stargazers)
+[![License](https://img.shields.io/github/license/Muriel-Salvan/x_aeon_agents)](LICENSE)
+[![Gem Version](https://img.shields.io/gem/v/x_aeon_agents)](https://rubygems.org/gems/x_aeon_agents)
+[![Gem Total Downloads](https://img.shields.io/gem/dt/x_aeon_agents)](https://rubygems.org/gems/x_aeon_agents)
+
+</div>
+
+X-Aeon Agents is a **Ruby gem** that gives AI assistants a **ready-to-use skill set** so they can automate everyday development workflows. 🤖
+
+Powered by the `xaa` command-line interface, it takes care of:
+
+- 📬 **Pull Request reviews** — automatically address GitHub review comments
+- 📝 **Commit messages** — generate meaningful descriptions for staged changes
+- 📚 **README generation** — build documentation sections from your codebase
+- 🔍 **Git diff interpretation** — summarize what changed and why
+- 🚀 **Issue implementation** — turn GitHub issues into working code
+- 🛠️ **Task bootstrapping** — create git worktrees and feature branches in seconds
+- 🔧 **Skill templating** — generate reusable agent workflows from ERB templates
+
+Use it as a **CLI** in your terminal or as a **library** in your Ruby projects.
+
+## Table of contents
+
+- [X-Aeon Agents skills](#x-aeon-agents-skills)
+  - [Ways skills are written](#ways-skills-are-written)
+  - [General principles](#general-principles)
+  - [Generating skills from ERB templates](#generating-skills-from-erb-templates)
+  - [License](#license)
+
 # X-Aeon Agents skills
 
 This repository defines a set of AI agents skills that are used for X-Aeon projects.
