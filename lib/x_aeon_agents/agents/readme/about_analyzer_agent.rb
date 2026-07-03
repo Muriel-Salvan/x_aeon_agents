@@ -1,5 +1,6 @@
 module XAeonAgents
   module Agents
+    # Collection of agents used to generate README parts
     module Readme
       # Agent responsible for generating the "About" section of a README.
       class AboutAnalyzerAgent < ComposableAgents::Cline::Agent

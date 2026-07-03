@@ -23,6 +23,9 @@ module XAeonAgents
 
         $   xaa review-comments 42 --session-id my-session
     LONGDESC
+    # Addresses review comments on a GitHub Pull Request.
+    #
+    # @param pull_request_number [Integer] The GitHub Pull Request number to process
     def review_comments(pull_request_number)
       Agents::ReviewResolverAgent.new(session_id: options[:session_id]).run(
         pull_request_number: Integer(pull_request_number)
@@ -42,6 +45,7 @@ module XAeonAgents
 
         $   xaa commit
     LONGDESC
+    # Commits staged changes with an AI-generated commit message.
     def commit
       Agents::CommitterAgent.new(session_id: options[:session_id]).run
     end
@@ -84,6 +88,7 @@ module XAeonAgents
     option :development, type: :boolean, default: true, desc: 'Generate the Development section'
     option :contributing, type: :boolean, default: true, desc: 'Generate the Contributing section'
     option :license, type: :boolean, default: true, desc: 'Generate the License section'
+    # Generates or updates the project README file.
     def generate_readme
       Agents::ReadmeGeneratorAgent.new(session_id: options[:session_id]).run(
         gen_about: options[:about],
@@ -116,6 +121,9 @@ module XAeonAgents
         $   xaa generate-skills --output-dir custom_skills
     LONGDESC
     option :output_dir, type: :string, default: 'skills', desc: 'Output directory for generated skills'
+    # Generates skill files from ERB templates in skills.src/.
+    #
+    # @note Exits with status 1 if skill generation fails
     def generate_skills
       result = Agents::SkillGeneratorAgent.new(session_id: options[:session_id]).run(
         output_dir: options[:output_dir]
@@ -139,6 +147,9 @@ module XAeonAgents
 
         $   xaa implement-issue 15 --session-id my-session
     LONGDESC
+    # Implements a GitHub issue using AI.
+    #
+    # @param github_issue_number [Integer] The GitHub issue number to implement
     def implement_issue(github_issue_number)
       Agents::IssueImplementerAgent.new(
         commit: true,
@@ -164,6 +175,9 @@ module XAeonAgents
     LONGDESC
     option :commit, type: :boolean, default: false, desc: 'Commit files at every step'
     option :pr, type: :boolean, default: false, desc: 'Create a GitHub Pull Request for the changes'
+    # Implements arbitrary requirements using AI.
+    #
+    # @param requirements [String] Free-form requirements describing the desired changes
     def implement(requirements)
       Agents::DeveloperAgent.new(
         commit: options[:commit],
@@ -189,6 +203,9 @@ module XAeonAgents
 
         $   xaa interpret-diffs HEAD~3
     LONGDESC
+    # Summarizes current git diffs relative to a base ref.
+    #
+    # @param base [String] Git reference to diff against
     def interpret_diffs(base = 'HEAD')
       output = Agents::GitDiffInterpreterAgent.new(session_id: options[:session_id]).run(git_ref_base: base)
       puts <<~EO_OUTPUT
@@ -215,6 +232,9 @@ module XAeonAgents
 
         $   xaa prompt "Explain this code: puts 'hello'"
     LONGDESC
+    # Sends a one-shot prompt to the AI agent and prints the response.
+    #
+    # @param user_prompt [String] The prompt text to send to the AI agent
     def prompt(user_prompt)
       agent = Agents::ExecutorAgent.new(session_id: options[:session_id], **Models.free_simple)
       agent.run(user_instructions: user_prompt)
@@ -237,6 +257,7 @@ module XAeonAgents
         $   xaa install-skills --agent cline
     LONGDESC
     option :agent, type: :string, default: 'cline', desc: 'Agent name to be used to install skills'
+    # Installs skills and their dependencies from the .skills manifest.
     def install_skills
       Agents::SkillInstallerAgent.new(session_id: options[:session_id]).run(
         agent: options[:agent].to_sym
@@ -257,6 +278,7 @@ module XAeonAgents
 
         $   xaa start-task
     LONGDESC
+    # Opens a new git worktree for a feature branch.
     def start_task
       puts 'Branch name:'
       branch = $stdin.gets.strip
@@ -267,12 +289,17 @@ module XAeonAgents
     # Exit on failure for consistent scripting
     # --------------------------------------------------------------------------- #
 
+    # Returns whether to exit on command failure.
+    #
+    # @return [Boolean] Always returns true so Thor exits with a non-zero status on command failure
     def self.exit_on_failure?
       true
     end
 
     no_commands do
-      # Constructor
+      # Initializes the CLI and applies global configuration from options.
+      #
+      # @param args [Array<Object>] Arguments forwarded to Thor's constructor
       def initialize(*)
         super
         # Handle all the global setup from options
