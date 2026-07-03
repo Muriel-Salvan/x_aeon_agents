@@ -8,7 +8,7 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         { requirements: 'The initial requirements that need to be implemented' }
       end
@@ -27,7 +27,7 @@ module XAeonAgents
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param requirements [String] Requirements to be implemented
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(requirements:)
         # Initial artifacts
         step(:setup_requirements) do

@@ -6,7 +6,7 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         super.merge(
           {
@@ -21,7 +21,7 @@ module XAeonAgents
 
       # Define output artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
         super.merge(
           reply: {

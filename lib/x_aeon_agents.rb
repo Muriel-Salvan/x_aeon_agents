@@ -9,8 +9,7 @@ require 'composable_agents'
 module XAeonAgents
   # Return the current AI agent name
   #
-  # Result::
-  # * String: The current AI agent name
+  # @return [String] The current AI agent name
   def self.agent_name
     # TODO: Make this adaptable to different agents using plugins
     require 'sqlite3'
@@ -32,8 +31,7 @@ module XAeonAgents
 
   # Return the agent signature that is added in any description authored by the AI agent
   #
-  # Result::
-  # * String: AI agent signature
+  # @return [String] AI agent signature
   def self.agent_signature
     "\n\nCo-authored by: #{agent_name}"
   end

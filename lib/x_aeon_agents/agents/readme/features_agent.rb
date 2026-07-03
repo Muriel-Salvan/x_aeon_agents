@@ -7,7 +7,7 @@ module XAeonAgents
 
         # Define output artifacts contracts
         #
-        # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+        # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
         def output_artifacts_contracts
           super.merge(
             features: {

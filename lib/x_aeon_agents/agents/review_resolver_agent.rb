@@ -6,7 +6,7 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         { pull_request_number: 'The Pull Request number to address comments for' }
       end
@@ -21,7 +21,7 @@ module XAeonAgents
       # Execute the agent to address Pull Request review comments
       #
       # @param pull_request_number [Integer] The Pull Request number to address comments for
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(pull_request_number:)
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 

@@ -6,14 +6,14 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         { branch_name: 'Name of the git branch to create worktree for' }
       end
 
       # Define output artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
         { worktree_dir: 'Directory where the worktree was created' }
       end
@@ -21,7 +21,7 @@ module XAeonAgents
       # Execute the agent to open a new git worktree for a feature branch.
       #
       # @param branch_name [String] Name of the git branch to create worktree for
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(branch_name:)
         dir = ".worktrees/#{branch_name.tr('/', '_')}"
 

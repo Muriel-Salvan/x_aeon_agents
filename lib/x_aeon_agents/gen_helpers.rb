@@ -9,14 +9,11 @@ module XAeonAgents
     # It also returns the corresponding YAML frontmatter.
     # The name is automatically derived from skill_name.
     #
-    # Parameters::
-    # * *description* (String): Description of the skill
-    # * *dependencies* (Array<String>): List of skills dependencies [default: []]
-    # * *plan* (Boolean): Is this skill applicable to plan mode? [default: false]
-    # * *metadata* (Hash): Optional metadata key-value pairs [default: {}]
-    #
-    # Result::
-    # * String: The complete YAML frontmatter block (including --- delimiters)
+    # @param description [String] Description of the skill
+    # @param dependencies [Array<String>] List of skills dependencies
+    # @param plan [Boolean] Is this skill applicable to plan mode?
+    # @param metadata [Hash] Optional metadata key-value pairs
+    # @return [String] The complete YAML frontmatter block (including --- delimiters)
     def skill(description:, dependencies: [], plan: false, metadata: {})
       @plan = plan
       frontmatter = {
@@ -31,10 +28,8 @@ module XAeonAgents
 
     # Define or get the skill goal to be used in ERB templates
     #
-    # Parameters::
-    # * *goal_desc* (String or nil): The skill goal, or nil to retrieve the previously set skill goal [default = nil]
-    # Result::
-    # * String: The skill goal
+    # @param goal_desc [String, nil] The skill goal, or nil to retrieve the previously set skill goal
+    # @return [String] The skill goal
     def goal(goal_desc = nil)
       @skill_goal = goal_desc unless goal_desc.nil?
       @skill_goal
@@ -43,8 +38,7 @@ module XAeonAgents
     # Get the skill goal as a sentence
     # Prerequisite: skill_goal should be set before.
     #
-    # Result::
-    # * String: The skill goal as useable inside a sentence
+    # @return [String] The skill goal as useable inside a sentence
     def goal_sentence
       "#{@skill_goal[0].downcase}#{@skill_goal[1..]}"
     end
@@ -58,24 +52,20 @@ module XAeonAgents
     # Return a default temporary folder that agents can use in a project.
     # It's better to force it to the agents, as some models will try weird CLI commands to create temporary files otherwise.
     #
-    # Result::
-    # * String: Temporary folder path
+    # @return [String] Temporary folder path
     def tmp_path
       '.x-aeon_agents/tmp'
     end
 
     # Generate a rule documentation block with examples and rationale.
     #
-    # Parameters::
-    # * *title* (String): The rule title
-    # * *description* (String or nil): The additional description [default: nil]
-    # * *type* (Symbol): The code block language type (e.g., :bash, :ruby) [default: :ruby]
-    # * *bad* (String or nil): The incorrect example [default: nil]
-    # * *good* (String or nil): The correct example [default: nil]
-    # * *rationale* (String or nil): The explanation for why this rule exists [default: nil]
-    #
-    # Result::
-    # * String: The formatted markdown documentation for the rule
+    # @param title [String] The rule title
+    # @param description [String, nil] The additional description
+    # @param type [Symbol] The code block language type (e.g., :bash, :ruby)
+    # @param bad [String, nil] The incorrect example
+    # @param good [String, nil] The correct example
+    # @param rationale [String, nil] The explanation for why this rule exists
+    # @return [String] The formatted markdown documentation for the rule
     def rule(title, description: nil, type: :ruby, bad: nil, good: nil, rationale: nil)
       markdown_sections = [
         <<~EO_Markdown
@@ -115,8 +105,8 @@ module XAeonAgents
     # (section 1 "Inform the USER" is auto-generated), and wraps everything with the
     # standard skill header, checklist initialization, and final verification sections.
     #
-    # Parameters::
-    # * *erb_block* (Proc): ERB block containing the markdown sections
+    # @param erb_block [#call] ERB block containing the markdown sections
+    # @return [String] The formatted todo list
     def ordered_todo_list(&erb_block)
       transform_erb_block(erb_block) do |erb_content|
         # Split into sections by ## headings
@@ -154,11 +144,8 @@ module XAeonAgents
 
     # Return the skill config hash from its .skill_config.yml file, if it exists.
     #
-    # Parameters::
-    # * *skill_name* (String): The skill name (matching a directory under skills.src/)
-    #
-    # Result::
-    # * Hash: The YAML config hash, or an empty Hash if no config file exists
+    # @param skill_name [String] The skill name (matching a directory under skills.src/)
+    # @return [Hash] The YAML config hash, or an empty Hash if no config file exists
     def self.config(skill_name)
       skill_config_file = "skills.src/#{skill_name}/.skill_config.yml"
       File.exist?(skill_config_file) ? YAML.load_file(skill_config_file) : {}
@@ -166,8 +153,7 @@ module XAeonAgents
 
     # Return the skill being generated
     #
-    # Result::
-    # * String: Skill name being generated
+    # @return [String] Skill name being generated
     def name
       current_erb_file.match(/\/skills\.src\/([^\/]+)\//)[1]
     end
@@ -175,11 +161,8 @@ module XAeonAgents
     # Generate the "When to use it" section for a skill.
     # This helper automatically includes standard items and custom usage instructions.
     #
-    # Parameters::
-    # * *erb_block* (Proc): ERB block containing custom usage instructions
-    #
-    # Result::
-    # * String: The formatted "When to use it" section
+    # @param erb_block [#call] ERB block containing custom usage instructions
+    # @return [String] The formatted "When to use it" section
     def when_to_use(&erb_block)
       transform_erb_block(erb_block) do |erb_content|
         blocks = []
@@ -201,8 +184,7 @@ module XAeonAgents
 
       # Constructor
       #
-      # Parameters::
-      # * *erb_file* (String): File containing the ERB template
+      # @param erb_file [String] File containing the ERB template
       def initialize(erb_file)
         @erb = ERB.new(File.read(erb_file), trim_mode: '-')
         # Use filename for better error reporting
@@ -211,8 +193,7 @@ module XAeonAgents
 
       # Evaluate the ERB template
       #
-      # Result::
-      # * String: The evaluated ERB result
+      # @return [String] The evaluated ERB result
       def result
         @erb.result(binding)
       end
@@ -221,10 +202,8 @@ module XAeonAgents
 
     # Return the execution checklist initialization section
     #
-    # Parameters::
-    # * *checklist_name* (String): Name to be given to this checklist
-    # Result::
-    # * String: The execution checklist section
+    # @param checklist_name [String] Name to be given to this checklist
+    # @return [String] The execution checklist section
     def self.init_skill_checklist(checklist_name)
       <<~EO_Markdown
         ### Create the #{checklist_name} Execution Checklist (MANDATORY)
@@ -240,10 +219,8 @@ module XAeonAgents
 
     # Return the final verification section
     #
-    # Parameters::
-    # * *checklist_name* (String): Name to be given to this checklist
-    # Result::
-    # * String: The final verification section
+    # @param checklist_name [String] Name to be given to this checklist
+    # @return [String] The final verification section
     def self.validate_skill_checklist(checklist_name)
       <<~EO_Markdown
         ### Final Verification (MANDATORY)
@@ -260,8 +237,7 @@ module XAeonAgents
 
     # Return the ERB file being generated
     #
-    # Result::
-    # * String: ERB file being generated
+    # @return [String] ERB file being generated
     def current_erb_file
       file_found = caller.find { |stack_trace| stack_trace =~ /(\/skills\.src\/.+\.erb)/ }
       raise "Unable to find ERB file among stack:\n#{caller.join("\n")}" if file_found.nil?
@@ -271,13 +247,10 @@ module XAeonAgents
     # Capture the ERB content inside a code block, and return a user-transformed version of it.
     # Handle indentation properly by removing the indentation caused by the ERB call itself.
     #
-    # Parameters::
-    # * *erb_block* (Proc): The block containing ERB content
-    # * *block* (Proc): The code that should transform the content:
-    #   * Parameters::
-    #     * *erb_content* (String): Original content
-    #   * Result::
-    #     * String: Transformed content
+    # @param erb_block [#call] The block containing ERB content
+    # @yield [#call(erb_content) -> String] The code that should transform the content
+    # @yieldparam erb_content [String] The ERB content
+    # @yieldreturn [String] The transformed content
     def transform_erb_block(erb_block)
       # Capture the ERB block content using buffer manipulation
       erb_buffer = eval('_erbout', erb_block.binding)
