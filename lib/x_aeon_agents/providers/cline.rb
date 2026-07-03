@@ -35,7 +35,7 @@ module XAeonAgents
         data = response.body
         return if data.empty?
 
-        raise Error.new(response, data.dig('error')) if data.dig('error')
+        raise Error.new(response, data['error']) if data['error']
 
         message_data = data.dig('data', 'choices', 0, 'message')
         return unless message_data
@@ -62,10 +62,8 @@ module XAeonAgents
         )
       end
 
-      private
 
       class << self
-
         # @return [Array<Symbol>] The required configuration keys for the Cline provider.
         def configuration_requirements
           %i[cline_api_base cline_api_key]

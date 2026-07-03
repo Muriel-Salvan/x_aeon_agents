@@ -1,7 +1,5 @@
 describe XAeonAgents::GenHelpers do
-
   describe 'rule' do
-
     it 'generates a rule with just a title' do
       expect(
         process_erb('<%= rule("Use descriptive variable names") %>')
@@ -125,7 +123,5 @@ describe XAeonAgents::GenHelpers do
         ```
       EXPECTED
     end
-
   end
-
 end

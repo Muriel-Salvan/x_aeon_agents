@@ -18,7 +18,7 @@ prs_list.each do |pr_number|
   # Inspired by https://stackoverflow.com/questions/55713929/list-all-unresolved-pull-request-comments
   pr_json = JSON.parse(`gh api graphql -f owner="#{repo_owner}" -f repo="#{repo_name}" -F pr="#{pr_number}" -F query=@"#{__dir__}/gh_comments.gql`)['data']['repository']['pullRequest']
   # Filter out the resolved discussions
-  pr_json['reviewThreads']['edges'].select! { |review_thread| !review_thread['node']['isResolved'] }
+  pr_json['reviewThreads']['edges'].reject! { |review_thread| review_thread['node']['isResolved'] }
   puts JSON.pretty_generate(pr_json)
   puts
 end

@@ -19,15 +19,15 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(agent: 'cline')
         agent_name = agent.to_sym
-        original_no_color = ENV['NO_COLOR']
+        original_no_color = ENV.fetch('NO_COLOR', nil)
         ENV['NO_COLOR'] = '1'
         begin
           list_lines = `skillkit manifest`.split("\n")
         ensure
           ENV['NO_COLOR'] = original_no_color
         end
-        list_lines = list_lines[list_lines.index('Skills:') + 1..]
-        list_lines[0..list_lines.index('') - 1].each_slice(2) do |repo_desc, skills_desc|
+        list_lines = list_lines[(list_lines.index('Skills:') + 1)..]
+        list_lines[0..(list_lines.index('') - 1)].each_slice(2) do |repo_desc, skills_desc|
           install_skills_recursive(
             repo_desc[4..].strip,
             skills_desc[12..].split(',').map(&:strip),

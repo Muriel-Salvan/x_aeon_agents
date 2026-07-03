@@ -1,3 +1,4 @@
+require 'English'
 require 'sqlite3'
 require 'json'
 require 'fileutils'
@@ -47,8 +48,8 @@ module XAeonAgentsTest
       full_script_path = File.expand_path('./bin/xaa')
       output = nil
       Dir.chdir(@workspace_dir) do
-        output = `ruby "#{full_script_path}" generate-skills#{dest_dir ? " --output-dir #{dest_dir}" : ''} 2>&1`
-        raise "Command failed: #{output}" if !$?.success? && !expect_failure
+        output = `ruby "#{full_script_path}" generate-skills#{" --output-dir #{dest_dir}" if dest_dir} 2>&1`
+        raise "Command failed: #{output}" if !$CHILD_STATUS.success? && !expect_failure
       end
       output
     end
@@ -60,7 +61,7 @@ module XAeonAgentsTest
     # @param value [String] Temporary value to set
     # @yield [#call] Code block to execute with the temporary value
     def with_env_var(var_name, value)
-      original_value = ENV[var_name]
+      original_value = ENV.fetch(var_name, nil)
       ENV[var_name] = value
       begin
         yield
@@ -75,7 +76,7 @@ module XAeonAgentsTest
     #
     # @yield [#call] Code block to execute without CLI colors
     def without_cli_colors
-      original_no_color = ENV['NO_COLOR']
+      original_no_color = ENV.fetch('NO_COLOR', nil)
       ENV['NO_COLOR'] = '1'
       begin
         yield

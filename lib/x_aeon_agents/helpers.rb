@@ -57,27 +57,29 @@ module XAeonAgents
         stderr_lines = []
         exit_status = nil
         Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
-          on_start.call(stdin, stdout, stderr, wait_thr) if on_start
+          on_start&.call(stdin, stdout, stderr, wait_thr)
           stdin.close
           [
             # Parse stdout
             Thread.new do
               stdout.each_line do |line|
                 stdout_lines << line
-                on_stdout.call(line) unless on_stdout.nil?
+                on_stdout&.call(line)
               end
             end,
             # Parse stderr
             Thread.new do
               stderr.each_line do |line|
                 stderr_lines << line
-                on_stderr.call(line) unless on_stderr.nil?
+                on_stderr&.call(line)
               end
             end
           ].each(&:join)
           exit_status = wait_thr.value.exitstatus
           log_debug "CLI `#{cmd}` exited with status: #{exit_status}"
-          raise UnexpectedExitStatusError.new("CLI `#{cmd}` exited with status #{exit_status} (expected #{expected_exit_status})") if !expected_exit_status.nil? && exit_status != expected_exit_status
+          if !expected_exit_status.nil? && exit_status != expected_exit_status
+            raise UnexpectedExitStatusError, "CLI `#{cmd}` exited with status #{exit_status} (expected #{expected_exit_status})"
+          end
         end
         {
           stdout: stdout_lines.join("\n"),
@@ -107,24 +109,24 @@ module XAeonAgents
       # @param base [String, Symbol] Git base (sha, objectish...) with which we diff, or :cached to only get diff of the staging area.
       def artifact_files_diffs(base = 'HEAD')
         if base == :cached
-          <<~EO_Artifact
+          <<~EO_ARTIFACT
             ### git diff --cached
 
             ```
             #{git_diff_cached}
             ```
-          EO_Artifact
+          EO_ARTIFACT
         else
-          <<~EO_Artifact
+          <<~EO_ARTIFACT
             ### New untracked files
 
             #{git.status.untracked.keys.map do |file|
-              <<~EO_Untracked_File
+              <<~EO_UNTRACKED_FILE
                 #### #{file}
                 ```
                 #{File.read(file)}
                 ```
-              EO_Untracked_File
+              EO_UNTRACKED_FILE
             end.join("\n")}
 
             ### git diff
@@ -132,7 +134,7 @@ module XAeonAgents
             ```
             #{git.diff(base)}
             ```
-          EO_Artifact
+          EO_ARTIFACT
         end
       end
 
@@ -157,7 +159,7 @@ module XAeonAgents
       #
       # @return [String, nil] The Github repository name in the format "owner/repo", or nil if none
       def github_repo
-        @github_repo ||= github_remote&.url.match(%r{github\.com[:/](.+)\.git})[1]
+        @github_repo ||= github_remote&.url&.match(%r{github\.com[:/](.+)\.git})&.[](1)
       end
 
       # Get the Ruby gem name from the gemspec file, if any.
