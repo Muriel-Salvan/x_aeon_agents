@@ -1,0 +1,13 @@
+describe XAeonAgents::GenHelpers, '#goal' do
+  it 'sets and returns the goal when a goal_desc argument is given' do
+    expect(
+      process_erb('<%= goal("Implementing a feature") %>')
+    ).to eq 'Implementing a feature'
+  end
+
+  it 'retrieves the previously set goal when called without argument' do
+    expect(
+      process_erb('<% goal("Fixing a bug") %><%= goal %>')
+    ).to eq 'Fixing a bug'
+  end
+end

@@ -1,4 +1,4 @@
-describe 'generate_skills executable' do
+describe XAeonAgents::Cli, '#generate_skills' do
   describe 'basic functionality' do
     context 'with empty skills.src directory' do
       it 'creates an empty skills directory' do

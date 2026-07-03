@@ -159,7 +159,7 @@ module XAeonAgents
       #
       # @return [String, nil] The Github repository name in the format "owner/repo", or nil if none
       def github_repo
-        @github_repo ||= github_remote&.url&.match(%r{github\.com[:/](.+)\.git})&.[](1)
+        @github_repo ||= github_remote && github_remote.url.match(%r{github\.com[:/](.+)\.git})[1]
       end
 
       # Get the Ruby gem name from the gemspec file, if any.
