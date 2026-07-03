@@ -31,7 +31,7 @@ module XAeonAgents
             '/graphql',
             JSON.dump(
               {
-                query: File.read("#{__dir__}/../gh_comments.gql"),
+                query: File.read("#{__dir__}/gh_comments.gql"),
                 variables: {
                   owner:,
                   repo:,
