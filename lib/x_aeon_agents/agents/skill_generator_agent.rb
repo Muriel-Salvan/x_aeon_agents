@@ -11,7 +11,13 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        { output_dir: 'Output directory for generated skills' }
+        {
+          output_dir: 'Output directory for generated skills',
+          skill_names: {
+            description: 'Optional list of skill names to generate. If nil or empty, all skills are generated.',
+            optional: true
+          }
+        }
       end
 
       # Define output artifacts contracts
@@ -24,8 +30,10 @@ module XAeonAgents
       # Execute the agent to generate skill files from ERB templates.
       #
       # @param output_dir [String] Output directory for generated skills
+      # @param skill_names [Array<String>, nil] Optional list of skill names to generate.
+      #   Supports comma-separated values within each element. If nil or empty, all skills are generated.
       # @return [Hash{Symbol => Object}] Output artifacts content
-      def run(output_dir: 'skills')
+      def run(output_dir: 'skills', skill_names: nil)
         transformations = {
           '.erb' => proc { |src_file| GenHelpers::ErbEvaluator.new(src_file).result }
         }.freeze
@@ -36,11 +44,22 @@ module XAeonAgents
 
         FileUtils.mkdir_p(dest_dir)
 
+        # Normalize skill_names: flatten, split by comma, strip, compact, uniq
+        normalized_skill_names = (skill_names || [])
+          .flat_map { |name| name.split(',') }
+          .map(&:strip)
+          .reject(&:empty?)
+          .uniq
+
         failed = false
         Dir.glob(File.join(src_dir, '**', '*'), File::FNM_DOTMATCH)
           .select { |f| File.file?(f) && File.basename(f) != '.skill_config.yml' }
           .each do |src_file|
             relative_path = Pathname.new(src_file).relative_path_from(src_pathname).to_s
+            # Determine the top-level skill directory for this file.
+            # Skip files whose top-level skill directory is not in the requested list
+            next if !normalized_skill_names.empty? && !normalized_skill_names.include?(relative_path.split('/').first)
+
             file_ext = File.extname(relative_path)
             dst_file = File.join(
               dest_dir,
