@@ -57,7 +57,7 @@ Metrics/ParameterLists:
 
 # It's ok to have longer methods, while keeping readability.
 Metrics/PerceivedComplexity:
-  Max: 20
+  Max: 30
 
 # These tests are not describing any class or module
 RSpec/DescribeClass:

@@ -35,7 +35,7 @@ module XAeonAgents
             "Read the initial requirements from the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
             'Analyze the project files',
             "Create an artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a complete and detailed " \
-            'step-by-step implementation plan in Markdown format'
+              'step-by-step implementation plan in Markdown format'
           ]
         }
         loop do
