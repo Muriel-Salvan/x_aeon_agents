@@ -6,14 +6,12 @@ require 'tmpdir'
 
 module XAeonAgentsTest
   module Helpers
-    # Create a temporary workspace directory
-    # Sets @workspace_dir to the created directory path
+    # Create a temporary workspace directory and cd in it.
     #
-    # @yield [#call] Code block to execute with the workspace directory
-    def with_workspace
+    # @yield [#call] Code block to execute within the workspace directory
+    def with_workspace(&block)
       Dir.mktmpdir('test_skills_workspace') do |workspace_dir|
-        @workspace_dir = workspace_dir
-        yield @workspace_dir
+        Dir.chdir(workspace_dir, &block)
       end
     end
 
@@ -24,34 +22,69 @@ module XAeonAgentsTest
     # @param skills [Hash{String => Hash{String => String}}] Hash of skill names to their file contents
     # @yield [#call] Code block to execute with the workspace directory
     def with_skills_src(**skills)
-      with_workspace do |workspace_dir|
-        skills_src_dir = File.join(workspace_dir, 'skills.src')
+      with_workspace do
         skills.each do |skill_name, files|
-          skill_dir = File.join(skills_src_dir, skill_name.to_s)
+          skill_dir = File.join('skills.src', skill_name.to_s)
           files.each do |file_path, content|
             full_file_path = File.join(skill_dir, file_path)
             FileUtils.mkdir_p(File.dirname(full_file_path))
             File.write(full_file_path, content)
           end
         end
-        yield workspace_dir
+        yield
       end
     end
 
-    # Run the generate_skills Thor command from the workspace directory
-    # Assumes @workspace_dir is set by with_skills_src
+    # Run the generate_skills CLI command
     #
-    # @param dest_dir [String, nil] Optional destination directory argument
+    # @param output_dir [String, nil] Optional destination directory argument
     # @param expect_failure [Boolean] Expect the generate_skills command to fail?
     # @return [String] The output from the generate_skills command
-    def run_generate_skills(dest_dir = nil, expect_failure: false)
-      full_script_path = File.expand_path('./bin/xaa')
-      output = nil
-      Dir.chdir(@workspace_dir) do
-        output = `ruby "#{full_script_path}" generate-skills#{" --output-dir #{dest_dir}" if dest_dir} 2>&1`
-        raise "Command failed: #{output}" if !$CHILD_STATUS.success? && !expect_failure
+    def run_generate_skills(output_dir: nil, expect_failure: false)
+      run_cli(
+        *(['generate-skills'] + (output_dir ? ['--output-dir', output_dir] : [])),
+        expect_failure:
+      )
+    end
+
+    # @return [String, nil] Stdout of the last CLI run, or nil if none
+    attr_reader :stdout
+
+    # @return [String, nil] Stderr of the last CLI run, or nil if none
+    attr_reader :stderr
+
+    # @return [Integer, nil] Exit status of the last CLI run, or nil if none
+    attr_reader :exit_status
+
+    # Run the CLI.
+    # Result is captured in the following methods: stdout, stderr, exit_status.
+    #
+    # @param args [Array<String>] CLI arguments
+    # @param expect_failure [Boolean] Expect the generate_skills command to fail?
+    def run_cli(*args, expect_failure: false)
+      stdout_io = StringIO.new
+      stderr_io = StringIO.new
+      $stdout = stdout_io
+      $stderr = stderr_io
+      begin
+        begin
+          XAeonAgents::Cli.start(args)
+          # If we reach here, the command did not call exit (succeeded)
+          @exit_status = 0
+        rescue SystemExit => e
+          @exit_status = e.status
+        end
+      ensure
+        $stdout = STDOUT
+        $stderr = STDERR
       end
-      output
+      @stdout = stdout_io.string
+      @stderr = stderr_io.string
+      if expect_failure
+        expect(exit_status).not_to eq 0
+      else
+        expect(exit_status).to eq 0
+      end
     end
 
     # Helper method to temporarily set an environment variable
@@ -124,9 +157,9 @@ module XAeonAgentsTest
     # @return [String] The content of the generated SKILL.md file
     def process_erb(erb_content, additional_files = {})
       files = { 'SKILL.md.erb' => erb_content }.merge(additional_files)
-      with_skills_src(test_skill: files) do |workspace_dir|
+      with_skills_src(test_skill: files) do
         run_generate_skills
-        File.read("#{workspace_dir}/skills/test_skill/SKILL.md")
+        File.read('skills/test_skill/SKILL.md')
       end
     end
   end

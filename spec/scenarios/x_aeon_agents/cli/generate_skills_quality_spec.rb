@@ -2,28 +2,26 @@ require 'fileutils'
 
 describe XAeonAgents::Cli, '#generate_skills' do
   describe 'generated skills\' quality' do
-    let(:compliance_score_threshold) { 90 }
-    let(:quality_score_thresholds) do
-      {
-        Structure: 90,
-        Clarity: 90,
-        Specificity: 90,
-        Advanced: 90,
-        'Average score': 90
-      }
-    end
-    let(:skills_test_dir) { 'skills.test' }
+    compliance_score_threshold = 90
+    quality_score_thresholds = {
+      Structure: 90,
+      Clarity: 90,
+      Specificity: 90,
+      Advanced: 90,
+      'Average score': 90
+    }
+    skills_test_dir = 'skills.test'
 
     before(:context) do
       # Generate skills for tests
       FileUtils.rm_rf skills_test_dir
-      expect(`bundle exec ruby bin/xaa generate-skills --output-dir #{skills_test_dir}`).to include 'Skills generated successfully.'
+      run_generate_skills(output_dir: skills_test_dir)
     end
 
     Dir.glob('skills.src/*').map { |skill_path| File.basename(skill_path) }.each do |skill_name|
       skill_path = "#{skills_test_dir}/#{skill_name}"
 
-      context "with skill #{skill_name}" do
+      context "validating skill #{skill_name}" do
         it "has a compliance score of at least #{compliance_score_threshold}%" do
           check_output = without_cli_colors { `skillkit skillmd check #{skill_path} --verbose` }
           score = Integer(check_output.match(%r{Score: (\d+)/100$})[1])
