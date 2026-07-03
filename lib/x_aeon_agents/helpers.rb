@@ -3,6 +3,7 @@ require 'git'
 require 'launchy'
 require 'octokit'
 require 'open3'
+require 'secret_string'
 
 module XAeonAgents
   module Helpers
@@ -15,7 +16,7 @@ module XAeonAgents
 
       # Retrieve API keys needed for the agents from the X-Aeon launcher
       #
-      # @return [Hash<Symbol, String>] The keys retrieved
+      # @return [Hash{Symbol => SecretString}] The keys retrieved
       def keys_from_launcher
         @keys_from_launcher ||= begin
           keys = {
@@ -27,7 +28,7 @@ module XAeonAgents
           Bundler.with_unbundled_env { `launcher safe -- #{keys.values.map { |launcher_key| "\"#{launcher_key}\"" }.join(' ')}` }.each_line do |line|
             next unless line =~ /^\[PASSWORD\] \[([^\]]+)\]: (.+)$/
 
-            launcher_keys[Regexp.last_match(1)] = Regexp.last_match(2)
+            launcher_keys[Regexp.last_match(1)] = SecretString.new(Regexp.last_match(2))
           end
           keys.to_h { |key, launcher_key| [key, launcher_keys[launcher_key]] }
         end
