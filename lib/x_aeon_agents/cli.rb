@@ -5,6 +5,7 @@ module XAeonAgents
   class Cli < Thor
     # Global options
     class_option :session_id, type: :string, desc: 'Session ID for persistence'
+    class_option :debug, type: :boolean, default: false, desc: 'Enable debug mode'
 
     # --------------------------------------------------------------------------- #
     # review-comments: Address Pull Request review comments
@@ -18,9 +19,9 @@ module XAeonAgents
 
       Examples:
 
-        \\x5   xaa review-comments 42
+        $   xaa review-comments 42
 
-        \\x5   xaa review-comments 42 --session-id my-session
+        $   xaa review-comments 42 --session-id my-session
     LONGDESC
     def review_comments(pull_request_number)
       Agents::ReviewResolverAgent.new(session_id: options[:session_id]).run(
@@ -39,7 +40,7 @@ module XAeonAgents
 
       Example:
 
-        \\x5   xaa commit
+        $   xaa commit
     LONGDESC
     def commit
       Agents::CommitterAgent.new(session_id: options[:session_id]).run
@@ -69,9 +70,9 @@ module XAeonAgents
 
       Examples:
 
-        \\x5   xaa generate-readme
+        $   xaa generate-readme
 
-        \\x5   xaa generate-readme --no-features --no-license --session-id my-session
+        $   xaa generate-readme --no-features --no-license --session-id my-session
     LONGDESC
     option :about, type: :boolean, default: true, desc: 'Generate the About section'
     option :quick_start, type: :boolean, default: true, desc: 'Generate the Quick Start section'
@@ -110,9 +111,9 @@ module XAeonAgents
 
       Examples:
 
-        \\x5   xaa generate-skills
+        $   xaa generate-skills
 
-        \\x5   xaa generate-skills --output-dir custom_skills
+        $   xaa generate-skills --output-dir custom_skills
     LONGDESC
     option :output_dir, type: :string, default: 'skills', desc: 'Output directory for generated skills'
     def generate_skills
@@ -134,9 +135,9 @@ module XAeonAgents
 
       Examples:
 
-        \\x5   xaa implement-issue 15
+        $   xaa implement-issue 15
 
-        \\x5   xaa implement-issue 15 --session-id my-session
+        $   xaa implement-issue 15 --session-id my-session
     LONGDESC
     def implement_issue(github_issue_number)
       Agents::IssueImplementerAgent.new(
@@ -157,9 +158,9 @@ module XAeonAgents
 
       Examples:
 
-        \\x5   xaa implement "Add authentication middleware"
+        $   xaa implement "Add authentication middleware"
 
-        \\x5   xaa implement "Refactor the database layer" --commit --pr --session-id my-session
+        $   xaa implement "Refactor the database layer" --commit --pr --session-id my-session
     LONGDESC
     option :commit, type: :boolean, default: false, desc: 'Commit files at every step'
     option :pr, type: :boolean, default: false, desc: 'Create a GitHub Pull Request for the changes'
@@ -182,11 +183,11 @@ module XAeonAgents
 
       Examples:
 
-        \\x5   xaa interpret-diffs
+        $   xaa interpret-diffs
 
-        \\x5   xaa interpret-diffs main
+        $   xaa interpret-diffs main
 
-        \\x5   xaa interpret-diffs HEAD~3
+        $   xaa interpret-diffs HEAD~3
     LONGDESC
     def interpret_diffs(base = 'HEAD')
       output = Agents::GitDiffInterpreterAgent.new(session_id: options[:session_id]).run(git_ref_base: base)
@@ -210,9 +211,9 @@ module XAeonAgents
 
       Examples:
 
-        \\x5   xaa prompt "What is the capital of France?"
+        $   xaa prompt "What is the capital of France?"
 
-        \\x5   xaa prompt "Explain this code: puts 'hello'"
+        $   xaa prompt "Explain this code: puts 'hello'"
     LONGDESC
     def prompt(user_prompt)
       agent = Agents::ExecutorAgent.new(session_id: options[:session_id], **Models.free_simple)
@@ -231,9 +232,9 @@ module XAeonAgents
 
       Example:
 
-        \\x5   xaa install-skills
+        $   xaa install-skills
 
-        \\x5   xaa install-skills --agent cline
+        $   xaa install-skills --agent cline
     LONGDESC
     option :agent, type: :string, default: 'cline', desc: 'Agent name to be used to install skills'
     def install_skills
@@ -254,7 +255,7 @@ module XAeonAgents
 
       Example:
 
-        \\x5   xaa start-task
+        $   xaa start-task
     LONGDESC
     def start_task
       puts 'Branch name:'
@@ -268,6 +269,15 @@ module XAeonAgents
 
     def self.exit_on_failure?
       true
+    end
+
+    no_commands do
+      # Constructor
+      def initialize(*)
+        super
+        # Handle all the global setup from options
+        Config.debug = options[:debug]
+      end
     end
   end
 end
