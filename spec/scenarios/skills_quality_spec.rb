@@ -1,3 +1,5 @@
+require 'fileutils'
+
 describe 'Generated skills quality' do
 
   COMPLIANCE_SCORE_THRESHOLD = 90

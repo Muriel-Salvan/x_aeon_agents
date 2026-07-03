@@ -2,6 +2,9 @@ require 'zeitwerk'
 
 Zeitwerk::Loader.for_gem.setup
 
+# As most agents come from composable_agents, require it here just once.
+require 'composable_agents'
+
 # Provide skills, tools, agents and workflows that allow AI to be used in X-Aeon projects.
 module XAeonAgents
   # Return the current AI agent name

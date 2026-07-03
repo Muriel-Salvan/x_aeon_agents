@@ -1,3 +1,6 @@
+require 'fileutils'
+require 'pathname'
+
 module XAeonAgents
   module Agents
     # Agent responsible for generating skill files from ERB templates.
@@ -24,7 +27,7 @@ module XAeonAgents
       # @return Hash<Symbol,Object> Output artifacts content
       def run(output_dir: 'skills')
         transformations = {
-          '.erb' => proc { |src_file| XAeonAgents::GenHelpers::ErbEvaluator.new(src_file).result }
+          '.erb' => proc { |src_file| GenHelpers::ErbEvaluator.new(src_file).result }
         }.freeze
 
         src_dir = File.expand_path('skills.src')

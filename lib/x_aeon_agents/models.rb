@@ -18,8 +18,8 @@ module XAeonAgents
       def free_complex
         {
           model: 'deepseek/deepseek-v4-flash',
-          api_key: Configuration.config[:cline_api_key],
-          cli_options: Configuration.config[:default_cline_cli_args]
+          api_key: Config.cline_api_key,
+          cli_options: Config.default_cline_cli_args
         }
       end
 
@@ -28,10 +28,10 @@ module XAeonAgents
       # @return [Hash<Symbol, Object>] Corresponding model parameters
       def free_complex_planning
         {
-          # model: 'deepseek/deepseek-v4-flash',
-          model: 'stepfun/step-3.7-flash',
-          api_key: Configuration.config[:cline_api_key],
-          cli_options: Configuration.config[:default_cline_cli_args].merge(
+          model: 'deepseek/deepseek-v4-flash',
+          # model: 'stepfun/step-3.7-flash',
+          api_key: Config.cline_api_key,
+          cli_options: Config.default_cline_cli_args.merge(
             {
               plan: true
             }
