@@ -16,13 +16,13 @@ module XAeonAgents
     require 'json'
 
     # Find VSCode globalStorage database
-    state_db = "#{ENV['VSCODE_PORTABLE'] ? "#{ENV['VSCODE_PORTABLE']}/user-data" : "#{ENV['APPDATA']}/Code"}/User/globalStorage/state.vscdb"
+    state_db = "#{ENV['VSCODE_PORTABLE'] ? "#{ENV['VSCODE_PORTABLE']}/user-data" : "#{ENV.fetch('APPDATA', nil)}/Code"}/User/globalStorage/state.vscdb"
     raise "Cannot find #{state_db}" unless File.exist?(state_db)
 
     # Open SQLite database and query for our extension's key
     db = SQLite3::Database.new(state_db)
     db.results_as_hash = true
-    row = db.get_first_row("SELECT value FROM ItemTable WHERE key = ?", "saoudrizwan.claude-dev")
+    row = db.get_first_row('SELECT value FROM ItemTable WHERE key = ?', 'saoudrizwan.claude-dev')
     db.close
     raise 'Key \'saoudrizwan.claude-dev\' not found in database.' unless row
 

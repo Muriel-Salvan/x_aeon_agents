@@ -1,9 +1,7 @@
 require 'tmpdir'
 
 describe XAeonAgents do
-
   describe '.agent_name' do
-
     it 'returns the agent name from the VSCode globalStorage database' do
       # Create a temporary directory for the test database
       Dir.mktmpdir do |temp_dir|
@@ -41,7 +39,5 @@ describe XAeonAgents do
         end
       end
     end
-
   end
-
 end

@@ -1,7 +1,5 @@
 describe XAeonAgents::GenHelpers do
-
   describe 'ordered_todo_list' do
-
     it 'generates a full ordered list with checklist tracking instructions' do
       expect(
         process_erb(
@@ -92,7 +90,5 @@ describe XAeonAgents::GenHelpers do
         - If any step was not executed, execute it now.
       EXPECTED
     end
-
   end
-
 end

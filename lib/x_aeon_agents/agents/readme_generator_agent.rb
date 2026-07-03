@@ -259,7 +259,11 @@ module XAeonAgents
           ordered_sections.each.with_index do |(section_title, art_name), idx_section|
             next unless @artifacts[art_name]
 
-            content = "## #{section_title}\n\n#{ComposableAgents::Utils::Markdown.align_markdown_headers(strip_grouping_header(@artifacts[art_name]), level: 3).strip}"
+            content = <<~EO_CONTENT.strip
+              ## #{section_title}
+
+              #{ComposableAgents::Utils::Markdown.align_markdown_headers(strip_grouping_header(@artifacts[art_name]), level: 3).strip}
+            EO_CONTENT
             # Find the section of this title if any
             existing_idx = sections.index { |section| section[:title] == section_title }
             if existing_idx

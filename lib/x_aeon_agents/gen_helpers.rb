@@ -18,12 +18,12 @@ module XAeonAgents
       @plan = plan
       frontmatter = {
         'name' => name,
-        'description' => "#{description}#{plan ? ' Use this skill also in Plan mode.' : ''}"
+        'description' => "#{description}#{' Use this skill also in Plan mode.' if plan}"
       }
       metadata['agent'] = 'Plan' if plan
       metadata['dependencies'] = dependencies unless dependencies.empty?
       frontmatter['metadata'] = metadata.transform_keys(&:to_s) unless metadata.empty?
-      YAML.dump(frontmatter, line_width: -1).chomp + "\n---"
+      "#{YAML.dump(frontmatter, line_width: -1).chomp}\n---"
     end
 
     # Define or get the skill goal to be used in ERB templates
@@ -68,34 +68,34 @@ module XAeonAgents
     # @return [String] The formatted markdown documentation for the rule
     def rule(title, description: nil, type: :ruby, bad: nil, good: nil, rationale: nil)
       markdown_sections = [
-        <<~EO_Markdown
-          ### Rule: #{title}#{description.nil? ? '' : "\n\n#{description.strip}"}
-        EO_Markdown
+        <<~EO_MARKDOWN
+          ### Rule: #{title}#{"\n\n#{description.strip}" unless description.nil?}
+        EO_MARKDOWN
       ]
       unless bad.nil?
-        markdown_sections << <<~EO_Markdown
+        markdown_sections << <<~EO_MARKDOWN
           #### Example: Incorrect
 
           ```#{type}
           #{bad.strip}
           ```
-        EO_Markdown
+        EO_MARKDOWN
       end
       unless good.nil?
-        markdown_sections << <<~EO_Markdown
+        markdown_sections << <<~EO_MARKDOWN
           #### Example: Correct
 
           ```#{type}
           #{good.strip}
           ```
-        EO_Markdown
+        EO_MARKDOWN
       end
       unless rationale.nil?
-        markdown_sections << <<~EO_Markdown
+        markdown_sections << <<~EO_MARKDOWN
           #### Rationale
 
           #{rationale}
-        EO_Markdown
+        EO_MARKDOWN
       end
       markdown_sections.join("\n").strip
     end
@@ -112,11 +112,11 @@ module XAeonAgents
         # Split into sections by ## headings
         # Number sections starting from 2 and strip trailing whitespace
         step_number = 2
-        numbered_sections = erb_content.
-          strip.
-          split(/^(?=### )/).
-          reject { |s| s.strip.empty? }.
-          map do |section|
+        numbered_sections = erb_content
+          .strip
+          .split(/^(?=### )/)
+          .reject { |s| s.strip.empty? }
+          .map do |section|
             numbered = section.sub(/^### /, "### #{step_number}. ").rstrip
             step_number += 1
             numbered
@@ -124,7 +124,7 @@ module XAeonAgents
 
         # Compose the full output and append directly to ERB buffer
         # (we use <% %> not <%= %> since standard ERB doesn't support <%= method do %>)
-        <<~EO_Markdown
+        <<~EO_MARKDOWN
           ## Sequential steps to be followed when using this skill
 
           When #{goal_sentence}, follow those steps.
@@ -138,7 +138,7 @@ module XAeonAgents
           #{numbered_sections.join("\n\n")}
 
           #{GenHelpers.validate_skill_checklist(name).rstrip}
-        EO_Markdown
+        EO_MARKDOWN
       end
     end
 
@@ -155,7 +155,7 @@ module XAeonAgents
     #
     # @return [String] Skill name being generated
     def name
-      current_erb_file.match(/\/skills\.src\/([^\/]+)\//)[1]
+      current_erb_file.match(%r{/skills\.src/([^/]+)/})[1]
     end
 
     # Generate the "When to use it" section for a skill.
@@ -169,17 +169,16 @@ module XAeonAgents
         blocks << '- This skill can be used when in Plan mode.' if @plan
         blocks << "- Always use it every time another skill specifically mentions `skill: #{name}`."
         blocks << erb_content
-        <<~EO_Markdown
+        <<~EO_MARKDOWN
           ## When to use it
 
           #{blocks.join("\n").rstrip}
-        EO_Markdown
+        EO_MARKDOWN
       end
     end
 
     # Small class that can serve as a container for ERB evaluation with our DSL
     class ErbEvaluator
-
       include GenHelpers
 
       # Constructor
@@ -197,7 +196,6 @@ module XAeonAgents
       def result
         @erb.result(binding)
       end
-
     end
 
     # Return the execution checklist initialization section
@@ -205,7 +203,7 @@ module XAeonAgents
     # @param checklist_name [String] Name to be given to this checklist
     # @return [String] The execution checklist section
     def self.init_skill_checklist(checklist_name)
-      <<~EO_Markdown
+      <<~EO_MARKDOWN
         ### Create the #{checklist_name} Execution Checklist (MANDATORY)
 
         - Before executing anything, create a checklist named #{checklist_name} Execution Checklist with all steps of these instructions.
@@ -214,7 +212,7 @@ module XAeonAgents
         - Do not skip any item.
         - If an item cannot be executed, explicitly explain why.
         - Never mark the task as completed while any item from the #{checklist_name} Execution Checklist remains open.
-      EO_Markdown
+      EO_MARKDOWN
     end
 
     # Return the final verification section
@@ -222,7 +220,7 @@ module XAeonAgents
     # @param checklist_name [String] Name to be given to this checklist
     # @return [String] The final verification section
     def self.validate_skill_checklist(checklist_name)
-      <<~EO_Markdown
+      <<~EO_MARKDOWN
         ### Final Verification (MANDATORY)
 
         Before declaring the task complete:
@@ -230,7 +228,7 @@ module XAeonAgents
         - Re-list all numbered steps from the #{checklist_name} Execution Checklist.
         - Confirm each one was executed.
         - If any step was not executed, execute it now.
-      EO_Markdown
+      EO_MARKDOWN
     end
 
     private
@@ -239,8 +237,9 @@ module XAeonAgents
     #
     # @return [String] ERB file being generated
     def current_erb_file
-      file_found = caller.find { |stack_trace| stack_trace =~ /(\/skills\.src\/.+\.erb)/ }
+      file_found = caller.find { |stack_trace| stack_trace =~ %r{(/skills\.src/.+\.erb)} }
       raise "Unable to find ERB file among stack:\n#{caller.join("\n")}" if file_found.nil?
+
       Regexp.last_match[1]
     end
 
@@ -253,7 +252,7 @@ module XAeonAgents
     # @yieldreturn [String] The transformed content
     def transform_erb_block(erb_block)
       # Capture the ERB block content using buffer manipulation
-      erb_buffer = eval('_erbout', erb_block.binding)
+      erb_buffer = eval('_erbout', erb_block.binding, __FILE__, __LINE__)
       saved_content = erb_buffer.dup
       erb_buffer.clear
       erb_block.call

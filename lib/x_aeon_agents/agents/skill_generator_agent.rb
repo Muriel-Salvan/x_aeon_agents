@@ -37,9 +37,9 @@ module XAeonAgents
         FileUtils.mkdir_p(dest_dir)
 
         failed = false
-        Dir.glob(File.join(src_dir, '**', '*'), File::FNM_DOTMATCH).
-          select { |f| File.file?(f) && File.basename(f) != '.skill_config.yml' }.
-          each do |src_file|
+        Dir.glob(File.join(src_dir, '**', '*'), File::FNM_DOTMATCH)
+          .select { |f| File.file?(f) && File.basename(f) != '.skill_config.yml' }
+          .each do |src_file|
             relative_path = Pathname.new(src_file).relative_path_from(src_pathname).to_s
             file_ext = File.extname(relative_path)
             dst_file = File.join(

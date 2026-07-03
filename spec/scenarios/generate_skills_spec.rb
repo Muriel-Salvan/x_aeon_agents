@@ -1,7 +1,5 @@
 describe 'generate_skills executable' do
-
   describe 'basic functionality' do
-
     context 'with empty skills.src directory' do
       it 'creates an empty skills directory' do
         with_skills_src do |workspace_dir|
@@ -35,11 +33,13 @@ describe 'generate_skills executable' do
 
     context 'with recursive file copying' do
       it 'copies files in subdirectories preserving structure' do
-        with_skills_src(my_skill: {
-          'SKILL.md' => '# Skill',
-          'scripts/script1.sh' => 'echo hello',
-          'scripts/nested/script2.sh' => 'echo nested'
-        }) do |workspace_dir|
+        with_skills_src(
+          my_skill: {
+            'SKILL.md' => '# Skill',
+            'scripts/script1.sh' => 'echo hello',
+            'scripts/nested/script2.sh' => 'echo nested'
+          }
+        ) do |workspace_dir|
           run_generate_skills
           expect(File.exist?("#{workspace_dir}/skills/my_skill/SKILL.md")).to be true
           expect(File.exist?("#{workspace_dir}/skills/my_skill/scripts/script1.sh")).to be true
@@ -85,11 +85,13 @@ describe 'generate_skills executable' do
 
     context 'with mixed ERB and non-ERB files' do
       it 'processes ERB files and copies non-ERB files correctly' do
-        with_skills_src(my_skill: {
-          'SKILL.md.erb' => '# Title: <%= "Test" %>',
-          'config.yml' => 'setting: value',
-          'script.rb.erb' => 'puts "<%= 1 + 2 %>"'
-        }) do |workspace_dir|
+        with_skills_src(
+          my_skill: {
+            'SKILL.md.erb' => '# Title: <%= "Test" %>',
+            'config.yml' => 'setting: value',
+            'script.rb.erb' => 'puts "<%= 1 + 2 %>"'
+          }
+        ) do |workspace_dir|
           run_generate_skills
           expect(File.read("#{workspace_dir}/skills/my_skill/SKILL.md")).to eq('# Title: Test')
           expect(File.read("#{workspace_dir}/skills/my_skill/script.rb")).to eq('puts "3"')
@@ -109,11 +111,9 @@ describe 'generate_skills executable' do
         end
       end
     end
-
   end
 
   describe 'custom destination directory' do
-
     context 'with custom destination directory' do
       it 'generates skills to the specified custom directory' do
         with_skills_src(my_skill: { 'SKILL.md' => '# My Skill' }) do |workspace_dir|
@@ -134,7 +134,5 @@ describe 'generate_skills executable' do
         end
       end
     end
-
   end
-
 end

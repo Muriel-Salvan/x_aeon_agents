@@ -1,7 +1,5 @@
 describe XAeonAgents::GenHelpers do
-
   describe 'goal' do
-
     it 'sets and returns the goal when a goal_desc argument is given' do
       expect(
         process_erb('<%= goal("Implementing a feature") %>')
@@ -13,7 +11,5 @@ describe XAeonAgents::GenHelpers do
         process_erb('<% goal("Fixing a bug") %><%= goal %>')
       ).to eq 'Fixing a bug'
     end
-
   end
-
 end

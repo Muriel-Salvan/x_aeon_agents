@@ -1,7 +1,5 @@
 describe XAeonAgents::GenHelpers do
-
   describe '#when_to_use' do
-
     context 'when plan mode is enabled' do
       it 'includes plan mode instruction and custom content' do
         expect(

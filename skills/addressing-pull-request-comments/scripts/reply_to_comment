@@ -23,7 +23,10 @@ puts "Branch name: #{branch}"
 Dir.mktmpdir do |temp_dir|
   body_file = "#{temp_dir}/body.txt"
   File.write(body_file, "[#{XAeonAgents.agent_name}] " + File.read(reply_body_file))
-  system "gh api repos/#{repo_owner}/#{repo_name}/pulls/#{pull_request_number}/comments/#{comment_database_id}/replies -X POST -F body=@#{body_file}", exception: true
+  system(
+    "gh api repos/#{repo_owner}/#{repo_name}/pulls/#{pull_request_number}/comments/#{comment_database_id}/replies -X POST -F body=@#{body_file}",
+    exception: true
+  )
 end
 
 puts
