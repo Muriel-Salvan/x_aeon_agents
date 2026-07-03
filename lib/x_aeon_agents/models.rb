@@ -4,7 +4,7 @@ module XAeonAgents
     class << self
       # Simple task, using a free model
       #
-      # @return [Hash<Symbol, Object>] Corresponding model parameters
+      # @return [Hash{Symbol => Object}] Corresponding model parameters
       def free_simple
         {
           model: 'openrouter/free',
@@ -14,7 +14,7 @@ module XAeonAgents
 
       # Complex task, using a free model
       #
-      # @return [Hash<Symbol, Object>] Corresponding model parameters
+      # @return [Hash{Symbol => Object}] Corresponding model parameters
       def free_complex
         {
           model: 'deepseek/deepseek-v4-flash',
@@ -25,7 +25,7 @@ module XAeonAgents
 
       # Complex task, using a free model for planning (Read-Only)
       #
-      # @return [Hash<Symbol, Object>] Corresponding model parameters
+      # @return [Hash{Symbol => Object}] Corresponding model parameters
       def free_complex_planning
         {
           model: 'deepseek/deepseek-v4-flash',

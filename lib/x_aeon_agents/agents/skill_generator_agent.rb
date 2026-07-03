@@ -9,14 +9,14 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         { output_dir: 'Output directory for generated skills' }
       end
 
       # Define output artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
         { success: 'Whether the skill generation was successful' }
       end
@@ -24,7 +24,7 @@ module XAeonAgents
       # Execute the agent to generate skill files from ERB templates.
       #
       # @param output_dir [String] Output directory for generated skills
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(output_dir: 'skills')
         transformations = {
           '.erb' => proc { |src_file| GenHelpers::ErbEvaluator.new(src_file).result }

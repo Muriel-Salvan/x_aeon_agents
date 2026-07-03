@@ -8,11 +8,9 @@ module XAeonAgents
 
     # Log a message if debug was activated
     #
-    # Parameters::
-    # * *msg* (String or nil): Message to be displayed, or nil if the message is given lazily through a code block [default = nil]
-    # * Proc: Code returning a String for lazy evaluation
-    #   * Result::
-    #     * String: Debug message
+    # @param msg [String, nil] Message to be displayed, or nil if the message is given lazily through a code block
+    # @yield [#call -> String] Optional code returning a [String] for lazy evaluation
+    # @yieldreturn [String] The message to be displayed
     def log_debug(msg = nil)
       return unless Logger.debug
 

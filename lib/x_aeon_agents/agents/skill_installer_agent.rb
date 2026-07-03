@@ -8,7 +8,7 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         { agent: 'Agent name to be used to install skills' }
       end
@@ -16,7 +16,7 @@ module XAeonAgents
       # Execute the agent to install skills from the .skills manifest.
       #
       # @param agent [String] Agent name to be used to install skills
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(agent: 'cline')
         agent_name = agent.to_sym
         original_no_color = ENV['NO_COLOR']

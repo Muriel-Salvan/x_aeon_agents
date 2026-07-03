@@ -6,14 +6,14 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         super.merge(requirements: 'The initial requirements for which you need to devise an implementation plan')
       end
 
       # Define output artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
         super.merge(
           plan: {
@@ -26,7 +26,7 @@ module XAeonAgents
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param requirements [String] The initial requirements.
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(requirements:)
         plan_generator_agent = new_agent(PlanGeneratorAgent, **Models.free_complex_planning)
         user_instructions = {

@@ -36,26 +36,21 @@ module XAeonAgents
 
       # Execute a command while capturing its output in real time
       #
-      # Parameters::
-      # * *cmd* (String): Command to be run
-      # * *expected_exit_status* (Integer or nil): Expected exit status, or nil for no expectation [default: 0]
-      # * *on_start* (Proc or nil): Code called when the process has started, or nil if no code to be called [default: nil]
-      #   * Parameters::
-      #     * *stdin* (Object): The stdin descriptor
-      #     * *stdout* (Object): The stdout descriptor
-      #     * *stderr* (Object): The stderr descriptor
-      #     * *wait_thr* (Object): The wait thread
-      # * *on_stdout* (Proc or nil): Code called for each line of stdout, or nil if no code to be called [default: nil]
-      #   * Parameters::
-      #     * *line* (String): Line of stdout
-      # * *on_stderr* (Proc or nil): Code called for each line of stderr, or nil if no code to be called [default: nil]
-      #   * Parameters::
-      #     * *line* (String): Line of stderr
-      # Result::
-      # * Hash<Symbol,Object>: Command final output:
-      #   * *stdout* (String): Full stdout
-      #   * *stderr* (String): Full stderr
-      #   * *exit_status* (Integer): Exit status
+      # @param cmd [String] Command to be run
+      # @param expected_exit_status [Integer, nil] Expected exit status, or nil for no expectation
+      # @param on_start [#call(stdin, stdout, stderr, wait_thr), nil] Code called when the process has started, or nil if no code to be called
+      #   - Param stdin [IO] The stdin descriptor
+      #   - Param stdout [IO] The stdout descriptor
+      #   - Param stderr [IO] The stderr descriptor
+      #   - Param wait_thr [Process::Waiter] The wait thread
+      # @param on_stdout [#call(line), nil] Code called for each line of stdout, or nil if no code to be called
+      #   - Param line [String] Line of stdout
+      # @param on_stderr [#call(line), nil] Code called for each line of stderr, or nil if no code to be called
+      #   - Param line [String] Line of stderr
+      # @return [Hash{Symbol => Object}] Command final output
+      #   - stdout [String] Full stdout
+      #   - stderr [String] Full stderr
+      #   - exit_status [Integer] Exit status
       def run_cmd(cmd, expected_exit_status: 0, on_start: nil, on_stdout: nil, on_stderr: nil)
         stdout_lines = []
         stderr_lines = []
@@ -93,16 +88,14 @@ module XAeonAgents
       # Get a Git instance on the current directory.
       # Keep a cache of it.
       #
-      # Result::
-      # * Git::Base: The git instance
+      # @return [Git::Base] The git instance
       def git
         @git ||= Git.open(Dir.pwd)
       end
 
       # Return a list of patch description of diffs in the git staging area.
       #
-      # Result::
-      # * String: Patches in the staging area
+      # @return [String] Patches in the staging area
       def git_diff_cached
         # TODO: Use ruby-git when the --cached feature will be implemented
         `git diff --cached`.strip
@@ -110,8 +103,7 @@ module XAeonAgents
 
       # Get a current files diffs
       #
-      # Parameters::
-      # * *base* (Object): Git base (sha, objectish...) with which we diff, or :cached to only get diff of the staging area [default = 'HEAD']
+      # @param base [String, Symbol] Git base (sha, objectish...) with which we diff, or :cached to only get diff of the staging area.
       def artifact_files_diffs(base = 'HEAD')
         if base == :cached
           <<~EO_Artifact
@@ -146,8 +138,7 @@ module XAeonAgents
       # Get a Github Octokit API instance.
       # Keep a cache of it.
       #
-      # Result::
-      # * Octokit::Client: The Octokit client
+      # @return [Octokit::Client] The Octokit client
       def github
         @github ||= Octokit::Client.new(access_token: Config.github_token)
       end
@@ -188,8 +179,8 @@ module XAeonAgents
       # @param promptable [Boolean] Indicates if user can issue a prompt as an answer
       # @param content [String] Initial content to present
       # @return [Array<String>] 2 values are returned:
-      #   0. [String] Final content after user review (same as content if editable is false)
-      #   1. [String] User prompt
+      #   - [String] Content after user review (same as content if editable is false)
+      #   - [String] User prompt
       def review_content(
         session_dir: '.x-aeon_agents',
         name: 'content.txt',

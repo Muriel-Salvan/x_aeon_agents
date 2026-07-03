@@ -6,7 +6,7 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         {
           base_sha: 'The git ref of the base of the feature branch',
@@ -27,7 +27,7 @@ module XAeonAgents
       #
       # @param base_sha [String] The git reference of the base of the branch.
       # @param requirements [String] The initial requirements.
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(base_sha:, requirements:)
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 

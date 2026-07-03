@@ -8,9 +8,9 @@ module XAeonAgents
       #
       # @param user_review [Boolean] Should the agent ask for user's git comment review?
       # @param stage [Symbol] Apply different staging strategies:
-      #   * all: Always stage all files
-      #   * if_empty: Stage all files only if the staging aread is empty
-      #   * none: Don't stage anything
+      #   - `all`: Always stage all files
+      #   - `if_empty`: Stage all files only if the staging aread is empty
+      #   - `none`: Don't stage anything
       # @param authors [Array<Agent>] List of agents that should be credited as authors of this commit
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(user_review: true, stage: :if_empty, authors: [], **agent_params)
@@ -22,7 +22,7 @@ module XAeonAgents
 
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run
         case @stage
         when :all

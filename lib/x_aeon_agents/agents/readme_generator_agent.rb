@@ -9,7 +9,7 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         {
           gen_about: 'Generate the about/header section (name, description, badges, TOC)',
@@ -39,7 +39,7 @@ module XAeonAgents
       # @param gen_development [Boolean] Generate the "Development" section
       # @param gen_contributing [Boolean] Generate the "Contributing" section
       # @param gen_license [Boolean] Generate the "License" section
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(
         gen_about: true,
         gen_quick_start: true,

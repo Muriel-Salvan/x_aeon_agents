@@ -8,14 +8,14 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         { git_ref_base: 'Git reference used to diff with' }
       end
 
       # Define output artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of output artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
         {
           change_intent: 'Full description of the code changes, their meaning and intent',
@@ -33,7 +33,7 @@ module XAeonAgents
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param git_ref_base [String] The git reference to diff with. Use 'cached' for the staging area.
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(git_ref_base:)
         change_intent = diff_interpreter_agent.run(
           files_diff: Helpers.artifact_files_diffs(git_ref_base == 'cached' ? :cached : git_ref_base)

@@ -6,7 +6,7 @@ module XAeonAgents
 
       # Define input artifacts contracts
       #
-      # @return [Hash<Symbol, String>] Set of input artifacts description, per artifact name
+      # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         super.merge(
           github_issue_number: 'GitHub issue number to implement'
@@ -27,7 +27,7 @@ module XAeonAgents
       # Execute the agent to implement a GitHub issue.
       #
       # @param github_issue_number [Integer] The GitHub issue number
-      # @return Hash<Symbol,Object> Output artifacts content
+      # @return [Hash{Symbol => Object}] Output artifacts content
       def run(github_issue_number:)
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
