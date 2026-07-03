@@ -1,5 +1,5 @@
-describe XAeonAgents::GenHelpers do
-  describe 'skill' do
+describe XAeonAgents::GenHelpers, '#skill' do
+  describe 'Yaml front-matter' do
     it 'generates YAML skill without metadata' do
       expect(
         process_erb('<%= skill(description: "A test skill") %>')
