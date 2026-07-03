@@ -7,28 +7,32 @@ module XAeonAgents
     class << self
       include Logger
 
-      # @return [String] The Cline API key
-      attr_writer :cline_api_key
+      # Automatically generate accessors for secrets taken from the ENV or the Launcher
+      %i[
+        cline_api_key
+        openrouter_api_key
+        github_token
+      ].each do |secret_name|
+        # Set the secret from a string
+        #
+        # @param secret [String] The secret value
+        define_method(:"#{secret_name}=") do |secret|
+          @secrets ||= {}
+          @secrets[secret_name] = SecretString.new(secret)
+        end
 
-      # @return [String] The Cline API key
-      def cline_api_key
-        @cline_api_key ||= ENV.fetch('CLINE_API_KEY', nil) || Helpers.keys_from_launcher[:cline_api_key]
-      end
-
-      # @return [String] The OpenRouter API key
-      attr_writer :openrouter_api_key
-
-      # @return [String] The OpenRouter API key
-      def openrouter_api_key
-        @openrouter_api_key ||= ENV.fetch('OPENROUTER_API_KEY', nil) || Helpers.keys_from_launcher[:openrouter_api_key]
-      end
-
-      # @return [String] The Github token
-      attr_writer :github_token
-
-      # @return [String] The Github token
-      def github_token
-        @github_token ||= ENV.fetch('GITHUB_TOKEN', nil) || Helpers.keys_from_launcher[:github_token]
+        # Get the unprotected secret as a string.
+        # Use defaults if the secret was never set.
+        #
+        # @return [String, nil] The secret value, or nil if none
+        define_method(secret_name) do
+          @secrets ||= {}
+          @secrets[secret_name] ||= begin
+            env_secret = ENV.fetch(secret_name.to_s.upcase, nil)
+            env_secret ? SecretString.new(env_secret) : Helpers.keys_from_launcher[secret_name]
+          end
+          @secrets[secret_name]&.to_unprotected
+        end
       end
 
       # @return [Hash{Symbol => Object}] Default Cline CLI arguments
