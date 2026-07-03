@@ -1,3 +1,4 @@
+require 'erb'
 require 'yaml'
 
 module XAeonAgents
@@ -196,7 +197,7 @@ module XAeonAgents
     # Small class that can serve as a container for ERB evaluation with our DSL
     class ErbEvaluator
 
-      include XAeonAgents::GenHelpers
+      include GenHelpers
 
       # Constructor
       #

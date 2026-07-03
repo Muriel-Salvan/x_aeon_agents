@@ -17,18 +17,20 @@ module XAeonAgents
       #
       # @return [Hash<Symbol, String>] The keys retrieved
       def keys_from_launcher
-        keys = {
-          cline_api_key: 'Cline API key',
-          github_token: 'Github API token',
-          openrouter_api_key: 'OpenRouter API key'
-        }
-        launcher_keys = {}
-        Bundler.with_unbundled_env { `launcher safe -- #{keys.values.map { |launcher_key| "\"#{launcher_key}\"" }.join(' ')}` }.each_line do |line|
-          next unless line =~ /^\[PASSWORD\] \[([^\]]+)\]: (.+)$/
+        @keys_from_launcher ||= begin
+          keys = {
+            cline_api_key: 'Cline API key',
+            github_token: 'Github API token',
+            openrouter_api_key: 'OpenRouter API key'
+          }
+          launcher_keys = {}
+          Bundler.with_unbundled_env { `launcher safe -- #{keys.values.map { |launcher_key| "\"#{launcher_key}\"" }.join(' ')}` }.each_line do |line|
+            next unless line =~ /^\[PASSWORD\] \[([^\]]+)\]: (.+)$/
 
-          launcher_keys[Regexp.last_match(1)] = Regexp.last_match(2)
+            launcher_keys[Regexp.last_match(1)] = Regexp.last_match(2)
+          end
+          keys.to_h { |key, launcher_key| [key, launcher_keys[launcher_key]] }
         end
-        keys.to_h { |key, launcher_key| [key, launcher_keys[launcher_key]] }
       end
 
       # Execute a command while capturing its output in real time
@@ -146,7 +148,7 @@ module XAeonAgents
       # Result::
       # * Octokit::Client: The Octokit client
       def github
-        @github ||= Octokit::Client.new(access_token: Configuration.config[:github_token])
+        @github ||= Octokit::Client.new(access_token: Config.github_token)
       end
 
       # Get the Github remote from the Git remotes.
@@ -218,7 +220,7 @@ module XAeonAgents
             user_prompt.strip
           ]
         ensure
-          FileUtils.rm_f content_file unless Configuration.config[:debug]
+          FileUtils.rm_f content_file unless Config.debug
         end
       end
     end

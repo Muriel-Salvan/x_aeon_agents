@@ -10,22 +10,6 @@ module XAeonAgents
       end
     end
 
-    # Constructor
-    #
-    # @param args [Array] Agent's constructor arguments
-    # @param session_id [String, nil] Specific X-Aeon session id to be used, or nil if none
-    # @param kwargs [Array] Agent's constructor kwargs
-    def initialize(*args, session_id: nil, **kwargs)
-      @session_id = session_id || AgentDefaults.singleton_session_id
-      @session_dir = ".x-aeon_agents/sessions/#{@session_id}"
-      super(
-        *args,
-        composable_agents_dir: "#{@session_dir}/composable_agents",
-        run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
-        **kwargs
-      )
-    end
-
     # Instantiate a new agent.
     # Transfer the same session to the new agent.
     #
@@ -43,9 +27,34 @@ module XAeonAgents
     def self.prepended(base)
       base.prepend ComposableAgents::Mixins::ArtifactContract unless base.ancestors.include?(ComposableAgents::Mixins::ArtifactContract)
       base.prepend ComposableAgents::Mixins::Resumable unless base.ancestors.include?(ComposableAgents::Mixins::Resumable)
-      # Make sure AgentDefaults is still first in the ancestors chain.
-      # Avoid infinite loop here.
-      base.prepend AgentDefaults unless base.ancestors.first == AgentDefaults
+      # Make sure we always prepend at the top our initializer that sets all defaults
+      base.prepend(
+        Module.new do
+          # Constructor
+          #
+          # @param args [Array] Agent's constructor arguments
+          # @param session_id [String, nil] Specific X-Aeon session id to be used, or nil if none
+          # @param kwargs [Array] Agent's constructor kwargs
+          def initialize(*args, session_id: nil, **kwargs)
+            # If we inherit from some frameworks initialize them now.
+            Config.setup_composable_agents
+            case self
+            when ComposableAgents::AiAgents::Agent
+              Config.setup_ai_agents
+            when ComposableAgents::Cline::Agent
+              Config.setup_cline
+            end
+            @session_id = session_id || AgentDefaults.singleton_session_id
+            @session_dir = ".x-aeon_agents/sessions/#{@session_id}"
+            super(
+              *args,
+              composable_agents_dir: "#{@session_dir}/composable_agents",
+              run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
+              **kwargs
+            )
+          end
+        end
+      )
     end
   end
 end

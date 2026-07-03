@@ -1,3 +1,5 @@
+require 'front_matter_parser'
+
 module XAeonAgents
   module Agents
     # Agent responsible for installing skills from the .skills manifest.

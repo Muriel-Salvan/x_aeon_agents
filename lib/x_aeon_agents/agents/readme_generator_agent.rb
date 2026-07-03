@@ -1,4 +1,5 @@
 require 'commonmarker'
+require 'fileutils'
 
 module XAeonAgents
   module Agents
