@@ -17,7 +17,8 @@ module XAeonAgents
       def output_artifacts_contracts
         super.merge(
           plan: {
-            description: "The full and detailed implementation plan in Markdown format, that should implement the requirements given by the artifact named `#{artifact_ref(:requirements)}`",
+            description: 'The full and detailed implementation plan in Markdown format, ' \
+              "that should implement the requirements given by the artifact named `#{artifact_ref(:requirements)}`",
             type: :markdown
           }
         )
@@ -33,7 +34,8 @@ module XAeonAgents
           ordered_list: [
             "Read the initial requirements from the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
             'Analyze the project files',
-            "Create an artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a complete and detailed step-by-step implementation plan in Markdown format"
+            "Create an artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a complete and detailed " \
+            'step-by-step implementation plan in Markdown format'
           ]
         }
         loop do

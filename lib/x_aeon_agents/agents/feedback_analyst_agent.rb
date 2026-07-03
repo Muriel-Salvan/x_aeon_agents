@@ -22,7 +22,8 @@ module XAeonAgents
       def output_artifacts_contracts
         super.merge(
           requirements: {
-            description: 'The requirements that will implement what is needed by the agent-directed comments (reply "No requirements" if there is no implementation needed)',
+            description: 'The requirements that will implement what is needed by the agent-directed comments ' \
+              '(reply "No requirements" if there is no implementation needed)',
             type: :markdown
           }
         )

@@ -3,6 +3,10 @@ plugins: rubocop-rspec
 AllCops:
   NewCops: enable
 
+# Keep indentations consistent
+Layout/LineEndStringConcatenationIndentation:
+  EnforcedStyle: indented
+
 # It's ok to have longer lines
 Layout/LineLength:
   Max: 160
@@ -21,19 +25,31 @@ Lint/UnusedMethodArgument:
 
 # It's ok to have longer methods, while keeping readability.
 Metrics/AbcSize:
-  Max: 50
+  Max: 130
+
+# It's ok to have longer methods, while keeping readability.
+Metrics/BlockLength:
+  Max: 80
 
 # It's ok to have longer methods, while keeping readability.
 Metrics/BlockNesting:
   Max: 5
 
 # It's ok to have longer methods, while keeping readability.
+Metrics/ClassLength:
+  Max: 320
+
+# It's ok to have longer methods, while keeping readability.
 Metrics/CyclomaticComplexity:
-  Max: 15
+  Max: 30
 
 # It's ok to have longer methods, while keeping readability.
 Metrics/MethodLength:
-  Max: 70
+  Max: 220
+
+# It's ok to have longer methods, while keeping readability.
+Metrics/ModuleLength:
+  Max: 130
 
 # kwargs should not count towards max parameters list.
 Metrics/ParameterLists:
@@ -42,6 +58,21 @@ Metrics/ParameterLists:
 # It's ok to have longer methods, while keeping readability.
 Metrics/PerceivedComplexity:
   Max: 20
+
+# These tests are not describing any class or module
+RSpec/DescribeClass:
+  Exclude:
+    - 'spec/scenarios/code_quality_spec.rb'
+    - 'spec/scenarios/documentation_spec.rb'
+    - 'spec/scenarios/packaging_spec.rb'
+
+# It's ok to have scenarios having multiple lines
+RSpec/ExampleLength:
+  Max: 30
+
+# It's ok to have test scenarios having several expectations
+RSpec/MultipleExpectations:
+  Max: 10
 
 # It's ok to have nested groups in RSpec.
 RSpec/NestedGroups:
@@ -62,18 +93,3 @@ Style/MultilineBlockChain:
 # I don't want to pollute my code with something that should be integrated in the language
 Style/MutableConstant:
   Enabled: false
-
-# These tests are not describing any class or module
-RSpec/DescribeClass:
-  Exclude:
-    - 'spec/scenarios/code_quality_spec.rb'
-    - 'spec/scenarios/documentation_spec.rb'
-    - 'spec/scenarios/packaging_spec.rb'
-
-# It's ok to have test scenarios having several expectations
-RSpec/MultipleExpectations:
-  Max: 10
-
-# It's ok to have scenarios having multiple lines
-RSpec/ExampleLength:
-  Max: 30

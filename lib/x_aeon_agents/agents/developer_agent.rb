@@ -93,7 +93,8 @@ module XAeonAgents
                     - Check every error reported in the output.
                   EO_STEP
                   'Fix any issue that unit tests are surfacing, while keeping the original intent of the requirements',
-                  'Remember any inconsistency and modification you need to make to the implementation plan so that your fixes are in-line with a better implementation plan',
+                  'Remember any inconsistency and modification you need to make to the implementation plan ' \
+                    'so that your fixes are in-line with a better implementation plan',
                   <<~EO_STEP
                     Make sure all tests are running without issue after your fixes
 

@@ -37,7 +37,8 @@ module XAeonAgents
       def initialize(**agent_params)
         super(
           name: 'ReviewResponder',
-          role: 'You are a review responder agent. Your role is to reply to feedback, taking into account the feedback itself, and the work that has been done because of this feedback.',
+          role: 'You are a review responder agent. Your role is to reply to feedback, ' \
+            'taking into account the feedback itself, and the work that has been done because of this feedback.',
           objective: 'Generate a reply to a review comment',
           **agent_params
         )
