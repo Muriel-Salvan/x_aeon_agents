@@ -121,12 +121,19 @@ module XAeonAgents
         $   xaa generate-skills --output-dir custom_skills
     LONGDESC
     option :output_dir, type: :string, default: 'skills', desc: 'Output directory for generated skills'
+    option(
+      :skill,
+      type: :string,
+      repeatable: true,
+      desc: 'Skill name(s) to generate. Can be repeated: --skill name1 --skill name2 or comma-separated: --skill name1,name2. Omit to generate all skills.'
+    )
     # Generates skill files from ERB templates in skills.src/.
     #
     # @note Exits with status 1 if skill generation fails
     def generate_skills
       result = Agents::SkillGeneratorAgent.new(session_id: options[:session_id]).run(
-        output_dir: options[:output_dir]
+        output_dir: options[:output_dir],
+        skill_names: options[:skill]
       )
       exit 1 unless result[:success]
     end

@@ -38,11 +38,16 @@ module XAeonAgentsTest
     # Run the generate_skills CLI command
     #
     # @param output_dir [String, nil] Optional destination directory argument
+    # @param skills [Array<String>, nil] Optional array of skill names to pass via --skill
     # @param expect_failure [Boolean] Expect the generate_skills command to fail?
     # @return [String] The output from the generate_skills command
-    def run_generate_skills(output_dir: nil, expect_failure: false)
+    def run_generate_skills(output_dir: nil, skills: nil, expect_failure: false)
       run_cli(
-        *(['generate-skills'] + (output_dir ? ['--output-dir', output_dir] : [])),
+        *(
+          ['generate-skills'] +
+          (output_dir ? ['--output-dir', output_dir] : []) +
+          (skills || []).map { |skill| ['--skill', skill] }.flatten(1)
+        ),
         expect_failure:
       )
     end
