@@ -33,6 +33,9 @@ spec_loader.setup
 RSpec.configure do |config|
   # Automatically include our helpers
   config.include XAeonAgentsTest::Helpers
+  config.include XAeonAgentsTest::Helpers::AiAgentsStub
+  config.include XAeonAgentsTest::Helpers::Cli
+  config.include XAeonAgentsTest::Helpers::Skills
 
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest

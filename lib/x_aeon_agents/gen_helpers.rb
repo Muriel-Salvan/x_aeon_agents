@@ -4,6 +4,8 @@ require 'yaml'
 module XAeonAgents
   # Helper methods for generating skill content
   module GenHelpers
+    # @!group Public API
+
     # Define a skill metadata.
     # This should always be the first call in a skill ERB file.
     # It also returns the corresponding YAML frontmatter.
