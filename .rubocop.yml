@@ -62,6 +62,7 @@ Metrics/PerceivedComplexity:
 # These tests are not describing any class or module
 RSpec/DescribeClass:
   Exclude:
+    - 'spec/scenarios/skills/**/*.rb'
     - 'spec/scenarios/code_quality_spec.rb'
     - 'spec/scenarios/documentation_spec.rb'
     - 'spec/scenarios/packaging_spec.rb'
