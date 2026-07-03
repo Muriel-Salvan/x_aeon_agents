@@ -1,4 +1,5 @@
 module XAeonAgents
+  # Collection of agents that can be used
   module Agents
     # Agent responsible for implementing tasks following an implementation plan
     class CoderAgent < ComposableAgents::Cline::Agent

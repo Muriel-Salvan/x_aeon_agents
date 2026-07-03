@@ -6,6 +6,7 @@ require 'open3'
 require 'secret_string'
 
 module XAeonAgents
+  # Various helpers and utilities that are used internally
   module Helpers
     # Exception class used to identify commands not returning the expected exit status
     class UnexpectedExitStatusError < StandardError
