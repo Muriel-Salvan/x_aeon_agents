@@ -9,30 +9,26 @@ module XAeonAgentsTest
       # subclasses use the stubbed initialize/run while preserving their full
       # mixin chain.
       #
-      # @param agent_class [Class] The agent base class to stub
-      #   (e.g., +ComposableAgents::AiAgents::Agent+ or
-      #   +ComposableAgents::Cline::Agent+).
       # @param conversation [Array<Hash>] Fake conversation to set on the agent
       #   after +run+ is called. Each hash MUST include a +:message+ key.
+      # @param run_behavior [Proc, nil] Optional proc to customize the return
+      #   value of the stubbed +run+ method. Called with the same +args+ and
+      #   +kwargs+ passed to +run+. Defaults to +nil+, which returns +{}+.
       # @return [Array<Hash>] Collector array for captured run calls. Each entry
       #   is a Hash with +:args+ (positional) and +:kwargs+ (keyword) keys.
       #
-      # @example Stubbing AiAgents
-      #   stub_agent_run(
-      #     agent_class: ComposableAgents::AiAgents::Agent,
-      #     conversation: [{ message: 'Hello from AI' }]
-      #   )
+      # @example Stub default behavior for all supported agents
+      #   stub_agent_run
       #   run_cli 'prompt', 'some text'
       #   expect(last_agent_run_call[:kwargs]).to eq(user_instructions: 'some text')
       #
-      # @example Stubbing Cline agents
+      # @example Custom run behavior
       #   stub_agent_run(
-      #     agent_class: ComposableAgents::Cline::Agent,
-      #     conversation: [{ message: 'Response from Cline' }]
+      #     run_behavior: ->(user_instructions:, **) { { tokens: 100 } }
       #   )
       def stub_agent_run(
-        agent_class: ComposableAgents::AiAgents::Agent,
-        conversation: [{ message: 'mocked AI response' }]
+        conversation: [{ message: 'mocked AI response' }],
+        run_behavior: nil
       )
         @agent_run_calls = []
         @agent_new_calls = []
@@ -41,9 +37,15 @@ module XAeonAgentsTest
         Stubs::PromptAgentsStubAgent.conversation = conversation
         Stubs::PromptAgentsStubAgent.run_calls = @agent_run_calls
         Stubs::PromptAgentsStubAgent.new_calls = @agent_new_calls
+        Stubs::PromptAgentsStubAgent.run_behavior = run_behavior
 
-        # Prepend only once — RSpec may call stub_agent_run before each example
-        agent_class.prepend(Stubs::PromptAgentsStubAgent) unless agent_class.ancestors.include?(Stubs::PromptAgentsStubAgent)
+        # Stub all required agent classes
+        [
+          ComposableAgents::AiAgents::Agent,
+          ComposableAgents::Cline::Agent
+        ].each do |agent_class|
+          agent_class.prepend(Stubs::PromptAgentsStubAgent) unless agent_class.ancestors.include?(Stubs::PromptAgentsStubAgent)
+        end
 
         @agent_run_calls
       end

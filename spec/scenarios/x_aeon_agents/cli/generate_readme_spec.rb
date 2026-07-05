@@ -1,7 +1,7 @@
 describe XAeonAgents::Cli, '#generate_readme' do
   context 'when all sections are disabled' do
     it 'still succeeds and prints the success message' do
-      stub_agent_run(agent_class: ComposableAgents::Cline::Agent)
+      stub_agent_run
       run_cli 'generate-readme',
               '--no-about',
               '--no-quick-start',
@@ -17,7 +17,7 @@ describe XAeonAgents::Cli, '#generate_readme' do
     end
 
     it 'does not create any Cline agent instances' do
-      stub_agent_run(agent_class: ComposableAgents::Cline::Agent)
+      stub_agent_run
       run_cli 'generate-readme',
               '--no-about',
               '--no-quick-start',
@@ -33,7 +33,7 @@ describe XAeonAgents::Cli, '#generate_readme' do
     end
 
     it 'uses the custom session directory with a custom session ID' do
-      stub_agent_run(agent_class: ComposableAgents::Cline::Agent)
+      stub_agent_run
       run_cli 'generate-readme',
               '--no-about',
               '--no-quick-start',
