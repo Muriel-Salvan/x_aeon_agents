@@ -19,6 +19,9 @@ module XAeonAgentsTest
 
         # @return [Array<Hash>] Collector for captured Agent.new calls
         attr_accessor :new_calls
+
+        # @return [Proc, nil] Custom run behavior for tests. Called with run args/kwargs.
+        attr_accessor :run_behavior
       end
 
       # Intercept Agent.new to capture constructor arguments, then let
@@ -36,7 +39,11 @@ module XAeonAgentsTest
       def run(*args, **kwargs)
         (PromptAgentsStubAgent.run_calls || []) << { args: args, kwargs: kwargs }
         @conversation = PromptAgentsStubAgent.conversation
-        {}
+        if PromptAgentsStubAgent.run_behavior
+          PromptAgentsStubAgent.run_behavior.call(*args, **kwargs)
+        else
+          {}
+        end
       end
     end
   end
