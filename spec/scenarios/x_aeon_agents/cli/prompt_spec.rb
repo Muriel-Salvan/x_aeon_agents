@@ -1,7 +1,12 @@
 describe XAeonAgents::Cli, '#prompt' do
   context 'with a simple prompt' do
     it 'prints the last message of the AI response' do
-      stub_agent_run(conversation: [{ message: 'Hello from AI' }])
+      stub_agent_run(
+        stub_handler: lambda { |agent, **_kwargs|
+          agent.track_message(message: 'Hello from AI', author: 'assistant')
+          {}
+        }
+      )
       run_cli 'prompt', 'What is the capital of France?'
       expect(stdout).to include('Hello from AI')
     end
@@ -9,7 +14,7 @@ describe XAeonAgents::Cli, '#prompt' do
     it 'sends user_instructions to the agent' do
       stub_agent_run
       run_cli 'prompt', 'Explain this code'
-      expect(last_agent_run_call[:kwargs]).to eq(user_instructions: 'Explain this code')
+      expect(agent_run_calls.last[:kwargs]).to eq(user_instructions: 'Explain this code')
     end
 
     it 'captures exactly one agent run call' do
@@ -23,18 +28,19 @@ describe XAeonAgents::Cli, '#prompt' do
     it 'passes session_id to ExecutorAgent' do
       stub_agent_run
       run_cli 'prompt', 'test', '--session-id', 'my-custom-session'
-      expect(last_agent_new_call[:kwargs][:composable_agents_dir]).to include('my-custom-session')
+      expect(agent_new_calls.last[:kwargs][:composable_agents_dir]).to include('my-custom-session')
     end
   end
 
   context 'with a multi-message conversation' do
     it 'prints only the last message' do
       stub_agent_run(
-        conversation: [
-          { message: 'First response' },
-          { message: 'Second response' },
-          { message: 'Final answer' }
-        ]
+        stub_handler: lambda { |agent, **_kwargs|
+          agent.track_message(message: 'First response', author: 'assistant')
+          agent.track_message(message: 'Second response', author: 'assistant')
+          agent.track_message(message: 'Final answer', author: 'assistant')
+          {}
+        }
       )
       run_cli 'prompt', 'test'
       expect(stdout).to include('Final answer')
