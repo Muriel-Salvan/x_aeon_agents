@@ -9,36 +9,39 @@ module XAeonAgentsTest
       # subclasses use the stubbed initialize/run while preserving their full
       # mixin chain.
       #
-      # @param conversation [Array<Hash>] Fake conversation to set on the agent
-      #   after +run+ is called. Each hash MUST include a +:message+ key.
-      # @param run_behavior [Proc, nil] Optional proc to customize the return
-      #   value of the stubbed +run+ method. Called with the same +args+ and
-      #   +kwargs+ passed to +run+. Defaults to +nil+, which returns +{}+.
-      # @return [Array<Hash>] Collector array for captured run calls. Each entry
-      #   is a Hash with +:args+ (positional) and +:kwargs+ (keyword) keys.
+      # @param stub_handler [#call(agent, *args, **kwargs) -> Hash{Symbol => Object}, nil] Optional proc that receives the agent
+      #   instance as the first argument followed by the +run+ args/kwargs.
+      #   The return value becomes the return value of the stubbed +run+ (the mocked output artifacts).
+      #   Defaults to a proc that sets a default message in conversation and returns no artifact.
+      #   - Param agent [ComposableAgents::PromptDrivenAgent] The agent that is being stubbed.
+      #   - Param args [Array] All args that were given to the `run` method.
+      #   - Param kwargs [Hash] All kwargs that were given to the `run` method.
+      #   - Return [Hash{Symbol => Object}] The mocked output artifacts.
       #
-      # @example Stub default behavior for all supported agents
+      # @example Default stub (sets @conversation to a default message)
       #   stub_agent_run
       #   run_cli 'prompt', 'some text'
-      #   expect(last_agent_run_call[:kwargs]).to eq(user_instructions: 'some text')
+      #   expect(agent_run_calls.last[:kwargs]).to eq(user_instructions: 'some text')
       #
-      # @example Custom run behavior
+      # @example Custom handler that sets conversation on the agent and output artifacts
       #   stub_agent_run(
-      #     run_behavior: ->(user_instructions:, **) { { tokens: 100 } }
+      #     stub_handler: lambda { |agent, user_instructions:, **|
+      #       agent.track_message(message: 'fake reply', author: 'assistant')
+      #       { tokens: 100 }
+      #     }
       #   )
       def stub_agent_run(
-        conversation: [{ message: 'mocked AI response' }],
-        run_behavior: nil
+        stub_handler: lambda { |agent, **_kwargs|
+          agent.track_message(message: 'mocked AI response', author: 'assistant')
+          {}
+        }
       )
         @agent_run_calls = []
         @agent_new_calls = []
-
         # Wire the prepended mixin's shared state to our test instance variables
-        Stubs::PromptAgentsStubAgent.conversation = conversation
+        Stubs::PromptAgentsStubAgent.stub_handler = stub_handler
         Stubs::PromptAgentsStubAgent.run_calls = @agent_run_calls
         Stubs::PromptAgentsStubAgent.new_calls = @agent_new_calls
-        Stubs::PromptAgentsStubAgent.run_behavior = run_behavior
-
         # Stub all required agent classes
         [
           ComposableAgents::AiAgents::Agent,
@@ -46,31 +49,22 @@ module XAeonAgentsTest
         ].each do |agent_class|
           agent_class.prepend(Stubs::PromptAgentsStubAgent) unless agent_class.ancestors.include?(Stubs::PromptAgentsStubAgent)
         end
-
-        @agent_run_calls
       end
 
-      # @return [Array<Hash>] All captured agent run calls since the last
-      #   {#stub_agent_run} invocation, or an empty Array if none.
+      # @return [Array<Hash{Symbol => Object}>] Collector array for captured `run` calls. Each entry has the following properties:
+      #   - agent [ComposableAgents::PromptDrivenAgent] The agent that received the call.
+      #   - args [Array] All args given to the `run` method call.
+      #   - kwargs [Hash] All kwargs given to the `run` method call.
       def agent_run_calls
         @agent_run_calls || []
       end
 
-      # @return [Hash, nil] The most recent captured agent run call, or nil.
-      #   Hash keys: +:args+ (Array) and +:kwargs+ (Hash).
-      def last_agent_run_call
-        agent_run_calls.last
-      end
-
-      # @return [Array<Hash>] All captured Agent.new calls since the last
-      #   {#stub_agent_run} invocation, or an empty Array if none.
+      # @return [Array<Hash{Symbol => Object}>] Collector array for captured `new` calls. Each entry has the following properties:
+      #   - agent [ComposableAgents::PromptDrivenAgent] The agent that received the call.
+      #   - args [Array] All args given to the `new` method call.
+      #   - kwargs [Hash] All kwargs given to the `new` method call.
       def agent_new_calls
         @agent_new_calls || []
-      end
-
-      # @return [Hash, nil] The most recent captured Agent.new call, or nil.
-      def last_agent_new_call
-        agent_new_calls.last
       end
     end
   end

@@ -436,7 +436,7 @@ module XAeonAgents
         FileUtils.mkdir_p File.dirname(temp_file)
         File.write(temp_file, markdown)
         log_debug 'Generating Table of Contents using doctoc...'
-        `npx doctoc --github --notitle --stdout #{temp_file}`.gsub(/==================\n.+$/m, '').strip
+        Helpers.run_cmd("npx doctoc --github --notitle --stdout #{temp_file}")[:stdout].gsub(/==================\n.+$/m, '').strip
       end
     end
   end
