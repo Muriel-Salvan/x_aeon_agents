@@ -19,10 +19,12 @@ module XAeonAgentsTest
       # @param args [Array<String>] CLI arguments
       # @param expect_failure [Boolean] Expect the generate_skills command to fail?
       def run_cli(*args, expect_failure: false)
-        stdout_io = StringIO.new
-        stderr_io = StringIO.new
-        $stdout = stdout_io
-        $stderr = stderr_io
+        unless Debug.debug?
+          stdout_io = StringIO.new
+          stderr_io = StringIO.new
+          $stdout = stdout_io
+          $stderr = stderr_io
+        end
         begin
           begin
             XAeonAgents::Cli.start(args + (respond_to?(:default_cli_args) ? default_cli_args : []))
@@ -35,8 +37,10 @@ module XAeonAgentsTest
           $stdout = STDOUT
           $stderr = STDERR
         end
-        @stdout = stdout_io.string
-        @stderr = stderr_io.string
+        unless Debug.debug?
+          @stdout = stdout_io.string
+          @stderr = stderr_io.string
+        end
         if expect_failure
           expect(exit_status).not_to eq 0
         else

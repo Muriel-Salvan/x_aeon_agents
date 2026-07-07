@@ -34,9 +34,6 @@ spec_loader.setup
 RSpec.configure do |config|
   # Automatically include our helpers
   config.include XAeonAgentsTest::Helpers
-  config.include XAeonAgentsTest::Helpers::Cli
-  config.include XAeonAgentsTest::Helpers::PromptAgentsStub
-  config.include XAeonAgentsTest::Helpers::Skills
 
   # Global cleanup of test artifacts before each example
   config.before do

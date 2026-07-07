@@ -5,6 +5,11 @@ require 'time'
 
 module XAeonAgentsTest
   module Helpers
+    include Cli
+    include Debug
+    include PromptAgentsStub
+    include Skills
+
     # Create a temporary directory for the tests
     #
     # @param name [String, nil] Optional name to give to the temporary directory for better debugging, or nil if none.
