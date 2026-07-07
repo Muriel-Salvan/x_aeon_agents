@@ -39,51 +39,39 @@ module XAeonAgents
       #
       # @param cmd [String] Command to be run
       # @param expected_exit_status [Integer, nil] Expected exit status, or nil for no expectation
-      # @param on_start [#call(stdin, stdout, stderr, wait_thr), nil] Code called when the process has started, or nil if no code to be called
-      #   - Param stdin [IO] The stdin descriptor
-      #   - Param stdout [IO] The stdout descriptor
-      #   - Param stderr [IO] The stderr descriptor
-      #   - Param wait_thr [Process::Waiter] The wait thread
-      # @param on_stdout [#call(line), nil] Code called for each line of stdout, or nil if no code to be called
-      #   - Param line [String] Line of stdout
-      # @param on_stderr [#call(line), nil] Code called for each line of stderr, or nil if no code to be called
-      #   - Param line [String] Line of stderr
       # @return [Hash{Symbol => Object}] Command final output
       #   - stdout [String] Full stdout
       #   - stderr [String] Full stderr
       #   - exit_status [Integer] Exit status
-      def run_cmd(cmd, expected_exit_status: 0, on_start: nil, on_stdout: nil, on_stderr: nil)
+      def run_cmd(cmd, expected_exit_status: 0)
         stdout_lines = []
         stderr_lines = []
         exit_status = nil
         Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
-          on_start&.call(stdin, stdout, stderr, wait_thr)
           stdin.close
           [
             # Parse stdout
             Thread.new do
               stdout.each_line do |line|
                 stdout_lines << line
-                on_stdout&.call(line)
               end
             end,
             # Parse stderr
             Thread.new do
               stderr.each_line do |line|
                 stderr_lines << line
-                on_stderr&.call(line)
               end
             end
           ].each(&:join)
           exit_status = wait_thr.value.exitstatus
-          log_debug "CLI `#{cmd}` exited with status: #{exit_status}"
+          log_debug "Command `#{cmd}` exited with status: #{exit_status}"
           if !expected_exit_status.nil? && exit_status != expected_exit_status
-            raise UnexpectedExitStatusError, "CLI `#{cmd}` exited with status #{exit_status} (expected #{expected_exit_status})"
+            raise UnexpectedExitStatusError, "Command `#{cmd}` exited with status #{exit_status} (expected #{expected_exit_status})"
           end
         end
         {
-          stdout: stdout_lines.join("\n"),
-          stderr: stderr_lines.join("\n"),
+          stdout: stdout_lines.join,
+          stderr: stderr_lines.join,
           exit_status:
         }
       end
