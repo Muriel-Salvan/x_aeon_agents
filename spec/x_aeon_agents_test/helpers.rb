@@ -7,6 +7,7 @@ module XAeonAgentsTest
   module Helpers
     include Cli
     include Debug
+    include GenerateReadme
     include PromptAgentsStub
     include Skills
 
