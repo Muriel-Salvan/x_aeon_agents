@@ -13,6 +13,7 @@ module XAeonAgentsTest
       attr_reader :exit_status
 
       # Run the CLI.
+      # Uses default_cli_args to automatically add some CLI args.
       # Result is captured in the following methods: stdout, stderr, exit_status.
       #
       # @param args [Array<String>] CLI arguments
@@ -24,7 +25,7 @@ module XAeonAgentsTest
         $stderr = stderr_io
         begin
           begin
-            XAeonAgents::Cli.start(args)
+            XAeonAgents::Cli.start(args + (respond_to?(:default_cli_args) ? default_cli_args : []))
             # If we reach here, the command did not call exit (succeeded)
             @exit_status = 0
           rescue SystemExit => e
