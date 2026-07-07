@@ -1,3 +1,6 @@
+require 'open3'
+require 'stringio'
+
 module XAeonAgentsTest
   module Helpers
     # Helpers used in tests of the README generation
