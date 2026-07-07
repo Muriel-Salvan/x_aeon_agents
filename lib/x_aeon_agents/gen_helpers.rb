@@ -56,7 +56,7 @@ module XAeonAgents
     #
     # @return [String] Temporary folder path
     def tmp_path
-      '.x-aeon_agents/tmp'
+      "#{Config.data_dir}/tmp"
     end
 
     # Generate a rule documentation block with examples and rationale.

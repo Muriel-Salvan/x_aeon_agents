@@ -4,6 +4,7 @@ require 'agents'
 module XAeonAgents
   # Singleton module to get all configuration of X-Aeon Agents
   module Config
+    # TODO: Add test cases for this module
     class << self
       include Logger
 
@@ -33,6 +34,14 @@ module XAeonAgents
           end
           @secrets[secret_name]&.to_unprotected
         end
+      end
+
+      # @return [String] X-Aeon Agents data directory
+      attr_writer :data_dir
+
+      # @return [String] X-Aeon Agents data directory
+      def data_dir
+        @data_dir ||= '.x_aeon_agents'
       end
 
       # @return [Hash{Symbol => Object}] Default Cline CLI arguments
