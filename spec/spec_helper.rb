@@ -5,6 +5,7 @@ end
 require 'simplecov-cobertura'
 SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 
+require 'fileutils'
 require 'x_aeon_agents'
 require 'zeitwerk'
 
@@ -36,6 +37,13 @@ RSpec.configure do |config|
   config.include XAeonAgentsTest::Helpers::Cli
   config.include XAeonAgentsTest::Helpers::PromptAgentsStub
   config.include XAeonAgentsTest::Helpers::Skills
+
+  # Global cleanup of test artifacts before each example
+  config.before do
+    FileUtils.rm_rf('.x_aeon_agents_test')
+    XAeonAgents::Config.data_dir = '.x_aeon_agents_test/data'
+    XAeonAgents::AgentDefaults.instance_variable_set(:@singleton_session_id, nil)
+  end
 
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest

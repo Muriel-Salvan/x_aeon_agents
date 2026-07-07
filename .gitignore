@@ -15,3 +15,6 @@ doc/
 
 # SimpleCov is used to generate code coverage reports. Don't commit generated coverage files.
 coverage/
+
+# Test cases use a dedicated directory for temp files.
+.x_aeon_agents_test/

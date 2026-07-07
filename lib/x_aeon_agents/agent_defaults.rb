@@ -45,7 +45,7 @@ module XAeonAgents
               Config.setup_cline
             end
             @session_id = session_id || AgentDefaults.singleton_session_id
-            @session_dir = ".x-aeon_agents/sessions/#{@session_id}"
+            @session_dir = "#{Config.data_dir}/sessions/#{@session_id}"
             super(
               *args,
               composable_agents_dir: "#{@session_dir}/composable_agents",

@@ -1,17 +1,25 @@
-require 'sqlite3'
-require 'json'
 require 'fileutils'
-require 'tmpdir'
+require 'json'
+require 'sqlite3'
+require 'time'
 
 module XAeonAgentsTest
   module Helpers
+    # Create a temporary directory for the tests
+    #
+    # @param name [String, nil] Optional name to give to the temporary directory for better debugging, or nil if none.
+    # @return [String] The temporary test directory
+    def temp_dir(name = nil)
+      new_dir = ".x_aeon_agents_test/#{name || Time.now.utc.strftime('%Y-%m-%d-%H-%M-%S-%N')}"
+      FileUtils.mkdir_p new_dir
+      new_dir
+    end
+
     # Create a temporary workspace directory and cd in it.
     #
     # @yield [#call] Code block to execute within the workspace directory
-    def with_workspace(&block)
-      Dir.mktmpdir('test_workspace') do |workspace_dir|
-        Dir.chdir(workspace_dir, &block)
-      end
+    def with_workspace(&)
+      Dir.chdir(temp_dir('workspace'), &)
     end
 
     # Helper method to setup a VSCode SQLite database with test data

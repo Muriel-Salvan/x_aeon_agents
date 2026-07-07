@@ -42,7 +42,7 @@ module XAeonAgents
           step_agent(plan_generator_agent, user_instructions:)
           @artifacts[:plan].strip!
           content, user_prompt = Helpers.review_content(
-            session_dir: @session_dir,
+            reviews_dir: "#{@session_dir}/reviews",
             name: 'plan.md',
             description: 'Implementation plan',
             editable: true,
