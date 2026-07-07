@@ -12,21 +12,26 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         {
-          gen_about: 'Generate the about/header section (name, description, badges, TOC)',
-          gen_quick_start: 'Generate the "Quick start" section',
-          gen_requirements: 'Generate the "Requirements" section',
-          gen_features: 'Generate the "Features" section',
-          gen_public_api: 'Generate the "Public API" section',
-          gen_documentation: 'Generate the "Documentation" section',
-          gen_how_it_works: 'Generate the "How it works" section',
-          gen_development: 'Generate the "Development" section',
-          gen_contributing: 'Generate the "Contributing" section',
-          gen_license: 'Generate the "License" section'
+          readme_file_path: {
+            description: 'The full path to the README file',
+            optional: true
+          },
+          gen_about: 'The option to generate the about/header section (name, description, badges, TOC)',
+          gen_quick_start: 'The option to generate the "Quick start" section',
+          gen_requirements: 'The option to generate the "Requirements" section',
+          gen_features: 'The option to generate the "Features" section',
+          gen_public_api: 'The option to generate the "Public API" section',
+          gen_documentation: 'The option to generate the "Documentation" section',
+          gen_how_it_works: 'The option to generate the "How it works" section',
+          gen_development: 'The option to generate the "Development" section',
+          gen_contributing: 'The option to generate the "Contributing" section',
+          gen_license: 'The option to generate the "License" section'
         }
       end
 
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
+      # @param readme_file_path [String] Path to the README file.
       # @param gen_about [Boolean] Generate the about/header section (name, description, badges, TOC).
       #   Setting this to false will keep the existing header untouched in the README while allowing
       #   other sections to be updated.
@@ -41,6 +46,7 @@ module XAeonAgents
       # @param gen_license [Boolean] Generate the "License" section
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(
+        readme_file_path: File.expand_path('README.md'),
         gen_about: true,
         gen_quick_start: true,
         gen_requirements: true,
@@ -201,18 +207,16 @@ module XAeonAgents
 
         # Assemble README.md from all section artifacts
         step(:assemble_readme) do
-          sections = File.exist?('README.md') ? parse_sections(File.read('README.md')) : []
+          sections = File.exist?(readme_file_path) ? parse_sections(File.read(readme_file_path)) : []
+          header_content = nil
 
           # We expect the first 2 sections to be of level 0 or 1, and they both correspond to the about top section.
-          # Merge them if that's the case.
-          if sections.size >= 2 && sections[0][:level].zero? && sections[1][:level] == 1
-            sections = [
-              {
-                level: 0,
-                title: nil,
-                body: "#{sections[0][:body]}\n\n#{sections[1][:body]}"
-              }
-            ] + sections[2..]
+          # Treat them as a header if that's the case.
+          2.times do
+            if !sections.empty? && sections.first[:level] < 2
+              section = sections.shift
+              header_content = ([header_content] + [section[:body]]).compact.join("\n\n")
+            end
           end
 
           # Remove the eventual Table of contents section as we will always regenerate it.
@@ -234,15 +238,6 @@ module XAeonAgents
 
               #{ComposableAgents::Utils::Markdown.align_markdown_headers(@artifacts[:about], level: 3).strip}
             EO_HEADER
-            if sections.size >= 1 && sections.first[:level].zero?
-              sections[0][:body] = header_content
-            else
-              sections.unshift(
-                level: 0,
-                title: nil,
-                body: header_content
-              )
-            end
           end
 
           ordered_sections = [
@@ -276,8 +271,8 @@ module XAeonAgents
               while found_previous_section_index.nil?
                 if previous_section_index == -1
                   # We didn't find any previous section.
-                  # Just insert after the header then.
-                  found_previous_section_index = 0
+                  # Insert it at the top.
+                  found_previous_section_index = -1
                 else
                   previous_section_title = ordered_sections[previous_section_index][0]
                   found_previous_section_index = sections.index { |section| section[:title] == previous_section_title }
@@ -296,22 +291,22 @@ module XAeonAgents
             end
           end
 
-          sections_body = sections[1..].map { |section| section[:body] }.join("\n\n").strip
+          sections_content = sections.map { |section| section[:body] }.join("\n\n").strip
           File.write(
-            'README.md',
+            readme_file_path,
             <<~EO_README
-              #{sections.first[:body].strip}
+              #{header_content}
 
               ## Table of contents
 
-              #{generate_table_of_contents(sections_body).strip}
+              #{generate_table_of_contents(sections_content).strip}
 
-              #{sections_body}
+              #{sections_content}
             EO_README
           )
         end
 
-        puts 'README.md has been generated successfully.'
+        puts "#{readme_file_path} has been generated successfully."
 
         @artifacts
       end

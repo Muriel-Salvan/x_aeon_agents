@@ -77,6 +77,8 @@ module XAeonAgents
         $   xaa generate-readme
 
         $   xaa generate-readme --no-features --no-license --session-id my-session
+
+        $   xaa generate-readme --readme-file-path /path/to/custom/README.md
     LONGDESC
     option :about, type: :boolean, default: true, desc: 'Generate the About section'
     option :quick_start, type: :boolean, default: true, desc: 'Generate the Quick Start section'
@@ -88,9 +90,10 @@ module XAeonAgents
     option :development, type: :boolean, default: true, desc: 'Generate the Development section'
     option :contributing, type: :boolean, default: true, desc: 'Generate the Contributing section'
     option :license, type: :boolean, default: true, desc: 'Generate the License section'
+    option :readme_file_path, type: :string, default: nil, desc: 'Path to the README file to generate or update'
     # Generates or updates the project README file.
     def generate_readme
-      Agents::ReadmeGeneratorAgent.new(session_id: options[:session_id]).run(
+      agent_kwargs = {
         gen_about: options[:about],
         gen_quick_start: options[:quick_start],
         gen_requirements: options[:requirements],
@@ -101,7 +104,9 @@ module XAeonAgents
         gen_development: options[:development],
         gen_contributing: options[:contributing],
         gen_license: options[:license]
-      )
+      }
+      agent_kwargs[:readme_file_path] = options[:readme_file_path] if options[:readme_file_path]
+      Agents::ReadmeGeneratorAgent.new(session_id: options[:session_id]).run(**agent_kwargs)
     end
 
     # --------------------------------------------------------------------------- #
