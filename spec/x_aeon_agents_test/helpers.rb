@@ -11,6 +11,7 @@ module XAeonAgentsTest
     include Git
     include InterpretDiffs
     include PromptAgentsStub
+    include ReviewContent
     include Skills
 
     # Create a temporary directory for the tests
