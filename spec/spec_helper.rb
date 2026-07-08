@@ -35,11 +35,24 @@ RSpec.configure do |config|
   # Automatically include our helpers
   config.include XAeonAgentsTest::Helpers
 
-  # Global cleanup of test artifacts before each example
-  config.before do
+  # Around hook for all test cases
+  # Don't use a before hook for that purpose, as before hooks are always run after around hooks.
+  config.around do |example|
+    # Clear test previous data
     FileUtils.rm_rf('.x_aeon_agents_test')
-    XAeonAgents::Config.data_dir = '.x_aeon_agents_test/data'
+    # Use an absolute path as some tests are changing current directory
+    XAeonAgents::Config.data_dir = File.expand_path('.x_aeon_agents_test/data')
+    # Clear possible caches of the real application
     XAeonAgents::AgentDefaults.instance_variable_set(:@singleton_session_id, nil)
+    XAeonAgents::Helpers.instance_variable_set(:@git, nil)
+    # Set debug
+    original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
+    ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Debug.debug?
+    begin
+      example.run
+    ensure
+      ENV['X_AEON_AGENTS_DEBUG'] = original_debug
+    end
   end
 
   # rspec-expectations config goes here. You can use an alternate
