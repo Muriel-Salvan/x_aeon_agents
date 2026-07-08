@@ -41,13 +41,32 @@ module XAeonAgents
       Analyzes the currently staged changes and generates a meaningful commit
       message before committing.
 
-      Example:
+      The --stage option controls how files are staged before committing:
+
+        --stage all       Always stage all changes (tracked and untracked)
+        --stage if_empty  Stage all changes only if the staging area is empty (default)
+        --stage none      Do not stage anything; only commit already staged changes
+
+      Examples:
 
         $   xaa commit
+
+        $   xaa commit --stage all
+
+        $   xaa commit --stage none
     LONGDESC
+    option(
+      :stage,
+      type: :string,
+      default: 'if_empty',
+      desc: 'Staging strategy: all, if_empty, or none'
+    )
     # Commits staged changes with an AI-generated commit message.
     def commit
-      Agents::CommitterAgent.new(session_id: options[:session_id]).run
+      Agents::CommitterAgent.new(
+        session_id: options[:session_id],
+        stage: options[:stage].to_sym
+      ).run
     end
 
     # --------------------------------------------------------------------------- #
