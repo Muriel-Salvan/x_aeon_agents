@@ -4,12 +4,16 @@ module XAeonAgentsTest
       # Normalize the stdout by replacing generated git hashes with placeholders
       # so that the full HEREDOC validation works predictably.
       #
-      # @param stdout [String] The raw stdout to normalize
-      # @return [String] The normalized stdout
+      # @param str [String] The raw string to normalize
+      # @return [String] The normalized string
       def normalize_git_ids(str)
         str
           .gsub(/index [0-9a-f]+\.\.[0-9a-f]+ \d+/, 'index git_short_hash..git_short_hash git_file_mode')
+          .gsub(/index [0-9a-f]+\.\.[0-9a-f]+(?=\s|$)/, 'index git_short_hash..git_short_hash')
           .gsub(/[0-9a-f]{40}/, 'git_commit_hash')
+          .gsub(/\bnew file mode \d+\b/, 'new file mode git_file_mode')
+          .gsub(/\bdeleted file mode \d+\b/, 'deleted file mode git_file_mode')
+          .gsub(/\bold mode \d+\b/, 'old mode git_file_mode')
       end
 
       # Validate that the normalized stdout includes the expected output.
@@ -43,6 +47,16 @@ module XAeonAgentsTest
           end
           yield
         end
+      end
+
+      # Expect a commit to match a given message and patch
+      #
+      # @param commit [Git::Object::Commit] The commit to validate
+      # @param message [String] The expected commit message
+      # @param patch [String] The expected commit patch
+      def expect_commit(commit, message, patch)
+        expect(normalize_git_ids(commit.message).strip).to eq message.strip
+        expect(normalize_git_ids(::Git.open(Dir.pwd).diff("#{commit.sha}^", commit.sha).patch).strip).to eq patch.strip
       end
     end
   end
