@@ -35,20 +35,15 @@ module XAeonAgents
       # @param git_ref_base [String] The git reference to diff with. Use 'cached' for the staging area.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(git_ref_base:)
-        change_intent = diff_interpreter_agent.run(
+        step_agent(
+          new_agent(DiffInterpreterAgent, **Models.free_simple),
           files_diff: Helpers.artifact_files_diffs(git_ref_base == 'cached' ? :cached : git_ref_base)
-        )[:change_intent]
+        )
+        step_agent(new_agent(OneLineCodeDiffSummarizerAgent, **Models.free_simple))
         {
-          change_intent:,
-          one_line_summary: new_agent(OneLineCodeDiffSummarizerAgent, **Models.free_simple).run(change_intent:)[:one_line_summary]
+          change_intent: @artifacts[:change_intent],
+          one_line_summary: @artifacts[:one_line_summary]
         }
-      end
-
-      # Get a Diff Interpreter agent.
-      #
-      # @return [Agent] The Diff Interpreter agent
-      def diff_interpreter_agent
-        @diff_interpreter_agent ||= new_agent(DiffInterpreterAgent, **Models.free_simple)
       end
     end
   end

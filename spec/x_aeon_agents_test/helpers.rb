@@ -8,6 +8,7 @@ module XAeonAgentsTest
     include Cli
     include Debug
     include GenerateReadme
+    include InterpretDiffs
     include PromptAgentsStub
     include Skills
 
