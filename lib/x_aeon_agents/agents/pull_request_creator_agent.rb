@@ -10,7 +10,10 @@ module XAeonAgents
       def input_artifacts_contracts
         {
           base_sha: 'The git ref of the base of the feature branch',
-          requirements: 'The initial requirements'
+          requirements: {
+            description: 'The initial requirements',
+            optional: true
+          }
         }
       end
 
@@ -26,9 +29,9 @@ module XAeonAgents
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param base_sha [String] The git reference of the base of the branch.
-      # @param requirements [String] The initial requirements.
+      # @param requirements [String, nil] The initial requirements, or nil if none.
       # @return [Hash{Symbol => Object}] Output artifacts content
-      def run(base_sha:, requirements:)
+      def run(base_sha:, requirements: nil)
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
         repo_name = Helpers.github_repo
@@ -42,86 +45,90 @@ module XAeonAgents
         existing_pr = Helpers.github.pull_requests(repo_name, state: 'open').find { |pull_request| pull_request.head.ref == head_branch }
         if existing_pr.nil?
           # Create new PR
-          git_diff_interpreter_agent = GitDiffInterpreterAgent.new
-          git_diff_interpreter_agent_output = git_diff_interpreter_agent.run(git_ref_base: base_sha)
-          sections = [git_diff_interpreter_agent_output[:change_intent].strip]
-          sections << <<~EO_SECTION unless requirements.empty?
-            # Initial requirements given
+          git_diff_interpreter_agent = new_agent(GitDiffInterpreterAgent)
+          step_agent(git_diff_interpreter_agent, git_ref_base: base_sha)
+          step(:create_pr) do
+            sections = [@artifacts[:change_intent].strip]
+            sections << <<~EO_SECTION if requirements
+              # Initial requirements given
 
-            #{ComposableAgents::Utils::Markdown.align_markdown_headers(requirements, level: 2)}
-          EO_SECTION
-          user_messages = @authors
-            .map do |author|
-              if author.respond_to?(:conversation)
-                # Only keep single user prompts and agent's questions with their corresponding user's answer
-                messages = []
-                remaining_conversation = author.conversation.dup
-                until remaining_conversation.empty?
-                  message = remaining_conversation.shift
-                  next if message[:message].strip.empty?
+              #{ComposableAgents::Utils::Markdown.align_markdown_headers(requirements, level: 2)}
+            EO_SECTION
+            user_messages = @authors
+              .map do |author|
+                if author.respond_to?(:conversation)
+                  # Only keep single user prompts and agent's questions with their corresponding user's answer
+                  messages = []
+                  remaining_conversation = author.conversation.dup
+                  until remaining_conversation.empty?
+                    message = remaining_conversation.shift
+                    next if message[:message].strip.empty?
 
-                  if message[:author] == 'User'
-                    messages << message
-                  elsif message[:question]
-                    answer = remaining_conversation.first
-                    messages <<
-                      if answer && answer[:author] == 'User' && !answer[:message].strip.empty?
-                        message.merge(answer: remaining_conversation.shift)
-                      else
-                        message
-                      end
+                    if message[:author] == 'User'
+                      messages << message
+                    elsif message[:question]
+                      answer = remaining_conversation.first
+                      messages <<
+                        if answer && answer[:author] == 'User' && !answer[:message].strip.empty?
+                          message.merge(answer: remaining_conversation.shift)
+                        else
+                          message
+                        end
+                    end
                   end
+                  messages
+                else
+                  []
                 end
-                messages
-              else
-                []
               end
-            end
-            .flatten(1)
-            .sort_by { |message| message[:at] }
-          sections << <<~EO_SECTION unless user_messages.empty?
-            # User guidance and feedback to agents
+              .flatten(1)
+              .sort_by { |message| message[:at] }
+            sections << <<~EO_SECTION unless user_messages.empty?
+              # User guidance and feedback to agents
 
-            #{
-              messages
-                .map do |message|
-                  <<~EO_MESSAGE.strip
-                    › **#{message[:author]}**
-                    #{message[:message].each_line.map { |line| "> #{line}" }.join("\n")}
-                    > <sub>#{message[:at]}</sub>
-                    #{
-                      if message[:answer]
-                        <<~EO_ANSWER
-                          >
-                          > › **#{message[:answer][:author]}**
-                          #{message[:answer][:message].each_line.map { |line| "> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#{line}" }.join("\n")}
-                          > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<sub>#{message[:answer][:at]}</sub>
-                        EO_ANSWER
-                      end
-                    }
-                  EO_MESSAGE
-                end
-                .join("\n\n")
-            }
-          EO_SECTION
-          sections << <<~EO_SECTION unless @authors.empty?
-            # Co-authored by X-Aeon AI Agents
+              #{
+                messages
+                  .map do |message|
+                    <<~EO_MESSAGE.strip
+                      › **#{message[:author]}**
+                      #{message[:message].each_line.map { |line| "> #{line}" }.join("\n")}
+                      > <sub>#{message[:at]}</sub>
+                      #{
+                        if message[:answer]
+                          <<~EO_ANSWER
+                            >
+                            > › **#{message[:answer][:author]}**
+                            #{message[:answer][:message].each_line.map { |line| "> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#{line}" }.join("\n")}
+                            > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<sub>#{message[:answer][:at]}</sub>
+                          EO_ANSWER
+                        end
+                      }
+                    EO_MESSAGE
+                  end
+                  .join("\n\n")
+              }
+            EO_SECTION
+            sections << <<~EO_SECTION unless @authors.empty?
+              # Co-authored by X-Aeon AI Agents
 
-            #{
-              (@authors + [git_diff_interpreter_agent.diff_interpreter_agent]).map do |agent|
-                "* #{agent.full_name}"
-              end.join("\n")
-            }
-          EO_SECTION
-          new_pr = Helpers.github.create_pull_request(
-            repo_name,
-            'main',
-            head_branch,
-            git_diff_interpreter_agent_output[:one_line_summary].strip,
-            sections.map(&:strip).join("\n\n")
-          )
-          log_debug "Created new Pull Request for branch #{head_branch}: #{new_pr.html_url}"
+              #{
+                (@authors + [git_diff_interpreter_agent.diff_interpreter_agent]).map do |agent|
+                  "- #{agent.full_name}"
+                end.join("\n")
+              }
+            EO_SECTION
+            new_pr = Helpers.github.create_pull_request(
+              repo_name,
+              base_sha,
+              head_branch,
+              @artifacts[:one_line_summary].strip,
+              sections.map(&:strip).join("\n\n")
+            )
+            # TODO: Make that a log_info
+            log_debug "Created new Pull Request for branch #{head_branch}: #{new_pr.html_url}"
+          end
         else
+          # TODO: Make that a log_info
           log_debug "A Pull Request for branch #{head_branch} already exists: #{existing_pr.html_url}"
         end
         {}
