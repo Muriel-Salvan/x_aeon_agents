@@ -73,7 +73,7 @@ RSpec/ExampleLength:
 
 # It's ok to have test scenarios having several expectations
 RSpec/MultipleExpectations:
-  Max: 10
+  Max: 15
 
 # It's ok to have nested groups in RSpec.
 RSpec/NestedGroups:
