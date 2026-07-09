@@ -19,6 +19,7 @@ module XAeonAgentsTest
       # @param args [Array<String>] CLI arguments
       # @param expect_failure [Boolean] Expect the generate_skills command to fail?
       def run_cli(*args, expect_failure: false)
+        # TODO: Find a better way in debug mode to still redirect stdout and stderr while outputing them in real time for debug
         unless Debug.debug?
           stdout_io = StringIO.new
           stderr_io = StringIO.new
