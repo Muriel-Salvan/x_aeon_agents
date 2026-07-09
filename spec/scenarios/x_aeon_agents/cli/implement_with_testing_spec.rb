@@ -34,7 +34,6 @@ describe XAeonAgents::Cli, '#implement' do
 
     it 'calls TesterAgent repeatedly until tests pass, validating inputs per call' do
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
-        base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
         run_cli 'implement', 'Add a new feature'
         expect(exit_status).to eq 0
 
@@ -51,7 +50,6 @@ describe XAeonAgents::Cli, '#implement' do
         # The expected kwargs that won't change between various tests runs
         common_artifacts = {
           requirements: 'Add a new feature',
-          base_sha:,
           tests_cmd: 'bundle exec rspec --format documentation',
           files_diffs: <<~EO_ARTIFACT,
             ### New untracked files

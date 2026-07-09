@@ -30,7 +30,6 @@ describe XAeonAgents::Cli, '#implement' do
 
   it 'implements the requirements successfully' do
     with_git_workspace(files: { 'test.txt' => "original\n" }) do
-      base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
       run_cli 'implement', 'Add a new feature'
       expect(exit_status).to eq 0
 
@@ -39,7 +38,6 @@ describe XAeonAgents::Cli, '#implement' do
       expect(plan_generator_run_call).not_to be_nil
       expect(plan_generator_run_call[:kwargs]).to eq(
         requirements: 'Add a new feature',
-        base_sha:,
         user_instructions: {
           ordered_list: [
             "Read the initial requirements from the artifact named `#{plan_generator_run_call[:agent].artifact_ref(:requirements)}`",
@@ -54,8 +52,6 @@ describe XAeonAgents::Cli, '#implement' do
       coder_run_call = find_run_calls_for(XAeonAgents::Agents::CoderAgent)
       expect(coder_run_call).not_to be_nil
       expect(coder_run_call[:kwargs]).to eq(
-        requirements: 'Add a new feature',
-        base_sha:,
         plan: 'Detailed step-by-step plan for requirements "Add a new feature"',
         user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_run_call[:agent].artifact_ref(:plan)}`."
       )
@@ -65,15 +61,7 @@ describe XAeonAgents::Cli, '#implement' do
       expect(documenter_run_call).not_to be_nil
       expect(documenter_run_call[:kwargs]).to eq(
         requirements: 'Add a new feature',
-        base_sha:,
         plan: 'Detailed step-by-step plan for requirements "Add a new feature"',
-        tests_cmd: 'bundle exec rspec --format documentation',
-        tests_output: <<~EO_ARTIFACT,
-          ```
-          All tests passed
-
-          ```
-        EO_ARTIFACT
         files_diffs: <<~EO_ARTIFACT,
           ### New untracked files
 
