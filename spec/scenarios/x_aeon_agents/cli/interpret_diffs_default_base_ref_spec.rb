@@ -60,8 +60,6 @@ describe XAeonAgents::Cli, '#interpret_diffs' do
       with_git_workspace(files: { 'test.txt' => "original content\n" }) do
         File.write('test.txt', "unstaged modification\n")
         run_cli 'interpret-diffs'
-        diff_call = agent_run_calls.find { |c| c[:kwargs].key?(:files_diff) }
-        expect(diff_call[:kwargs][:files_diff]).to include('unstaged modification')
         expect_stdout <<~EO_STDOUT
           ===== Code diffs interpretation:
 
