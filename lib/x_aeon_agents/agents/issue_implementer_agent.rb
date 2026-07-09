@@ -58,8 +58,10 @@ module XAeonAgents
           - State: #{issue.state}
           - URL: #{issue.html_url}
         EO_SECTION
-        new_agent(DeveloperAgent, commit: @commit, pull_request: @pull_request)
-          .run(requirements: sections.map(&:strip).join("\n\n"))
+        step_agent(
+          new_agent(DeveloperAgent, commit: @commit, pull_request: @pull_request),
+          requirements: sections.map(&:strip).join("\n\n")
+        )
         {}
       end
 
