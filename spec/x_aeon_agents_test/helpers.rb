@@ -18,22 +18,26 @@ module XAeonAgentsTest
     # Stub a command that can be run through run_cmd.
     #
     # @param command [String, Regexp] The string to be stubbed, or Regexp for a matching command.
-    # @param stdout [#call(command) -> String] Code that receives the command that was invoked and should return the command's stdout.
-    # @param stderr [#call(command) -> String] Code that receives the command that was invoked and should return the command's stderr.
-    # @param exit_status [#call(command) -> Integer] Code that receives the command that was invoked and should return the command's exit status.
-    def stub_command(
-      command,
-      stdout: proc { |_command| '' },
-      stderr: proc { |_command| '' },
-      exit_status: proc { |_command| 0 }
-    )
+    # @param stdout [String, #call(command) -> String] Command's stdout,
+    #   or the code that receives the command that was invoked and should return it.
+    # @param stderr [String, #call(command) -> String] Command's stderr,
+    #   or the code that receives the command that was invoked and should return it.
+    # @param exit_status [Integer, #call(command) -> Integer] Command's exit status,
+    #   or the code that receives the command that was invoked and should return it.
+    def stub_command(command, stdout: '', stderr: '', exit_status: 0)
       allow(Open3).to receive(:popen3).and_call_original
       allow(Open3).to receive(:popen3).with(command) do |cmd, &block|
         block.call(
           StringIO.new,
-          StringIO.new(stdout.call(cmd)),
-          StringIO.new(stderr.call(cmd)),
-          instance_double(Process::Waiter, value: instance_double(Process::Status, exitstatus: exit_status.call(cmd)))
+          StringIO.new(stdout.is_a?(String) ? stdout : stdout.call(cmd)),
+          StringIO.new(stderr.is_a?(String) ? stderr : stderr.call(cmd)),
+          instance_double(
+            Process::Waiter,
+            value: instance_double(
+              Process::Status,
+              exitstatus: exit_status.is_a?(Integer) ? exit_status : exit_status.call(cmd)
+            )
+          )
         )
       end
     end
