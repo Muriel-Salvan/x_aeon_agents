@@ -10,6 +10,8 @@ describe XAeonAgents::Cli, '#implement' do
           when XAeonAgents::Agents::PlanGeneratorAgent
             { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
           when XAeonAgents::Agents::TesterAgent
+            # Simulate a file modification
+            File.write('test.rb', "puts 'Fixed test'\n")
             { plan_modifications: 'Fix the failing tests' }
           else
             {}
@@ -112,6 +114,22 @@ describe XAeonAgents::Cli, '#implement' do
         # ----------------------------------------------------------------------
         expect(tester_run_calls[1][:kwargs]).to eq(
           **common_artifacts,
+          files_diffs: <<~EO_ARTIFACT,
+            ### New untracked files
+
+            #### test.rb
+            ```
+            puts 'Fixed test'
+
+            ```
+
+
+            ### git diff
+
+            ```
+
+            ```
+          EO_ARTIFACT
           plan: <<~EO_PLAN,
             Detailed step-by-step plan for requirements "Add a new feature"
 
@@ -143,6 +161,78 @@ describe XAeonAgents::Cli, '#implement' do
           Fix the failing tests
 
         EO_PLAN
+      end
+    end
+
+    context 'when plan modifications have different Markdown header levels' do
+      before do
+        # Override the TesterAgent stub to return modifications with different header levels per call
+        tester_call_count = 0
+        stub_agent_run(
+          stub_handler: lambda { |agent, **kwargs|
+            case agent
+            when XAeonAgents::Agents::PlanGeneratorAgent
+              { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
+            when XAeonAgents::Agents::TesterAgent
+              tester_call_count += 1
+              if tester_call_count == 1
+                { plan_modifications: "# Level 1 fix header\n\nContent for first fix" }
+              else
+                { plan_modifications: "### Level 3 fix header\n\nContent for second fix" }
+              end
+            else
+              {}
+            end
+          }
+        )
+        # Override the test command stub to fail twice, then succeed
+        call_count = 0
+        stub_command(
+          'bundle exec rspec --format documentation',
+          stdout: lambda do |_cmd|
+            call_count += 1
+            call_count <= 2 ? "Test failure ##{call_count}\n" : "All tests passed\n"
+          end,
+          exit_status: lambda do |_cmd|
+            call_count <= 2 ? 1 : 0
+          end
+        )
+      end
+
+      it 'aligns Markdown headers correctly in the plan artifact' do
+        with_git_workspace(files: { 'test.txt' => "original\n" }) do
+          run_cli 'implement', 'Add a new feature'
+          # The 2nd TesterAgent receives the plan with Revision #0, where headers were aligned to level 2
+          expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true)[1][:kwargs][:plan]).to eq <<~EO_PLAN
+            Detailed step-by-step plan for requirements "Add a new feature"
+
+            # Revision #0 to the implementation plan
+
+            ## Level 1 fix header
+
+            Content for first fix
+
+
+          EO_PLAN
+          # The DocumenterAgent receives the plan with both Revision #0 and Revision #1, each with headers aligned to level 2
+          expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq <<~EO_PLAN
+            Detailed step-by-step plan for requirements "Add a new feature"
+
+            # Revision #0 to the implementation plan
+
+            ## Level 1 fix header
+
+            Content for first fix
+
+            # Revision #1 to the implementation plan
+
+            ## Level 3 fix header
+
+            Content for second fix
+
+
+          EO_PLAN
+        end
       end
     end
   end
