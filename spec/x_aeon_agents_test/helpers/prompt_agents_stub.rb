@@ -66,6 +66,22 @@ module XAeonAgentsTest
       def agent_new_calls
         @agent_new_calls || []
       end
+
+      # Find the agent run calls of a specific agent class
+      #
+      # @param agent_class [Class] The agent class we are looking for
+      # @param all [Boolean] Should we get all the run calls for this class, or just the first one?
+      # @return [Array<Hash{Symbol => Object}>, Hash{Symbol => Object}, nil] Found matching run calls:
+      #   - If `all` is true, returns an Array of all matching calls (see #agent_run_calls).
+      #   - If `all` is false, returns the first matching call (see #agent_run_calls), or nil if none found.
+      def find_run_calls_for(agent_class, all: false)
+        matching_proc = proc { |run_call| run_call[:agent].is_a?(agent_class) }
+        if all
+          agent_run_calls.select(&matching_proc)
+        else
+          agent_run_calls.find(&matching_proc)
+        end
+      end
     end
   end
 end
