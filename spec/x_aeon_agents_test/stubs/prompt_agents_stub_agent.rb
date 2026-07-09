@@ -30,8 +30,8 @@ module XAeonAgentsTest
       def initialize(*args, **kwargs)
         (PromptAgentsStubAgent.new_calls || []) << {
           agent: self,
-          args: args,
-          kwargs: kwargs
+          args: args.map(&:clone),
+          kwargs: kwargs.to_h { |k, v| [k, v.clone] }
         }
         super
       end
@@ -41,8 +41,8 @@ module XAeonAgentsTest
       def run(*args, **kwargs)
         (PromptAgentsStubAgent.run_calls || []) << {
           agent: self,
-          args: args,
-          kwargs: kwargs
+          args: args.map(&:clone),
+          kwargs: kwargs.to_h { |k, v| [k, v.clone] }
         }
         PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **kwargs) : {}
       end
