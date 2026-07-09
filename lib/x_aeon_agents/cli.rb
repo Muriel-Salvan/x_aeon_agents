@@ -70,6 +70,38 @@ module XAeonAgents
     end
 
     # --------------------------------------------------------------------------- #
+    # create-pr: Push on Github and create a Pull Request if not already existing
+    # --------------------------------------------------------------------------- #
+
+    desc 'create-pr', 'Push on Github and create a Pull Request if not already existing'
+    long_desc <<~LONGDESC
+      Analyzes the current changes between the existing branch and its base,
+      pushes the branch on Github and generates a meaningful Pull Request on it.
+
+      The --base option gives the base ref of the Pull Request (defaults to main).
+
+      The --requirements option gives an optional description of requirements behind this Pull Request.
+
+      Examples:
+
+        $   xaa create-pr
+
+        $   xaa create-pr --base master
+
+        $   xaa create-pr --requirements "Add a new Home button on main screen"
+    LONGDESC
+    option :base, type: :string, default: 'main', desc: 'Base git ref to compare the existing base with for the Pull Request'
+    option :requirements, type: :string, default: nil, desc: 'Optional requirements that describe this Pull Request purpose'
+    # Push changes on Github and create a Pull Request.
+    def create_pr
+      agent_kwargs = {
+        base_sha: options[:base]
+      }
+      agent_kwargs[:requirements] = options[:requirements] if options[:requirements]
+      Agents::PullRequestCreatorAgent.new(session_id: options[:session_id]).run(**agent_kwargs)
+    end
+
+    # --------------------------------------------------------------------------- #
     # generate-readme: Generate or update the project README
     # --------------------------------------------------------------------------- #
 
