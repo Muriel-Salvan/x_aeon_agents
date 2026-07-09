@@ -1,5 +1,6 @@
-require 'ruby_llm'
 require 'agents'
+require 'ruby_llm'
+require 'secret_string'
 
 module XAeonAgents
   # Singleton module to get all configuration of X-Aeon Agents

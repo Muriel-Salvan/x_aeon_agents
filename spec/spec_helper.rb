@@ -40,8 +40,12 @@ RSpec.configure do |config|
   config.around do |example|
     # Clear test previous data
     FileUtils.rm_rf('.x_aeon_agents_test')
+    # Configure the application for tests run
     # Use an absolute path as some tests are changing current directory
     XAeonAgents::Config.data_dir = File.expand_path('.x_aeon_agents_test/data')
+    XAeonAgents::Config.cline_api_key = 'test-cline-api-key'
+    XAeonAgents::Config.github_token = 'test-github-token'
+    XAeonAgents::Config.openrouter_api_key = 'test-openrouter-api-key'
     # Clear possible caches of the real application
     XAeonAgents::AgentDefaults.instance_variable_set(:@singleton_session_id, nil)
     XAeonAgents::Helpers.instance_variable_set(:@git, nil)
