@@ -9,6 +9,14 @@ describe XAeonAgents::Cli, '#implement' do
           { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
         when XAeonAgents::Agents::TesterAgent
           { plan_modifications: '' }
+        when XAeonAgents::Agents::CoderAgent
+          # Simulate a file modification done by the coder
+          File.write('new_feature.rb', "puts 'New feature added'\n")
+          {}
+        when XAeonAgents::Agents::DocumenterAgent
+          # Simulate a README creation done by the documenter
+          File.write('README.md', "# Test Project\n\nThis is a test project.\n")
+          {}
         else
           {}
         end
@@ -69,6 +77,11 @@ describe XAeonAgents::Cli, '#implement' do
         files_diffs: <<~EO_ARTIFACT,
           ### New untracked files
 
+          #### new_feature.rb
+          ```
+          puts 'New feature added'
+
+          ```
 
 
           ### git diff
@@ -150,6 +163,10 @@ describe XAeonAgents::Cli, '#implement' do
       # Verify the TesterAgent was NOT called (tests passed on first try)
       tester_run_call = find_run_calls_for(XAeonAgents::Agents::TesterAgent)
       expect(tester_run_call).to be_nil
+
+      # Verify the README.md was created by the DocumenterAgent with the expected content
+      expect(File.exist?('README.md')).to be true
+      expect(File.read('README.md')).to eq("# Test Project\n\nThis is a test project.\n")
     end
   end
 end
