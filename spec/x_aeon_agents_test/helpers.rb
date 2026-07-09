@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'json'
+require 'open3'
 require 'sqlite3'
 require 'time'
 
@@ -13,6 +14,29 @@ module XAeonAgentsTest
     include PromptAgentsStub
     include ReviewContent
     include Skills
+
+    # Stub a command that can be run through run_cmd.
+    #
+    # @param command [String, Regexp] The string to be stubbed, or Regexp for a matching command.
+    # @param stdout [#call(command) -> String] Code that receives the command that was invoked and should return the command's stdout.
+    # @param stderr [#call(command) -> String] Code that receives the command that was invoked and should return the command's stderr.
+    # @param exit_status [#call(command) -> Integer] Code that receives the command that was invoked and should return the command's exit status.
+    def stub_command(
+      command,
+      stdout: proc { |_command| '' },
+      stderr: proc { |_command| '' },
+      exit_status: proc { |_command| 0 }
+    )
+      allow(Open3).to receive(:popen3).and_call_original
+      allow(Open3).to receive(:popen3).with(command) do |cmd, &block|
+        block.call(
+          StringIO.new,
+          StringIO.new(stdout.call(cmd)),
+          StringIO.new(stderr.call(cmd)),
+          instance_double(Process::Waiter, value: instance_double(Process::Status, exitstatus: exit_status.call(cmd)))
+        )
+      end
+    end
 
     # Create a temporary directory for the tests
     #
