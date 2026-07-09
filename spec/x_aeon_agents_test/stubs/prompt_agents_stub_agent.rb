@@ -39,12 +39,15 @@ module XAeonAgentsTest
       # Intercept Agent#run to capture call arguments, delegate to the
       # test's stub_handler (if any), and prevent real AI calls.
       def run(*args, **kwargs)
+        # It could be that ArtifactContracts would have filtered kwargs later, so do it here too so that
+        # we only validate in our tests relevant input artifacts.
+        filtered_artifacts = kwargs.slice(*input_artifacts_contracts.keys)
         (PromptAgentsStubAgent.run_calls || []) << {
           agent: self,
           args: args.map(&:clone),
-          kwargs: kwargs.to_h { |k, v| [k, v.clone] }
+          kwargs: filtered_artifacts.to_h { |k, v| [k, v.clone] }
         }
-        PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **kwargs) : {}
+        PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **filtered_artifacts) : {}
       end
 
       # Track a message that is part of the conversation with this agent
