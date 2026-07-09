@@ -8,20 +8,20 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        super.merge(requirements: 'The initial requirements for which you need to devise an implementation plan')
+        { requirements: 'The initial requirements for which you need to devise an implementation plan' }
       end
 
       # Define output artifacts contracts
       #
       # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
-        super.merge(
+        {
           plan: {
             description: 'The full and detailed implementation plan in Markdown format, ' \
-              "that should implement the requirements given by the artifact named `#{artifact_ref(:requirements)}`",
+              "that should implement the requirements given by the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
             type: :markdown
           }
-        )
+        }
       end
 
       # Execute the agent to generate some output artifacts based on some input artifacts.
@@ -29,7 +29,6 @@ module XAeonAgents
       # @param requirements [String] The initial requirements.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(requirements:)
-        plan_generator_agent = new_agent(PlanGeneratorAgent, **Models.free_complex_planning)
         user_instructions = {
           ordered_list: [
             "Read the initial requirements from the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
@@ -72,6 +71,13 @@ module XAeonAgents
           EO_INSTRUCTIONS
         end
         { plan: @artifacts[:plan] }
+      end
+
+      # Get a Plan Generator agent.
+      #
+      # @return [Agent] The Plan Generator agent
+      def plan_generator_agent
+        @plan_generator_agent ||= new_agent(PlanGeneratorAgent, **Models.free_complex_planning)
       end
     end
   end
