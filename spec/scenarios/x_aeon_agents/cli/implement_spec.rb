@@ -1,5 +1,3 @@
-require 'open3'
-
 describe XAeonAgents::Cli, '#implement' do
   before do
     # Stub all ComposableAgents::Cline::Agent and ComposableAgents::AiAgents::Agent subclasses.
@@ -24,12 +22,9 @@ describe XAeonAgents::Cli, '#implement' do
 
   it 'implements the requirements successfully' do
     with_git_workspace(files: { 'test.txt' => "original\n" }) do
-      run_cli 'implement', 'Add a new feature'
-
-      # Verify the CLI succeeded
-      expect(exit_status).to eq 0
-
       base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
+      run_cli 'implement', 'Add a new feature'
+      expect(exit_status).to eq 0
 
       # Verify the input artifacts received by the PlanGeneratorAgent
       plan_generator_run_call = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent)

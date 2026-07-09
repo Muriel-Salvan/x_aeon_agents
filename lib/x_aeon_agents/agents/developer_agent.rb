@@ -107,10 +107,12 @@ module XAeonAgents
             # Integrate potential implementation plan modifications
             unless @artifacts[:plan_modifications].strip.empty?
               plan_modifications = @artifacts.delete(:plan_modifications)
-              @artifacts[:plan] << <<~EO_PLAN
+              @artifacts[:plan] = <<~EO_PLAN
+                #{@artifacts[:plan].strip}
+
                 # Revision ##{idx_test} to the implementation plan
 
-                #{plan_modifications}
+                #{ComposableAgents::Utils::Markdown.align_markdown_headers(plan_modifications, level: 2)}
 
               EO_PLAN
             end
