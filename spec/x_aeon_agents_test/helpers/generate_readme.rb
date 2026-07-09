@@ -1,4 +1,3 @@
-require 'open3'
 require 'stringio'
 
 module XAeonAgentsTest
@@ -107,24 +106,17 @@ module XAeonAgentsTest
         )
       end
 
-      # Stub the doctoc command to avoid running it during tests
-      #
-      # Mocks the Open3.popen3 call for doctoc to return a successful exit status and basic TOC
+      # Mocks the doctoc command to return a successful exit status and basic TOC
       def stub_doctoc
-        allow(Open3).to receive(:popen3).and_call_original
-        allow(Open3).to receive(:popen3).with(/^npx doctoc --github --notitle --stdout .+$/) do |cmd, &block|
-          source_file = cmd.match(/^npx doctoc --github --notitle --stdout (.+)$/)[1]
-          # Get all header names of type `## {header_name}\n` from the source file.
-          stdout_io = StringIO.new(
-            File.read(source_file).scan(/^## (.+)$/).flatten.map do |header_name|
+        stub_command(
+          /^npx doctoc --github --notitle --stdout .+$/,
+          stdout: proc do |command|
+            # Get all header names of type `## {header_name}\n` from the source file.
+            File.read(command.match(/^npx doctoc --github --notitle --stdout (.+)$/)[1]).scan(/^## (.+)$/).flatten.map do |header_name|
               "- [#{header_name}](##{header_name.gsub(/[^\w]/, '-').downcase})"
             end.join("\n")
-          )
-          stderr_io = StringIO.new('')
-          stdin_io = StringIO.new
-          wait_thr = instance_double(Process::Waiter, value: instance_double(Process::Status, exitstatus: 0))
-          block.call(stdin_io, stdout_io, stderr_io, wait_thr)
-        end
+          end
+        )
       end
 
       # Assert that a README file contains a specific section with expected content
