@@ -22,7 +22,7 @@ module XAeonAgentsTest
 
       # Stub Launchy.open and $stdin.gets to avoid interactive prompts during tests.
       #
-      # @param stdin_response [String] Value to return from $stdin.gets.
+      # @param stdin_response [String, Array<String>] Value (or list of values) to return from $stdin.gets.
       # @yield [file_path] Optional block called when Launchy.open is invoked.
       #   The file has already been written with the content to review.
       #   Use this to modify the file (simulating user editing) before $stdin.gets returns.
@@ -33,7 +33,7 @@ module XAeonAgentsTest
           @opened_review_files << { path: file_path, content: File.read(file_path) }
           on_file_open&.call(file_path)
         end
-        allow($stdin).to receive(:gets).and_return(stdin_response)
+        allow($stdin).to receive(:gets).and_return(*(stdin_response.is_a?(Array) ? stdin_response : [stdin_response]))
       end
     end
   end
