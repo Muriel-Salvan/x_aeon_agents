@@ -1,0 +1,5 @@
+describe XAeonAgents::Cli, '#implement_issue' do
+  # TODO: Add 1 test case using the implement_issue method from CLI, while mocking DeveloperAgent new and run calls (make helpers for that, similar to XAeonAgentsTest::Helpers::InterpretGitDiffs), and also stubbing calls to Octokit to mock Github issues details (improve stub_github for that), then validate that DeveloperAgent was created with the right parameters for commit, session-id and pull_request options, and the right input artifacts for run.
+  # TODO: Add 1 test case validating no DeveloperAgent gets invoked when the Github issue does not exist.
+  # TODO: Add 1 test case validating the sessions usage: run the CLI with 1 session ID, then run it again with the same session ID, validate that Octokit was called again to retrieve the issue details, but DeveloperAgent was not called again, then change the Octokit stub to return different issue description, run again with the same session ID and validate that DeveloperAgent has been called with the new description of the issue.
+end
