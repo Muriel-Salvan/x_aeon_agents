@@ -1,5 +1,3 @@
-require 'git'
-
 module XAeonAgentsTest
   module Helpers
     module InterpretDiffs
