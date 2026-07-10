@@ -54,22 +54,28 @@ module XAeonAgents
 
               #{ComposableAgents::Utils::Markdown.align_markdown_headers(requirements, level: 2)}
             EO_SECTION
-            user_messages = @authors
+            full_messages = @authors
               .map do |author|
                 if author.respond_to?(:conversation)
                   # Only keep single user prompts and agent's questions with their corresponding user's answer
                   messages = []
-                  remaining_conversation = author.conversation.dup
+                  # Skip the first user instruction
+                  remaining_conversation =
+                    if !author.conversation.empty? && author.conversation.first[:author].downcase == 'user'
+                      author.conversation[1..]
+                    else
+                      author.conversation
+                    end
                   until remaining_conversation.empty?
                     message = remaining_conversation.shift
                     next if message[:message].strip.empty?
 
-                    if message[:author] == 'User'
+                    if message[:author].downcase == 'user'
                       messages << message
                     elsif message[:question]
                       answer = remaining_conversation.first
                       messages <<
-                        if answer && answer[:author] == 'User' && !answer[:message].strip.empty?
+                        if answer && answer[:author].downcase == 'user' && !answer[:message].strip.empty?
                           message.merge(answer: remaining_conversation.shift)
                         else
                           message
@@ -83,15 +89,15 @@ module XAeonAgents
               end
               .flatten(1)
               .sort_by { |message| message[:at] }
-            sections << <<~EO_SECTION unless user_messages.empty?
+            sections << <<~EO_SECTION unless full_messages.empty?
               # User guidance and feedback to agents
 
               #{
-                messages
+                full_messages
                   .map do |message|
                     <<~EO_MESSAGE.strip
                       › **#{message[:author]}**
-                      #{message[:message].each_line.map { |line| "> #{line}" }.join("\n")}
+                      #{message[:message].each_line.map { |line| "> #{line}".strip }.join("\n")}
                       > <sub>#{message[:at]}</sub>
                       #{
                         if message[:answer]

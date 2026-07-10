@@ -56,6 +56,17 @@ module XAeonAgentsTest
       # @param author [String] Author of the message.
       # @param question [Boolean] Is this message a question expecting a reply?
       def track_message(message:, author: 'Orchestrator', question: false)
+        # Redefine it to make it public so that stubs are easier to pilot.
+        super
+      end
+
+      # Render instructions using the prompt rendering strategy.
+      # Returns nil if instructions is nil.
+      #
+      # @param instructions [Object, nil] Instructions to render, or nil if none (see Instructions#initialize).
+      # @return [String, nil] The rendered instructions, or nil if none
+      def render_instructions(instructions)
+        # Redefine it to make it public so that stubs are easier to pilot.
         super
       end
     end

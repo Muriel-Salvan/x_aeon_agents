@@ -211,7 +211,19 @@ module XAeonAgents
           )
         end
 
-        step_agent(new_agent(PullRequestCreatorAgent, authors: [planner_agent, coder_agent, tester_agent, documenter_agent])) if @pull_request
+        if @pull_request
+          step_agent(
+            new_agent(
+              PullRequestCreatorAgent,
+              authors: [
+                planner_agent.plan_generator_agent,
+                coder_agent,
+                tester_agent,
+                documenter_agent
+              ]
+            )
+          )
+        end
 
         puts
         puts 'Requirements implemented successfully'
