@@ -37,7 +37,8 @@ module XAeonAgents
           )
         end
 
-        step_agent(new_agent(PlannerAgent))
+        planner_agent = new_agent(PlannerAgent)
+        step_agent(planner_agent)
 
         coder_agent = new_agent(CoderAgent, **Models.free_complex)
 
