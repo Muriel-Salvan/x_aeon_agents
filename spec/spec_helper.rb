@@ -49,6 +49,9 @@ RSpec.configure do |config|
     # Clear possible caches of the real application
     XAeonAgents::AgentDefaults.instance_variable_set(:@singleton_session_id, nil)
     XAeonAgents::Helpers.instance_variable_set(:@git, nil)
+    XAeonAgents::Helpers.instance_variable_set(:@github_remote, nil)
+    XAeonAgents::Helpers.instance_variable_set(:@github_repo, nil)
+    XAeonAgents::Helpers.instance_variable_set(:@github, nil)
     # Set debug
     original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
     ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Debug.debug?
