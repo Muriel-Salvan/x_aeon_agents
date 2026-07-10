@@ -200,7 +200,16 @@ module XAeonAgents
         )
         puts "===== Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
-        step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [documenter_agent])) if @commit || @pull_request
+        if @commit || @pull_request
+          step_agent(
+            new_agent(
+              CommitterAgent,
+              user_review: false,
+              stage: :all,
+              authors: (@commit ? [] : [coder_agent, tester_agent]) + [documenter_agent]
+            )
+          )
+        end
 
         step_agent(new_agent(PullRequestCreatorAgent, authors: [planner_agent, coder_agent, tester_agent, documenter_agent])) if @pull_request
 
