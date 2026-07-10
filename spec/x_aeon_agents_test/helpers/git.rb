@@ -27,24 +27,27 @@ module XAeonAgentsTest
       # Create a temporary git workspace outside the project tree so that
       # Git.open finds the workspace's own .git (not the parent project's).
       # Initialize it as a Git repository, create and commit initial files,
-      # then yield for the test to make modifications and run the CLI.
+      # optionally check out a branch and add remotes, then yield for the
+      # test to make modifications and run the CLI.
       #
       # @param files [Hash{String => String}] Initial files to create and commit
+      # @param branch [String, nil] If given, create and checkout this branch after the initial commit
+      # @param remotes [Hash{String => String}, nil] If given, add each remote name => url pair
       # @yield Test code that will execute inside the git initialized workspace.
-      def with_git_workspace(files: {})
+      def with_git_workspace(files: {}, branch: nil, remotes: nil)
         Dir.chdir(temp_dir) do
-          # TODO: Use the Git library instead of external commands
-          `git init`
-          `git config user.email "test@example.com"`
-          `git config user.name "Test User"`
+          git_base = ::Git.init(Dir.pwd)
+          git_base.config('user.email', 'test@example.com')
+          git_base.config('user.name', 'Test User')
           unless files.empty?
-            git_base = ::Git.open(Dir.pwd)
             files.each do |name, content|
               File.write(name, content)
               git_base.add(name)
             end
             git_base.commit('Initial commit')
           end
+          git_base.branch(branch).checkout if branch
+          remotes&.each { |name, url| git_base.add_remote(name, url) }
           yield
         end
       end
@@ -58,6 +61,33 @@ module XAeonAgentsTest
         expect(normalize_git_ids(commit.message).strip).to eq message.strip
         expect(normalize_git_ids(::Git.open(Dir.pwd).diff("#{commit.sha}^", commit.sha).patch).strip).to eq patch.strip
       end
+
+      # Mock Git#push on the next Git instance
+      def mock_git_push
+        @git_pushes = []
+        allow(::Git).to receive(:open).and_wrap_original do |original_open, *args, **kwargs|
+          @git_instance = original_open.call(*args, **kwargs)
+          allow(git_instance).to receive(:push) do |remote, branch, **options|
+            git_pushes << {
+              url: remote.url,
+              branch:,
+              options:
+            }
+            nil
+          end
+          git_instance
+        end
+      end
+
+      # @return [Array<Hash{Symbol => Object}>] The list of Git pushes that were performed.
+      #   Each information has the following properties:
+      #   - url [String] URL on which the push was performed.
+      #   - branch [String] Branch name that was pushed.
+      #   - options [Hash] Additional options for this push
+      attr_reader :git_pushes
+
+      # @return [Git::Base, nil] The last opened Git instance that has push mocked, or nil if none
+      attr_reader :git_instance
     end
   end
 end

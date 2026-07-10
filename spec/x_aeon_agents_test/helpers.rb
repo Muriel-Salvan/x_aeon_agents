@@ -10,6 +10,7 @@ module XAeonAgentsTest
     include Debug
     include GenerateReadme
     include Git
+    include Github
     include InterpretDiffs
     include PromptAgentsStub
     include ReviewContent
