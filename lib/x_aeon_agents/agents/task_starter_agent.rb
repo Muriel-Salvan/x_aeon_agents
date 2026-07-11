@@ -30,7 +30,7 @@ module XAeonAgents
         # Call git worktree add on existing branches only
         Helpers.git.lib.worktree_add(dir, branch_name)
         # Push to remote if branch doesn't exist there yet
-        Helpers.git.push('github', branch_name, set_upstream: true)
+        Helpers.git.push(Helpers.github_remote, branch_name, set_upstream: true)
         Helpers.run_cmd("VSCodium.exe \"#{dir}\"")
         { worktree_dir: dir }
       end
