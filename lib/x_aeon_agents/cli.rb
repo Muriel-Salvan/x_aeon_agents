@@ -337,14 +337,22 @@ module XAeonAgents
       (if it does not exist), sets up a git worktree in .worktrees/, pushes
       the branch upstream, and opens it in VSCodium.
 
+      The --branch option gives the branch name directly, so the command is
+      not interactive anymore (no prompt to STDIN).
+
       Example:
 
         $   xaa start-task
+
+        $   xaa start-task --branch feature/my-task
     LONGDESC
+    option :branch, type: :string, default: nil, desc: 'Branch name to create a worktree for. If omitted, the branch name is read interactively from STDIN.'
     # Opens a new git worktree for a feature branch.
     def start_task
-      puts 'Branch name:'
-      branch = $stdin.gets.strip
+      branch = options[:branch] || begin
+        puts 'Branch name:'
+        $stdin.gets.strip
+      end
       Agents::TaskStarterAgent.new(session_id: options[:session_id]).run(branch_name: branch)
     end
 
