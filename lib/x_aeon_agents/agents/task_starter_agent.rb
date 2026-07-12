@@ -27,8 +27,13 @@ module XAeonAgents
         puts "Setting worktree #{dir} to work on branch #{branch_name}..."
         # Create the branch if it does not exist (without checking it out)
         Helpers.git.branch(branch_name).create unless Helpers.git.branches.any? { |branch| branch.name == branch_name }
-        # Call git worktree add on existing branches only
-        Helpers.git.lib.worktree_add(dir, branch_name)
+        # Create the git worktree only if it does not exist yet (idempotent)
+        # TODO: Raise an exception with a proper message if the directory exists but is not a worktree + Add 1 test case about it.
+        # TODO: Raise an exception with a proper message if the directory exists and is a worktree on a different branch + Add 1 test case about it.
+        unless File.directory?(dir)
+          # Call git worktree add on existing branches only
+          Helpers.git.lib.worktree_add(dir, branch_name)
+        end
         # Push to remote if branch doesn't exist there yet
         Helpers.git.push(Helpers.github_remote, branch_name, set_upstream: true)
         Helpers.run_cmd("VSCodium.exe \"#{dir}\"")
