@@ -295,5 +295,58 @@ describe XAeonAgents::Cli, '#start_task' do
         expect(Git.open(Dir.pwd).gcommit('HEAD').sha).to eq main_sha
       end
     end
+
+    describe 'when the target directory exists but is not a git worktree' do
+      it 'raises an error with a proper message and does not create a worktree' do
+        branch_name = 'feature/existing-dir'
+        worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
+        with_git_workspace(
+          files: { 'test.txt' => "original\n" },
+          remotes: { 'github' => 'git@github.com:owner/repo.git' }
+        ) do
+          # Create a plain directory (not a worktree) at the target path
+          FileUtils.mkdir_p(worktree_dir)
+          File.write(File.join(worktree_dir, 'some_file.txt'), "not a worktree\n")
+
+          mock_git_push
+
+          # The CLI must fail (non-zero exit status)
+          run_cli 'start-task', '--branch', branch_name, expect_failure: true
+
+          expect(stderr).to include('is not a git worktree')
+
+          # No worktree was created (.git pointer file is absent)
+          expect(File).not_to exist(File.join(worktree_dir, '.git'))
+          # The plain directory is left untouched
+          expect(File).to exist(File.join(worktree_dir, 'some_file.txt'))
+        end
+      end
+    end
+
+    describe 'when the target directory is a worktree on a different branch' do
+      it 'raises an error with a proper message' do
+        requested_branch = 'feature/requested'
+        other_branch = 'feature/other'
+        worktree_dir = ".worktrees/#{requested_branch.tr('/', '_')}"
+        with_git_workspace(
+          files: { 'test.txt' => "original\n" },
+          remotes: { 'github' => 'git@github.com:owner/repo.git' }
+        ) do
+          # Create the other branch and a worktree on it at the requested path
+          Git.open(Dir.pwd).branch(other_branch).create
+          Git.open(Dir.pwd).lib.worktree_add(worktree_dir, other_branch)
+
+          mock_git_push
+
+          # The CLI must fail (non-zero exit status)
+          run_cli 'start-task', '--branch', requested_branch, expect_failure: true
+
+          expect(stderr).to match(/already a git worktree on branch '#{other_branch}'.*requested branch '#{requested_branch}'/m)
+
+          # The existing worktree is left untouched on the other branch
+          expect(Git.open(worktree_dir).current_branch).to eq other_branch
+        end
+      end
+    end
   end
 end
