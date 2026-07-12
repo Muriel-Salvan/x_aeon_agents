@@ -17,7 +17,7 @@ module XAeonAgentsTest
       # Result is captured in the following methods: stdout, stderr, exit_status.
       #
       # @param args [Array<String>] CLI arguments
-      # @param expect_failure [Boolean] Expect the generate_skills command to fail?
+      # @param expect_failure [Boolean] Expect the command to fail?
       def run_cli(*args, expect_failure: false)
         # TODO: Find a better way in debug mode to still redirect stdout and stderr while outputing them in real time for debug
         unless Debug.debug?
@@ -33,6 +33,10 @@ module XAeonAgentsTest
             @exit_status = 0
           rescue SystemExit => e
             @exit_status = e.status
+          rescue StandardError => e
+            # Exceptions should be treated as a non-null exit status with the exception message given in stderr (standard Ruby behavior).
+            warn "#{e.message}\n#{e.backtrace.join("\n")}"
+            @exit_status = 1
           end
         ensure
           $stdout = STDOUT
