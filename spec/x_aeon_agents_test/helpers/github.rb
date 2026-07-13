@@ -7,24 +7,7 @@ module XAeonAgentsTest
       # Mock Github API accessed using Octokit
       #
       # @param pull_requests [Array<Hash{Symbol => Object}>] List of Pull Request descriptions.
-      #   Each hash can contain:
-      #   - ref [String] The ref (branch name) of the Pull Request's head (required)
-      #   - html_url [String] The URL of the Pull Request (optional)
-      #   - number [Integer] The Pull Request number (optional, used to mock the singular pull_request call)
-      #   - title [String] The Pull Request title (optional)
-      #   - body [String] The Pull Request body (optional)
-      #   - base_sha [String] The base commit SHA (optional)
-      #   - head_sha [String] The head commit SHA (optional)
-      #   - slug [String] The 'owner/repo' slug for the singular pull_request call (optional, defaults to matching any)
-      #   - review_comments [Array<Hash{Symbol => Object}>] List of review comments for this Pull Request (optional).
-      #     When provided, mocks the POST to '/graphql' for the review comments query of this Pull Request.
-      #     Each comment can contain:
-      #     - databaseId [Integer] The comment database ID (optional, auto-assigned starting at 100 when omitted)
-      #     - createdAt [String] The comment creation timestamp
-      #     - body [String] The comment body
-      #     - author [Hash] The comment author, with a :login key
-      #     - path [String] The file path the comment is attached to
-      #     - replyTo [Hash, nil] The replied-to comment, with a :databaseId key, or nil
+      #   Each hash can contain properties that are defined by `mock_pull_request` (see #mock_pull_request).
       def mock_github(pull_requests: [])
         @github_double = instance_double(Octokit::Client)
         allow(Octokit::Client).to receive(:new).and_return(github_double)
@@ -35,66 +18,94 @@ module XAeonAgentsTest
           pull_requests: pull_requests.map do |pr_hash|
             data = { head: Sawyer::Resource.new(Sawyer::Agent.new(''), ref: pr_hash[:ref]) }
             data[:html_url] = pr_hash[:html] if pr_hash[:html]
+            data[:number] = pr_hash[:number] if pr_hash[:number]
             Sawyer::Resource.new(Sawyer::Agent.new(''), **data)
           end,
           create_pull_request: object_double(new_pr_instance, html_url: 'https://github.com/owner/repo/pull/1')
         )
 
         # Mock the singular pull_request call and the GraphQL review comments query for each Pull Request.
-        pull_requests.each do |pr_hash|
-          next unless pr_hash[:number]
+        pull_requests.each { |pr_hash| mock_pull_request(**pr_hash) }
+      end
 
-          allow(github_double).to receive(:pull_request).with(pr_hash[:slug] || anything, pr_hash[:number]).and_return(
-            Struct.new(:title, :body, :base, :head).new(
-              pr_hash[:title] || 'My Pull Request',
-              pr_hash[:body] || 'PR body description',
-              Struct.new(:sha).new(pr_hash[:base_sha] || 'base-sha'),
-              Struct.new(:sha).new(pr_hash[:head_sha] || 'head-sha')
-            )
+      # Mock the singular pull_request call and the GraphQL review comments query for a single Pull Request.
+      #
+      # @param ref [String] The ref (branch name) of the Pull Request's head
+      # @param html [String] The URL of the Pull Request
+      # @param number [Integer] The Pull Request number
+      # @param title [String] The Pull Request title
+      # @param body [String] The Pull Request body
+      # @param base_sha [String] The base commit SHA
+      # @param head_sha [String] The head commit SHA
+      # @param slug [String] The 'owner/repo' slug for the singular pull_request call (defaults to matching any)
+      # @param review_comments [Array<Hash{Symbol => Object}>] List of review comments for this Pull Request (optional).
+      #   When provided, mocks the POST to '/graphql' for the review comments query of this Pull Request.
+      #   Each comment can contain:
+      #   - databaseId [Integer] The comment database ID (optional, auto-assigned starting at 100 when omitted)
+      #   - createdAt [String] The comment creation timestamp
+      #   - body [String] The comment body
+      #   - author [Hash] The comment author, with a :login key
+      #   - path [String] The file path the comment is attached to
+      #   - replyTo [Hash, nil] The replied-to comment, with a :databaseId key, or nil
+      def mock_pull_request(
+        ref: 'feature-branch',
+        html: 'https://github.com/owner/repo/pull_requests/42',
+        number: 42,
+        title: 'My Pull Request',
+        body: 'PR body description',
+        base_sha: 'base-sha',
+        head_sha: 'head-sha',
+        slug: 'owner/repo',
+        review_comments: []
+      )
+        allow(github_double).to receive(:pull_request).with(slug, number).and_return(
+          Struct.new(:title, :body, :base, :head).new(
+            title,
+            body,
+            Struct.new(:sha).new(base_sha),
+            Struct.new(:sha).new(head_sha)
           )
+        )
 
-          # Mock the GraphQL review comments query for any Pull Request having a `review_comments` property,
-          # building the expected GraphQL response from the provided list of comments.
-          next unless pr_hash[:review_comments]
-
-          owner, repo = pr_hash[:slug].split('/')
-          allow(github_double).to receive(:post).with(
-            '/graphql',
-            a_string_including("\"owner\":\"#{owner}\"")
-              .and(a_string_including("\"repo\":\"#{repo}\""))
-              .and(a_string_including("\"pr\":#{pr_hash[:number]}"))
-          ).and_return(
-            {
-              data: {
-                repository: {
-                  pullRequest: {
-                    reviewThreads: {
-                      edges: [
-                        {
-                          node: {
-                            isResolved: false,
-                            comments: {
-                              nodes: pr_hash[:review_comments].each_with_index.map do |comment, idx|
-                                {
-                                  databaseId: comment[:databaseId] || (100 + idx),
-                                  createdAt: comment[:createdAt],
-                                  body: comment[:body],
-                                  author: comment[:author],
-                                  path: comment[:path],
-                                  replyTo: comment[:replyTo]
-                                }
-                              end
-                            }
+        # Mock the GraphQL review comments query for any Pull Request having a `review_comments` property,
+        # building the expected GraphQL response from the provided list of comments.
+        owner, repo = slug.split('/')
+        allow(github_double).to receive(:post).with(
+          '/graphql',
+          a_string_including("\"owner\":\"#{owner}\"")
+            .and(a_string_including("\"repo\":\"#{repo}\""))
+            .and(a_string_including("\"pr\":#{number}"))
+        ).and_return(
+          {
+            data: {
+              repository: {
+                pullRequest: {
+                  reviewThreads: {
+                    edges: [
+                      {
+                        node: {
+                          isResolved: false,
+                          comments: {
+                            nodes: review_comments.each_with_index.map do |comment, idx|
+                              {
+                                databaseId: comment[:databaseId] || (100 + idx),
+                                createdAt: comment[:createdAt],
+                                body: comment[:body],
+                                author: comment[:author],
+                                path: comment[:path],
+                                replyTo: comment[:replyTo]
+                              }
+                            end
                           }
                         }
-                      ]
-                    }
+                      }
+                    ]
                   }
                 }
               }
             }
-          )
-        end
+          }
+        )
       end
 
       # @return [Octokit, nil] The last mocked Github double, or nil if none

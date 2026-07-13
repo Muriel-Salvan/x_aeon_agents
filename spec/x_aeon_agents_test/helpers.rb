@@ -8,6 +8,7 @@ module XAeonAgentsTest
   module Helpers
     include Cli
     include Debug
+    include DeveloperAgent
     include GenerateReadme
     include Git
     include Github
@@ -15,6 +16,7 @@ module XAeonAgentsTest
     include InterpretGitDiffs
     include PromptAgentsStub
     include ReviewContent
+    include ReviewResolverAgent
     include Skills
 
     # Stub a command that can be run through run_cmd.

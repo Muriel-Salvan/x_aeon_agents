@@ -120,5 +120,4 @@ describe XAeonAgents::Cli, '#create_pr' do
       end
     end
   end
-
 end

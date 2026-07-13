@@ -11,24 +11,27 @@ module XAeonAgents
     # review-comments: Address Pull Request review comments
     # --------------------------------------------------------------------------- #
 
-    desc 'review-comments PULL_REQUEST_NUMBER', 'Address review comments on a GitHub Pull Request'
+    desc 'review-comments [PULL_REQUEST_NUMBER]', 'Address review comments on a GitHub Pull Request'
     long_desc <<~LONGDESC
       Reads Pull Request comments addressed to the agent, improves or fixes
       the code based on those comments, and replies to each one. The Pull
-      Request is identified by its number in the current GitHub repository.
+      Request is identified by its number in the current GitHub repository,
+      or auto-detected from the current git branch when no number is given.
 
       Examples:
 
         $   xaa review-comments 42
 
+        $   xaa review-comments
+
         $   xaa review-comments 42 --session-id my-session
     LONGDESC
     # Addresses review comments on a GitHub Pull Request.
     #
-    # @param pull_request_number [Integer] The GitHub Pull Request number to process
-    def review_comments(pull_request_number)
+    # @param pull_request_number [Integer, nil] The GitHub Pull Request number to process, or nil to auto-detect
+    def review_comments(pull_request_number = nil)
       Agents::ReviewResolverAgent.new(session_id: options[:session_id]).run(
-        pull_request_number: Integer(pull_request_number)
+        pull_request_number: pull_request_number ? Integer(pull_request_number) : nil
       )
     end
 
