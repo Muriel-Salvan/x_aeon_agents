@@ -11,8 +11,14 @@ module XAeonAgents
         super.merge(
           pr_description: 'The Pull Request description (context)',
           pr_files_diffs: 'The files modifications that were done in this Pull Request (context)',
-          conversations: 'All Pull Request conversations and comments to be considered (context)',
-          open_comments_to_agents: 'The exact list of agent-directed comments that need to be addressed'
+          conversations: {
+            description: 'All Pull Request conversations and comments to be considered (context)',
+            type: :json
+          },
+          open_comments_to_agents: {
+            description: 'The exact list of agent-directed comments that need to be addressed',
+            type: :json
+          }
         )
       end
 
