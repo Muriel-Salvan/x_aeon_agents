@@ -40,7 +40,7 @@ module XAeonAgents
               }
             )
           )[:data][:repository][:pullRequest]
-          @artifacts[:pr_conversations] = JSON.dump(
+          @artifacts[:conversations] =
             pr_json[:reviewThreads][:edges].select do |review_thread|
               !review_thread[:node][:isResolved] &&
                 review_thread[:node][:comments][:nodes].any? do |comment|
@@ -51,28 +51,26 @@ module XAeonAgents
             end.map do |review_thread|
               review_thread[:node][:comments][:nodes].sort_by { |comment| comment[:createdAt] }.map do |comment|
                 {
-                  comment_id: comment[:databaseId],
-                  created_at: comment[:createdAt],
-                  reply_to_comment_id: comment.dig(:replyTo, :databaseId),
-                  author: comment[:author][:login],
-                  body: comment[:body],
-                  path: comment[:path],
-                  need_ai_reply: comment[:needAIReply]
+                  'comment_id' => comment[:databaseId],
+                  'created_at' => comment[:createdAt],
+                  'reply_to_comment_id' => comment.dig(:replyTo, :databaseId),
+                  'author' => comment[:author][:login],
+                  'body' => comment[:body],
+                  'path' => comment[:path],
+                  'need_ai_reply' => comment[:needAIReply]
                 }
               end
             end
-          )
         end
 
-        pr_conversations = JSON.parse(@artifacts[:pr_conversations], symbolize_names: true)
-        if pr_conversations.empty?
+        if @artifacts[:conversations].empty?
           log_debug "No PR reviews conversations found that need X-Aeon Agents input for PR ##{pull_request_number}"
         else
-          log_debug "Found #{pr_conversations.size} PR reviews conversations that need X-Aeon Agents input for PR ##{pull_request_number}"
-          open_comments_to_agents = pr_conversations.map do |conversation|
-            conversation.select { |comment| comment[:need_ai_reply] }
+          log_debug "Found #{@artifacts[:conversations].size} PR reviews conversations that need X-Aeon Agents input for PR ##{pull_request_number}"
+          @artifacts[:open_comments_to_agents] = @artifacts[:conversations].map do |conversation|
+            conversation.select { |comment| comment['need_ai_reply'] }
           end.flatten(1)
-          log_debug "Found #{open_comments_to_agents.size} PR review comments that need X-Aeon Agents to reply for PR ##{pull_request_number}"
+          log_debug "Found #{@artifacts[:open_comments_to_agents].size} PR review comments that need X-Aeon Agents to reply for PR ##{pull_request_number}"
 
           step(:extract_requirements) do
             pr = Helpers.github.pull_request(Helpers.github_repo, pull_request_number)
@@ -85,8 +83,6 @@ module XAeonAgents
                 #{ComposableAgents::Utils::Markdown.align_markdown_headers(pr.body, level: 2)}
               EO_DESCRIPTION
               pr_files_diffs: Helpers.git.diff("#{pr.base.sha}...#{pr.head.sha}").to_s,
-              conversations: JSON.dump(pr_conversations),
-              open_comments_to_agents: JSON.dump(open_comments_to_agents),
               user_instructions: {
                 ordered_list: [
                   <<~EO_INSTRUCTION,
@@ -130,12 +126,12 @@ module XAeonAgents
             step_agent(new_agent(DeveloperAgent, commit: true, pull_request: true))
           end
 
-          open_comments_to_agents.each.with_index do |comment, comment_idx|
+          @artifacts[:open_comments_to_agents].each.with_index do |comment, comment_idx|
             step(:"reply_to_comment_#{comment_idx}") do
               review_responder_agent = new_agent(ReviewResponderAgent, **Models.free_complex_planning)
               step_agent(
                 review_responder_agent,
-                open_comment_for_reply: JSON.pretty_generate(comment),
+                open_comment_for_reply: comment,
                 user_instructions: {
                   ordered_list: [
                     <<~EO_INSTRUCTION,
@@ -174,8 +170,8 @@ module XAeonAgents
               )
               full_reply = "[X-Aeon Agent #{review_responder_agent.full_name}] - #{@artifacts[:reply]}"
               @artifacts[:replies] ||= []
-              @artifacts[:replies] << { comment_id: comment[:comment_id], reply: full_reply }
-              Helpers.github.create_pull_request_comment_reply(Helpers.github_repo, pull_request_number, full_reply, comment[:comment_id])
+              @artifacts[:replies] << { 'comment_id' => comment['comment_id'], 'reply' => full_reply }
+              Helpers.github.create_pull_request_comment_reply(Helpers.github_repo, pull_request_number, full_reply, comment['comment_id'])
             end
           end
         end

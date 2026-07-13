@@ -10,8 +10,14 @@ module XAeonAgents
       def input_artifacts_contracts
         super.merge(
           {
-            conversations: 'All PR conversations and comments to be considered (context)',
-            open_comment_for_reply: 'The exact comment to be replied to',
+            conversations: {
+              description: 'All PR conversations and comments to be considered (context)',
+              type: :json
+            },
+            open_comment_for_reply: {
+              description: 'The exact comment to be replied to',
+              type: :json
+            },
             requirements: 'The requirements that have been implemented (or "No requirements")',
             plan: 'The implementation plan that was used to implement those requirements (or "No implementation plan")',
             files_diffs: 'The code changes from implement_requirements workflow (or "No changes")'

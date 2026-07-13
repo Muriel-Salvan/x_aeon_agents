@@ -6,10 +6,25 @@ module XAeonAgentsTest
     module Github
       # Mock Github API accessed using Octokit
       #
-      # @param pull_requests [Array<Hash{Symbol => String}>] List of Pull Request descriptions.
+      # @param pull_requests [Array<Hash{Symbol => Object}>] List of Pull Request descriptions.
       #   Each hash can contain:
       #   - ref [String] The ref (branch name) of the Pull Request's head (required)
       #   - html_url [String] The URL of the Pull Request (optional)
+      #   - number [Integer] The Pull Request number (optional, used to mock the singular pull_request call)
+      #   - title [String] The Pull Request title (optional)
+      #   - body [String] The Pull Request body (optional)
+      #   - base_sha [String] The base commit SHA (optional)
+      #   - head_sha [String] The head commit SHA (optional)
+      #   - slug [String] The 'owner/repo' slug for the singular pull_request call (optional, defaults to matching any)
+      #   - review_comments [Array<Hash{Symbol => Object}>] List of review comments for this Pull Request (optional).
+      #     When provided, mocks the POST to '/graphql' for the review comments query of this Pull Request.
+      #     Each comment can contain:
+      #     - databaseId [Integer] The comment database ID (optional, auto-assigned starting at 100 when omitted)
+      #     - createdAt [String] The comment creation timestamp
+      #     - body [String] The comment body
+      #     - author [Hash] The comment author, with a :login key
+      #     - path [String] The file path the comment is attached to
+      #     - replyTo [Hash, nil] The replied-to comment, with a :databaseId key, or nil
       def mock_github(pull_requests: [])
         @github_double = instance_double(Octokit::Client)
         allow(Octokit::Client).to receive(:new).and_return(github_double)
@@ -24,10 +39,120 @@ module XAeonAgentsTest
           end,
           create_pull_request: object_double(new_pr_instance, html_url: 'https://github.com/owner/repo/pull/1')
         )
+
+        # Mock the singular pull_request call and the GraphQL review comments query for each Pull Request.
+        pull_requests.each do |pr_hash|
+          next unless pr_hash[:number]
+
+          allow(github_double).to receive(:pull_request).with(pr_hash[:slug] || anything, pr_hash[:number]).and_return(
+            Struct.new(:title, :body, :base, :head).new(
+              pr_hash[:title] || 'My Pull Request',
+              pr_hash[:body] || 'PR body description',
+              Struct.new(:sha).new(pr_hash[:base_sha] || 'base-sha'),
+              Struct.new(:sha).new(pr_hash[:head_sha] || 'head-sha')
+            )
+          )
+
+          # Mock the GraphQL review comments query for any Pull Request having a `review_comments` property,
+          # building the expected GraphQL response from the provided list of comments.
+          next unless pr_hash[:review_comments]
+
+          owner, repo = pr_hash[:slug].split('/')
+          allow(github_double).to receive(:post).with(
+            '/graphql',
+            a_string_including("\"owner\":\"#{owner}\"")
+              .and(a_string_including("\"repo\":\"#{repo}\""))
+              .and(a_string_including("\"pr\":#{pr_hash[:number]}"))
+          ).and_return(
+            {
+              data: {
+                repository: {
+                  pullRequest: {
+                    reviewThreads: {
+                      edges: [
+                        {
+                          node: {
+                            isResolved: false,
+                            comments: {
+                              nodes: pr_hash[:review_comments].each_with_index.map do |comment, idx|
+                                {
+                                  databaseId: comment[:databaseId] || (100 + idx),
+                                  createdAt: comment[:createdAt],
+                                  body: comment[:body],
+                                  author: comment[:author],
+                                  path: comment[:path],
+                                  replyTo: comment[:replyTo]
+                                }
+                              end
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          )
+        end
       end
 
       # @return [Octokit, nil] The last mocked Github double, or nil if none
       attr_reader :github_double
+
+      # Set up a complete Github Pull Request scenario for tests.
+      #
+      # Initializes a git workspace on a feature branch with an initial commit, then adds an
+      # extra commit so the head SHA differs from the base SHA (simulating a normal Pull Request).
+      # The real git SHAs are used so that git diff operations in the code under test do not fail.
+      # Finally, mocks the Github API with a single Pull Request (number 42, slug 'owner/repo')
+      # carrying the provided +review_comments+, and stubs the reply-to-comment API so tests can
+      # assert on it.
+      #
+      # @param review_comments [Array<Hash{Symbol => Object}>] List of review comments to attach to the
+      #   mocked Pull Request. Each comment can contain:
+      #   - databaseId [Integer] The comment database ID (optional, auto-assigned starting at 100 when omitted)
+      #   - createdAt [String] The comment creation timestamp
+      #   - body [String] The comment body
+      #   - author [Hash] The comment author, with a :login key
+      #   - path [String] The file path the comment is attached to
+      #   - replyTo [Hash, nil] The replied-to comment, with a :databaseId key, or nil
+      # @yield Test code that will execute inside the git workspace, with the Github API mocked and
+      #   the Pull Request reply API stubbed.
+      def with_github_pr(review_comments: [])
+        with_git_workspace(
+          files: { 'test.txt' => "original\n" },
+          branch: 'feature-branch',
+          remotes: { 'origin' => 'git@github.com:owner/repo.git' }
+        ) do
+          # Use the real git SHAs from the workspace so the git diff does not fail.
+          # The base SHA is the initial commit (on the default branch).
+          base_sha = ::Git.open(Dir.pwd).rev_parse('HEAD')
+          # Add an extra commit on the feature branch to simulate a normal PR, so the head SHA differs from the base SHA.
+          File.write('test.txt', "modified\n")
+          git = ::Git.open(Dir.pwd)
+          git.add('test.txt')
+          git.commit('Add feature change')
+          head_sha = git.rev_parse('HEAD')
+          mock_github(
+            pull_requests: [
+              {
+                ref: 'feature-branch',
+                number: 42,
+                slug: 'owner/repo',
+                title: 'My Pull Request',
+                body: 'PR body description',
+                base_sha: base_sha,
+                head_sha: head_sha,
+                review_comments: review_comments
+              }
+            ]
+          )
+          allow(github_double).to receive(:create_pull_request_comment_reply)
+
+          yield
+        end
+      end
     end
   end
 end
