@@ -50,6 +50,8 @@ module XAeonAgentsTest
         PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **filtered_artifacts) : {}
       end
 
+      # Make some methods public for spying
+
       # Track a message that is part of the conversation with this agent
       #
       # @param message [String, #to_hash, nil] The message content, as a String or an object that can be hashed, or nil if none.

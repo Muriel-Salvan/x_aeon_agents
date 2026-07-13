@@ -20,48 +20,17 @@ module XAeonAgents
 
       # Execute the agent to address Pull Request review comments
       #
-      # @param pull_request_number [Integer] The Pull Request number to address comments for
+      # @param pull_request_number [Integer, nil] The Pull Request number to address comments for.
+      #   When nil, the Pull Request is auto-detected from the current git branch.
       # @return [Hash{Symbol => Object}] Output artifacts content
-      def run(pull_request_number:)
+      def run(pull_request_number: nil)
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
-        step(:gather_comments) do
-          owner, repo = Helpers.github_repo.split('/')
-          pr_json = Helpers.github.post(
-            '/graphql',
-            JSON.dump(
-              {
-                query: File.read("#{__dir__}/gh_comments.gql"),
-                variables: {
-                  owner:,
-                  repo:,
-                  pr: pull_request_number
-                }
-              }
-            )
-          )[:data][:repository][:pullRequest]
-          @artifacts[:conversations] =
-            pr_json[:reviewThreads][:edges].select do |review_thread|
-              !review_thread[:node][:isResolved] &&
-                review_thread[:node][:comments][:nodes].any? do |comment|
-                  comment[:needAIReply] = comment[:body].start_with?('/agent') &&
-                    comment_replies(review_thread[:node][:comments][:nodes], comment).none? { |reply| reply[:body].match(/^\[X-Aeon Agent \([^)]+\)\]/) }
-                  comment[:needAIReply]
-                end
-            end.map do |review_thread|
-              review_thread[:node][:comments][:nodes].sort_by { |comment| comment[:createdAt] }.map do |comment|
-                {
-                  'comment_id' => comment[:databaseId],
-                  'created_at' => comment[:createdAt],
-                  'reply_to_comment_id' => comment.dig(:replyTo, :databaseId),
-                  'author' => comment[:author][:login],
-                  'body' => comment[:body],
-                  'path' => comment[:path],
-                  'need_ai_reply' => comment[:needAIReply]
-                }
-              end
-            end
-        end
+        pull_request_number = resolve_pull_request_number(pull_request_number)
+
+        # Gather comments is always executed (never cached) so that new comments are detected on
+        # every run, even when resuming a session where development/replies are cached.
+        @artifacts[:conversations] = gather_comments(pull_request_number)
 
         if @artifacts[:conversations].empty?
           log_debug "No PR reviews conversations found that need X-Aeon Agents input for PR ##{pull_request_number}"
@@ -180,6 +149,63 @@ module XAeonAgents
       end
 
       private
+
+      # Resolve the Pull Request number to process.
+      # When no number is given, auto-detects the Pull Request matching the current git branch.
+      #
+      # @param pull_request_number [Integer, nil] The explicit Pull Request number, or nil to auto-detect
+      # @return [Integer] The resolved Pull Request number
+      def resolve_pull_request_number(pull_request_number)
+        return pull_request_number if pull_request_number
+
+        current_branch = Helpers.git.current_branch
+        # TODO: Move this logic in a helper that is also used by PullRequestCreatorAgent, and remove this method.
+        pr = Helpers.github.pull_requests(Helpers.github_repo).find { |candidate| candidate.head.ref == current_branch }
+        raise "Unable to find a Pull Request for the current branch #{current_branch}" unless pr
+
+        pr.number
+      end
+
+      # Fetch and filter the Pull Request review comments that need an X-Aeon Agent reply.
+      #
+      # @param pull_request_number [Integer] The Pull Request number to address comments for
+      # @return [Array<Array<Hash{String => Object}>>] List of conversations (each a list of comments)
+      def gather_comments(pull_request_number)
+        owner, repo = Helpers.github_repo.split('/')
+        pr_json = Helpers.github.post(
+          '/graphql',
+          JSON.dump(
+            {
+              query: File.read("#{__dir__}/gh_comments.gql"),
+              variables: {
+                owner:,
+                repo:,
+                pr: pull_request_number
+              }
+            }
+          )
+        )[:data][:repository][:pullRequest]
+        pr_json[:reviewThreads][:edges].select do |review_thread|
+          !review_thread[:node][:isResolved] &&
+            review_thread[:node][:comments][:nodes].any? do |comment|
+              comment[:needAIReply] = comment[:body].start_with?('/agent') &&
+                comment_replies(review_thread[:node][:comments][:nodes], comment).none? { |reply| reply[:body].match(/^\[X-Aeon Agent [^\]]+?\]/) }
+              comment[:needAIReply]
+            end
+        end.map do |review_thread|
+          review_thread[:node][:comments][:nodes].sort_by { |comment| comment[:createdAt] }.map do |comment|
+            {
+              'comment_id' => comment[:databaseId],
+              'created_at' => comment[:createdAt],
+              'reply_to_comment_id' => comment.dig(:replyTo, :databaseId),
+              'author' => comment[:author][:login],
+              'body' => comment[:body],
+              'path' => comment[:path],
+              'need_ai_reply' => comment[:needAIReply]
+            }
+          end
+        end
+      end
 
       # Get all the replies of a given comment.
       # Replies are:
