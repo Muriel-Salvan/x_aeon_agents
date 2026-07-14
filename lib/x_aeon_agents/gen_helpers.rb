@@ -131,7 +131,7 @@ module XAeonAgents
 
           When #{goal_sentence}, follow those steps.
 
-          #{GenHelpers.init_skill_checklist(name).rstrip}
+          #{init_skill_checklist(name).rstrip}
 
           ### 1. Inform the user
 
@@ -139,7 +139,7 @@ module XAeonAgents
 
           #{numbered_sections.join("\n\n")}
 
-          #{GenHelpers.validate_skill_checklist(name).rstrip}
+          #{validate_skill_checklist(name).rstrip}
         EO_MARKDOWN
       end
     end
@@ -200,11 +200,13 @@ module XAeonAgents
       end
     end
 
+    private
+
     # Return the execution checklist initialization section
     #
     # @param checklist_name [String] Name to be given to this checklist
     # @return [String] The execution checklist section
-    def self.init_skill_checklist(checklist_name)
+    def init_skill_checklist(checklist_name)
       <<~EO_MARKDOWN
         ### Create the #{checklist_name} Execution Checklist (MANDATORY)
 
@@ -221,7 +223,7 @@ module XAeonAgents
     #
     # @param checklist_name [String] Name to be given to this checklist
     # @return [String] The final verification section
-    def self.validate_skill_checklist(checklist_name)
+    def validate_skill_checklist(checklist_name)
       <<~EO_MARKDOWN
         ### Final Verification (MANDATORY)
 
@@ -232,8 +234,6 @@ module XAeonAgents
         - If any step was not executed, execute it now.
       EO_MARKDOWN
     end
-
-    private
 
     # Return the ERB file being generated
     #

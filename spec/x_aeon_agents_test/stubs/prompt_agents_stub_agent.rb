@@ -50,7 +50,10 @@ module XAeonAgentsTest
         PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **filtered_artifacts) : {}
       end
 
-      # Make some methods public for spying
+      # Make some methods public for spying.
+      # Disable the cop checking for useless methods: those are useful to change visibility.
+
+      # rubocop:disable Lint/UselessMethodDefinition
 
       # Track a message that is part of the conversation with this agent
       #
@@ -71,6 +74,8 @@ module XAeonAgentsTest
         # Redefine it to make it public so that stubs are easier to pilot.
         super
       end
+
+      # rubocop:enable Lint/UselessMethodDefinition
     end
   end
 end
