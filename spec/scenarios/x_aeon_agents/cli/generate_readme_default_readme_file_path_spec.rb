@@ -2,6 +2,7 @@ describe XAeonAgents::Cli, '#generate_readme' do
   it 'uses README.md in the current directory when --readme-file-path is not specified' do
     stub_doctoc
     stub_readme_generator_run
+    mock_git_remotes
     default_readme = File.expand_path('README.md')
     # Mock reading the existing README.md so we do not touch the real file.
     # Other File.read calls (e.g. the temporary TOC file read by the mocked doctoc)
