@@ -49,7 +49,7 @@ Metrics/MethodLength:
 
 # It's ok to have longer methods, while keeping readability.
 Metrics/ModuleLength:
-  Max: 130
+  Max: 140
 
 # kwargs should not count towards max parameters list.
 Metrics/ParameterLists:

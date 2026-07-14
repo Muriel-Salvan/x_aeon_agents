@@ -8,8 +8,8 @@ module XAeonAgentsTest
       #
       # @param pull_requests [Array<Hash{Symbol => Object}>] List of Pull Request descriptions.
       #   Each hash can contain properties that are defined by `mock_pull_request` (see #mock_pull_request).
-      def mock_github(pull_requests: [])
-        @github_double = instance_double(Octokit::Client)
+      def mock_github(pull_requests: [], issues: [])
+        @github_double ||= instance_double(Octokit::Client)
         allow(Octokit::Client).to receive(:new).and_return(github_double)
         # Dynamically add the html_url on the singleton class of this specific object
         new_pr_instance = Sawyer::Resource.new(Sawyer::Agent.new(''))
@@ -23,9 +23,58 @@ module XAeonAgentsTest
           end,
           create_pull_request: object_double(new_pr_instance, html_url: 'https://github.com/owner/repo/pull/1')
         )
-
         # Mock the singular pull_request call and the GraphQL review comments query for each Pull Request.
         pull_requests.each { |pr_hash| mock_pull_request(**pr_hash) }
+        # Mock the Github issue details (and their comments) for each issue.
+        issues.each { |issue_hash| mock_github_issue(**issue_hash) }
+      end
+
+      # Mock a single Github issue and its comments.
+      #
+      # The IssueImplementerAgent calls +issue+ and +issue_comments+ on the Octokit client.
+      # This helper stubs both, keyed on the 'owner/repo' slug and the issue number.
+      #
+      # @param number [Integer] The issue number
+      # @param title [String] The issue title
+      # @param body [String] The issue body
+      # @param labels [Array<String>] The issue labels (as plain strings)
+      # @param state [String] The issue state (e.g. 'open')
+      # @param html_url [String] The issue URL
+      # @param slug [String] The 'owner/repo' slug for the issue calls (defaults to matching any)
+      # @param comments [Array<Hash{Symbol => Object}>] The issue comments (optional).
+      #   Each comment can contain:
+      #   - created_at [String] The comment creation timestamp
+      #   - user_login [String] The comment author login
+      #   - body [String] The comment body
+      def mock_github_issue(
+        number: 1,
+        title: 'My Issue',
+        body: 'Issue body description',
+        labels: [],
+        state: 'open',
+        html_url: 'https://github.com/owner/repo/issues/1',
+        slug: 'owner/repo',
+        comments: []
+      )
+        allow(github_double).to receive(:issue).with(slug, number).and_return(
+          Struct.new(:title, :body, :number, :labels, :state, :html_url).new(
+            title,
+            body,
+            number,
+            labels.map { |label| Struct.new(:name).new(label) },
+            state,
+            html_url
+          )
+        )
+        allow(github_double).to receive(:issue_comments).with(slug, number).and_return(
+          comments.map do |comment|
+            Struct.new(:created_at, :user, :body).new(
+              comment[:created_at],
+              Struct.new(:login).new(comment[:user_login]),
+              comment[:body]
+            )
+          end
+        )
       end
 
       # Mock the singular pull_request call and the GraphQL review comments query for a single Pull Request.

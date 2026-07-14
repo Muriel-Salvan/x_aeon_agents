@@ -7,17 +7,24 @@ module XAeonAgentsTest
       # stub_agent_run (which only stubs ComposableAgents::AiAgents::Agent and ComposableAgents::Cline::Agent).
       # This helper mocks it explicitly, capturing its run input artifacts for assertions in the test scenarios.
       def stub_developer_agent
+        @developer_agent_new_calls = []
         @developer_agent_run_calls = []
         allow(XAeonAgents::Agents::DeveloperAgent).to receive(:new)
           .and_wrap_original do |original, **kwargs|
             dev_instance = original.call(**kwargs)
+            developer_agent_new_calls << { agent: dev_instance, kwargs: kwargs }
             allow(dev_instance).to receive(:run) do |**run_kwargs|
-              developer_agent_run_calls << { agent: dev_instance, kwargs: run_kwargs }
+              developer_agent_run_calls << { agent: dev_instance, kwargs: run_kwargs.slice(*dev_instance.send(:input_artifacts_contracts).keys) }
               {}
             end
             dev_instance
           end
       end
+
+      # @return [Array<Hash{Symbol => Object}>] The list of DeveloperAgent#new calls, each hash having
+      #   :agent (the DeveloperAgent instance that was created) and :kwargs (the keyword arguments
+      #   passed to that new call) keys.
+      attr_reader :developer_agent_new_calls
 
       # @return [Array<Hash{Symbol => Object}>] The list of DeveloperAgent#run calls, each hash having
       #   :agent (the DeveloperAgent instance whose run was called) and :kwargs (the keyword arguments
