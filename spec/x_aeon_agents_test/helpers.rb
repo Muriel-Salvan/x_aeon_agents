@@ -51,7 +51,7 @@ module XAeonAgentsTest
     # @param name [String, nil] Optional name to give to the temporary directory for better debugging, or nil if none.
     # @return [String] The temporary test directory
     def temp_dir(name = nil)
-      new_dir = ".x_aeon_agents_test/#{name || Time.now.utc.strftime('%Y-%m-%d-%H-%M-%S-%N')}"
+      new_dir = File.expand_path(".x_aeon_agents_test/#{name || Time.now.utc.strftime('%Y-%m-%d-%H-%M-%S-%N')}")
       FileUtils.mkdir_p new_dir
       new_dir
     end
