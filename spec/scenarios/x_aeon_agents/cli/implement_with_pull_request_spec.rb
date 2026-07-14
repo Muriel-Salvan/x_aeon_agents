@@ -345,13 +345,13 @@ describe XAeonAgents::Cli, '#implement' do
                 › **user**
                 > Please add logging
                 >
-                > Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account
+                > Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
                 > <sub>timestamp</sub>
 
                 › **user**
                 > Please add tests
                 >
-                > Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account
+                > Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
                 > <sub>timestamp</sub>
 
                 › **assistant**
