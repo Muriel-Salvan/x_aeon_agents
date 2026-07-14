@@ -62,7 +62,6 @@ module XAeonAgents
         )
       end
 
-
       class << self
         # @return [Array<Symbol>] The required configuration keys for the Cline provider.
         def configuration_requirements
