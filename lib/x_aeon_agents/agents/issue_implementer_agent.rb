@@ -8,9 +8,7 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        super.merge(
-          github_issue_number: 'GitHub issue number to implement'
-        )
+        { github_issue_number: 'GitHub issue number to implement' }
       end
 
       # Constructor
@@ -50,13 +48,16 @@ module XAeonAgents
             #{format_comments_for_artifact(issue_comments)}
           EO_SECTION
         end
+        issue_properties = ["Number: #{issue.number}"]
+        issue_properties << "Labels: #{issue.labels.map(&:name).join(', ')}" unless issue.labels.empty?
+        issue_properties.push(
+          "State: #{issue.state}",
+          "URL: #{issue.html_url}"
+        )
         sections << <<~EO_SECTION
           # Associated Github issue
 
-          - Number: #{issue.number}
-          - Labels: #{issue.labels.map(&:name).join(', ')}
-          - State: #{issue.state}
-          - URL: #{issue.html_url}
+          #{issue_properties.map { |line| "- #{line}" }.join("\n")}
         EO_SECTION
         step_agent(
           new_agent(DeveloperAgent, commit: @commit, pull_request: @pull_request),
