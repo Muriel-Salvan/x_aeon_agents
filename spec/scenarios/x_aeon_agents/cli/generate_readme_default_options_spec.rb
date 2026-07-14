@@ -5,6 +5,7 @@ describe XAeonAgents::Cli, '#generate_readme' do
     before do
       stub_doctoc
       stub_readme_generator_run
+      mock_git_remotes
     end
 
     it 'generates a full README from scratch' do

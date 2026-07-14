@@ -53,10 +53,10 @@ module XAeonAgentsTest
 
           A test project
 
-          [![Build](https://github.com/Muriel-Salvan/x_aeon_agents/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/Muriel-Salvan/x_aeon_agents/actions/workflows/continuous_integration.yml)
-          [![Test Coverage](https://img.shields.io/codecov/c/gh/Muriel-Salvan/x_aeon_agents)](https://codecov.io/gh/Muriel-Salvan/x_aeon_agents)
-          [![GitHub stars](https://img.shields.io/github/stars/Muriel-Salvan/x_aeon_agents)](https://github.com/Muriel-Salvan/x_aeon_agents/stargazers)
-          [![License](https://img.shields.io/github/license/Muriel-Salvan/x_aeon_agents)](LICENSE)
+          [![Build](https://github.com/test-owner/test-repo/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/test-owner/test-repo/actions/workflows/continuous_integration.yml)
+          [![Test Coverage](https://img.shields.io/codecov/c/gh/test-owner/test-repo)](https://codecov.io/gh/test-owner/test-repo)
+          [![GitHub stars](https://img.shields.io/github/stars/test-owner/test-repo)](https://github.com/test-owner/test-repo/stargazers)
+          [![License](https://img.shields.io/github/license/test-owner/test-repo)](LICENSE)
           [![Gem Version](https://img.shields.io/gem/v/x_aeon_agents)](https://rubygems.org/gems/x_aeon_agents)
           [![Gem Total Downloads](https://img.shields.io/gem/dt/x_aeon_agents)](https://rubygems.org/gems/x_aeon_agents)
 
@@ -71,6 +71,8 @@ module XAeonAgentsTest
       # @param cli_args [Array<String>] CLI arguments to pass to the generator
       # @param existing_content [String, nil] Optional content to write to the file before generation
       def run_readme_generator(*cli_args, existing_content: nil)
+        # Make sure git.remotes will return 1 remote pointing to a Github fake test repository
+        mock_git_remotes
         # Write existing content if provided
         File.write(readme_path, existing_content) if existing_content
         run_cli 'generate-readme', '--readme-file-path', readme_path, *cli_args

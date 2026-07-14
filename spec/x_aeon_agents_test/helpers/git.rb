@@ -81,6 +81,25 @@ module XAeonAgentsTest
         end
       end
 
+      # Mock Git#remotes on opened Git instances so the application sees a set of
+      # fake remotes. Useful for tests that generate README badges from the
+      # repository name (e.g. the README generator).
+      #
+      # @param remotes [Hash{String => String}] A map of remote name => remote url
+      #   to return when the application calls Git#remotes. Defaults to a single
+      #   fake Github remote pointing to 'https://github.com/test-owner/test-repo.git'.
+      def mock_git_remotes(
+        remotes: { 'origin' => 'https://github.com/test-owner/test-repo.git' }
+      )
+        allow(::Git).to receive(:open).and_wrap_original do |original_open, *args, **kwargs|
+          git_instance = original_open.call(*args, **kwargs)
+          allow(git_instance).to receive(:remotes).and_return(
+            remotes.map { |name, url| Struct.new(:name, :url).new(name, url) }
+          )
+          git_instance
+        end
+      end
+
       # @return [Array<Hash{Symbol => Object}>] The list of Git pushes that were performed.
       #   Each information has the following properties:
       #   - url [String] URL on which the push was performed.
