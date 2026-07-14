@@ -33,16 +33,14 @@ module XAeonAgents
         },
         'free_complex' => proc do
           {
-            # model: 'deepseek/deepseek-v4-flash',
-            model: 'stepfun/step-3.7-flash',
+            model: 'tencent/hy3:free',
             api_key: Config.cline_api_key,
             cli_options: Config.default_cline_cli_args
           }
         end,
         'free_complex_planning' => proc do
           {
-            # model: 'deepseek/deepseek-v4-flash',
-            model: 'stepfun/step-3.7-flash',
+            model: 'tencent/hy3:free',
             api_key: Config.cline_api_key,
             cli_options: Config.default_cline_cli_args.merge(
               {
