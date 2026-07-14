@@ -9,7 +9,7 @@ describe XAeonAgents::Cli, '#implement' do
           case agent
           when XAeonAgents::Agents::PlanGeneratorAgent
             plan_version += 1
-            { plan: "Detailed step-by-step plan (v#{plan_version}) for requirements \"#{kwargs[:requirements]}\"" }
+            { plan: "Detailed step-by-step plan (v#{plan_version}) for requirements \"#{kwargs[:requirements]}\"\n" }
           when XAeonAgents::Agents::TesterAgent
             { plan_modifications: 'Fix the failing tests' }
           else
@@ -71,7 +71,7 @@ describe XAeonAgents::Cli, '#implement' do
           user_instructions: <<~EO_INSTRUCTIONS
             Please add more details to the plan
 
-            Re-create the artifact named `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account
+            Re-create the artifact named `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
           EO_INSTRUCTIONS
         )
 
@@ -139,7 +139,7 @@ describe XAeonAgents::Cli, '#implement' do
       stub_review_content(stdin_response: ['Please revise', '']) do |file_path|
         # Simulate user editing the plan file before giving feedback
         edit_version += 1
-        File.write(file_path, "# Revised Plan (v#{edit_version})\n\nUpdated by user before feedback.")
+        File.write(file_path, "# Revised Plan (v#{edit_version})\n\nUpdated by user before feedback.\n")
       end
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
         run_cli 'implement', 'Add a new feature'
@@ -178,7 +178,7 @@ describe XAeonAgents::Cli, '#implement' do
           user_instructions: <<~EO_INSTRUCTIONS
             Please revise
 
-            Re-create the artifact named `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account
+            Re-create the artifact named `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
 
             The user performed the following modifications on your implementation plan.
             You have to take them into account while revising the plan.

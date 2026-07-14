@@ -48,14 +48,14 @@ module XAeonAgents
             promptable: true,
             content: @artifacts[:plan]
           )
-          diffs = @artifacts[:plan] == content ? nil : Diffy::Diff.new(@artifacts[:plan], content, context: 3, include_diff_info: true).to_s
+          diffs = @artifacts[:plan] == content ? nil : Diffy::Diff.new("#{@artifacts[:plan].strip}\n", "#{content.strip}\n", context: 3, include_diff_info: true).to_s
           @artifacts[:plan] = content
           break if user_prompt.empty?
 
           user_instructions = <<~EO_INSTRUCTIONS
             #{user_prompt}
 
-            Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account
+            Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
           EO_INSTRUCTIONS
           user_instructions << <<~EO_INSTRUCTIONS if diffs
 
@@ -64,8 +64,8 @@ module XAeonAgents
 
             ```
             #{
-              # Remove the 2 first lines (headers of temporary file names), and last line (missing new line at end of file).
-              diffs.to_s.split("\n")[2..-2].join("\n").strip
+              # Remove the 2 first lines (headers of temporary file names).
+              diffs.to_s.split("\n")[2..].join("\n").strip
             }
             ```
           EO_INSTRUCTIONS
