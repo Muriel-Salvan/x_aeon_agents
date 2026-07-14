@@ -48,7 +48,12 @@ module XAeonAgents
             promptable: true,
             content: @artifacts[:plan]
           )
-          diffs = @artifacts[:plan] == content ? nil : Diffy::Diff.new("#{@artifacts[:plan].strip}\n", "#{content.strip}\n", context: 3, include_diff_info: true).to_s
+          diffs =
+            if @artifacts[:plan] == content
+              nil
+            else
+              Diffy::Diff.new("#{@artifacts[:plan].strip}\n", "#{content.strip}\n", context: 3, include_diff_info: true).to_s
+            end
           @artifacts[:plan] = content
           break if user_prompt.empty?
 
