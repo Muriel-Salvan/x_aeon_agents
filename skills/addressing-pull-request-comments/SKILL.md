@@ -109,7 +109,7 @@ Example of a comment just asking a question, without needing code changes:
 - If you added new commits because of that comment, then always explain what improvements you made in your reply body.
 - If the user was asking a question in his comment, then always give an answer to his question in your reply body.
 - If you think the user comment did not need any code change, then always explain the reason why you think so in your reply body.
-- Always use `agent: write_to_file` tool to write the reply body in a temporary file (later referenced as {reply_body_file}), inside the directory `.x-aeon_agents/tmp/replies`.
+- Always use `agent: write_to_file` tool to write the reply body in a temporary file (later referenced as {reply_body_file}), inside the directory `.x_aeon_agents/tmp/replies`.
 
 Example of a reply explaining a code change:
 ```markdown
@@ -133,7 +133,7 @@ We use it as it is the official documented way of retrieving our data, and it ha
 
 Example:
 ```bash
-ruby .cline/skills/addressing-pull-request-comments/scripts/reply_to_comment 3 2718057900 .x-aeon_agents/tmp/replies/comment_2718057900_reply.md
+ruby .cline/skills/addressing-pull-request-comments/scripts/reply_to_comment 3 2718057900 .x_aeon_agents/tmp/replies/comment_2718057900_reply.md
 ```
 
 ### Final Verification (MANDATORY)
@@ -162,7 +162,7 @@ Those examples are given for a Linux environment. Adapt them if you are running 
 ruby .cline/skills/addressing-pull-request-comments/scripts/check_unresolved_pr_comments
 # 2. Loop over each unanswered comment that starts with `/agent`. For each one of them:
 # 2.1. Apply necessary code changes if needed
-# 2.2. Create .x-aeon_agents/tmp/replies/comment_1234567_reply.md with the appropriate reply
+# 2.2. Create .x_aeon_agents/tmp/replies/comment_1234567_reply.md with the appropriate reply
 # 2.3. Reply to the comment
-ruby .cline/skills/addressing-pull-request-comments/scripts/reply_to_comment 3 1234567 .x-aeon_agents/tmp/replies/comment_1234567_reply.md
+ruby .cline/skills/addressing-pull-request-comments/scripts/reply_to_comment 3 1234567 .x_aeon_agents/tmp/replies/comment_1234567_reply.md
 ```

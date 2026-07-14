@@ -36,7 +36,7 @@ git add lib/my_lib/my_class.rb README.md
 ### 3. Create a temporary file with the commit description
 
 - Devise a meaningful commit comment that summarizes the changes you are going to commit.
-- Always use `agent: write_to_file` tool to write the commit comment in a temporary file (later referenced as {description_file}), inside the directory `.x-aeon_agents/tmp/commits`.
+- Always use `agent: write_to_file` tool to write the commit comment in a temporary file (later referenced as {description_file}), inside the directory `.x_aeon_agents/tmp/commits`.
 
 ### 4. Create the commit
 
@@ -46,7 +46,7 @@ git add lib/my_lib/my_class.rb README.md
 
 Example:
 ```bash
-ruby .cline/skills/committing-changes/scripts/commit .x-aeon_agents/tmp/commits/commit_desc.txt
+ruby .cline/skills/committing-changes/scripts/commit .x_aeon_agents/tmp/commits/commit_desc.txt
 ```
 
 ### 5. Delete the temporary commit description file
@@ -55,7 +55,7 @@ ruby .cline/skills/committing-changes/scripts/commit .x-aeon_agents/tmp/commits/
 
 Example:
 ```bash
-rm .x-aeon_agents/tmp/commits/commit_desc.txt
+rm .x_aeon_agents/tmp/commits/commit_desc.txt
 ```
 
 ### 6. Push this commit on GitHub
@@ -90,8 +90,8 @@ Those examples are given for a Linux environment. Adapt them if you are running 
 If you modified `lib/my_lib/my_class.rb`, `README.md` and `spec/scenarios/my_tests.rb` files for the task, this skill should perform the following commands:
 ```bash
 git add lib/my_lib/my_class.rb README.md spec/scenarios/my_tests.rb
-# Use agent tool write_to_file to create file ./.x-aeon_agents/tmp/commits/commit_desc.txt
-ruby {skill_path}/scripts/commit ./.x-aeon_agents/tmp/commits/commit_desc.txt
-rm ./.x-aeon_agents/tmp/commits/commit_desc.txt
+# Use agent tool write_to_file to create file ./.x_aeon_agents/tmp/commits/commit_desc.txt
+ruby {skill_path}/scripts/commit ./.x_aeon_agents/tmp/commits/commit_desc.txt
+rm ./.x_aeon_agents/tmp/commits/commit_desc.txt
 git push github
 ```
