@@ -9,6 +9,8 @@ module XAeonAgents
     class << self
       include Logger
 
+      # @!group Public API
+
       # Automatically generate accessors for secrets taken from the ENV or the Launcher
       %i[
         cline_api_key
@@ -31,7 +33,7 @@ module XAeonAgents
           @secrets ||= {}
           @secrets[secret_name] ||= begin
             env_secret = ENV.fetch(secret_name.to_s.upcase, nil)
-            env_secret ? SecretString.new(env_secret) : Helpers.keys_from_launcher[secret_name]
+            env_secret ? SecretString.new(env_secret.dup) : Helpers.keys_from_launcher[secret_name]
           end
           @secrets[secret_name]&.to_unprotected
         end
@@ -64,6 +66,18 @@ module XAeonAgents
         @debug ||= ENV['X_AEON_AGENTS_DEBUG'] == '1'
       end
 
+      # Configure X-Aeon Agents
+      #
+      # @param kwargs [Hash] Any configuration property that can be set
+      def configure(**kwargs)
+        kwargs.each do |property, value|
+          send(:"#{property}=", value)
+        end
+        Logger.debug = debug
+      end
+
+      # @!group Internal
+
       # Setup composable_agents in a lazy and memoized way
       def setup_composable_agents
         ENV['COMPOSABLE_AGENTS_DEBUG'] = '1' if debug
@@ -85,16 +99,6 @@ module XAeonAgents
       # Setup Cline in a lazy and memoized way
       def setup_cline
         # Nothing to do
-      end
-
-      # Configure X-Aeon Agents
-      #
-      # @param kwargs [Hash] Any configuration property that can be set
-      def configure(**kwargs)
-        kwargs.each do |property, value|
-          send(:"#{property}=", value)
-        end
-        Logger.debug = debug
       end
     end
   end
