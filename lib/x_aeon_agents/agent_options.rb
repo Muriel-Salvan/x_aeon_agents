@@ -17,14 +17,14 @@ module XAeonAgents
     # Set an agent's option for a given agent category.
     #
     # @param agent_category [String] The agent category for which we want the agent's options
-    # @param agent_options [Hash{Symbol => Object}, #call -> Hash{Symbol => Object}] The corresponding agent's options (can be lazily evaluated)
+    # @param agent_options [Hash{Symbol => Object}, #call -> Hash] The corresponding agent's options (can be lazily evaluated)
     def []=(agent_category, agent_options)
       options[agent_category] = agent_options
     end
 
     private
 
-    # @return [Hash{String => Hash{Symbol => Object}, #call -> Hash{Symbol => Object}}] The memoized options (can be lazily evaluated), per agent category.
+    # @return [Hash{String => Hash{Symbol => Object}, #call -> Hash}] The memoized options (can be lazily evaluated), per agent category.
     def options
       @options ||= {
         'free_simple' => {

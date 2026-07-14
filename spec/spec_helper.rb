@@ -46,6 +46,8 @@ RSpec.configure do |config|
     XAeonAgents::Config.cline_api_key = 'test-cline-api-key'
     XAeonAgents::Config.github_token = 'test-github-token'
     XAeonAgents::Config.openrouter_api_key = 'test-openrouter-api-key'
+    XAeonAgents::Config.agent_options['free_complex'][:model] = 'test-free-complex-model'
+    XAeonAgents::Config.agent_options['free_complex_planning'][:model] = 'test-free-complex-planning-model'
     # Clear possible caches of the real application
     XAeonAgents::AgentDefaults.instance_variable_set(:@singleton_session_id, nil)
     XAeonAgents::Helpers.instance_variable_set(:@git, nil)
