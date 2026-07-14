@@ -17,7 +17,7 @@ module XAeonAgentsTest
         allow(github_double).to receive_messages(
           pull_requests: pull_requests.map do |pr_hash|
             data = { head: Sawyer::Resource.new(Sawyer::Agent.new(''), ref: pr_hash[:ref]) }
-            data[:html_url] = pr_hash[:html] if pr_hash[:html]
+            data[:html_url] = pr_hash[:html_url] if pr_hash[:html_url]
             data[:number] = pr_hash[:number] if pr_hash[:number]
             Sawyer::Resource.new(Sawyer::Agent.new(''), **data)
           end,
@@ -80,7 +80,7 @@ module XAeonAgentsTest
       # Mock the singular pull_request call and the GraphQL review comments query for a single Pull Request.
       #
       # @param ref [String] The ref (branch name) of the Pull Request's head
-      # @param html [String] The URL of the Pull Request
+      # @param html_url [String] The URL of the Pull Request
       # @param number [Integer] The Pull Request number
       # @param title [String] The Pull Request title
       # @param body [String] The Pull Request body
@@ -98,7 +98,7 @@ module XAeonAgentsTest
       #   - replyTo [Hash, nil] The replied-to comment, with a :databaseId key, or nil
       def mock_pull_request(
         ref: 'feature-branch',
-        html: 'https://github.com/owner/repo/pull_requests/42',
+        html_url: 'https://github.com/owner/repo/pull_requests/42',
         number: 42,
         title: 'My Pull Request',
         body: 'PR body description',

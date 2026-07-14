@@ -66,6 +66,11 @@ module XAeonAgents
         @debug ||= ENV['X_AEON_AGENTS_DEBUG'] == '1'
       end
 
+      # @return [AgentOptions] The available agent options.
+      def agent_options
+        @agent_options ||= AgentOptions.new
+      end
+
       # Configure X-Aeon Agents
       #
       # @param kwargs [Hash] Any configuration property that can be set

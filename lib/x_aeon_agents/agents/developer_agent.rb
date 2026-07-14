@@ -40,7 +40,7 @@ module XAeonAgents
         planner_agent = new_agent(PlannerAgent)
         step_agent(planner_agent)
 
-        coder_agent = new_agent(CoderAgent, **Models.free_complex)
+        coder_agent = new_agent(CoderAgent, **Config.agent_options['free_complex'])
 
         step_agent(
           coder_agent,
@@ -50,7 +50,7 @@ module XAeonAgents
 
         step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent])) if @commit
 
-        tester_agent = new_agent(TesterAgent, **Models.free_complex)
+        tester_agent = new_agent(TesterAgent, **Config.agent_options['free_complex'])
 
         step(:test) do
           tests_cmd = 'bundle exec rspec --format documentation'
@@ -124,7 +124,7 @@ module XAeonAgents
 
         step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
 
-        documenter_agent = new_agent(DocumenterAgent, **Models.free_complex)
+        documenter_agent = new_agent(DocumenterAgent, **Config.agent_options['free_complex'])
         @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
 
         step_agent(

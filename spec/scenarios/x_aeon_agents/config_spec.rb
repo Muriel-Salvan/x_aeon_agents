@@ -6,6 +6,7 @@ describe XAeonAgents::Config do
     described_class.instance_variable_set(:@data_dir, nil)
     described_class.instance_variable_set(:@default_cline_cli_args, nil)
     described_class.instance_variable_set(:@debug, nil)
+    described_class.instance_variable_set(:@agent_options, nil)
     XAeonAgents::Logger.debug = false
   end
 
@@ -82,6 +83,43 @@ describe XAeonAgents::Config do
           expect(described_class.send(secret_name)).to be_nil
         end
       end
+    end
+  end
+
+  describe '#agent_options' do
+    it 'allows reading default agent options' do
+      expect(described_class.agent_options['free_simple']).to eq(
+        model: 'openrouter/free',
+        strategy: ComposableAgents::PromptRenderingStrategy::Markdown
+      )
+    end
+
+    it 'allows writing new agent options' do
+      described_class.agent_options['custom_category'] = { model: 'gpt-4' }
+      expect(described_class.agent_options['custom_category']).to eq(model: 'gpt-4')
+    end
+
+    it 'allows writing agent options that are lazily evaluated and memoized' do
+      nbr_evaluations = 0
+      described_class.agent_options['custom_category'] = proc do
+        nbr_evaluations += 1
+        { model: 'gpt-4' }
+      end
+      expect(described_class.agent_options['custom_category']).to eq(model: 'gpt-4')
+      expect(described_class.agent_options['custom_category']).to eq(model: 'gpt-4')
+      expect(described_class.agent_options['custom_category']).to eq(model: 'gpt-4')
+      expect(nbr_evaluations).to eq 1
+    end
+
+    it 'allows overwriting default agent options' do
+      described_class.agent_options['free_simple'] = { model: 'custom-model' }
+      expect(described_class.agent_options['free_simple']).to eq(model: 'custom-model')
+    end
+
+    it 'lazily evaluates proc-based options at read time' do
+      options = described_class.agent_options
+      described_class.cline_api_key = 'lazy-eval-key'
+      expect(options['free_complex'][:api_key]).to eq 'lazy-eval-key'
     end
   end
 

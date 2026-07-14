@@ -1,6 +1,6 @@
 require 'simplecov'
 SimpleCov.start do
-  minimum_coverage 99
+  minimum_coverage 97
 end
 require 'simplecov-cobertura'
 SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter

@@ -302,7 +302,7 @@ module XAeonAgents
     #
     # @param user_prompt [String] The prompt text to send to the AI agent
     def prompt(user_prompt)
-      agent = Agents::ExecutorAgent.new(session_id: options[:session_id], **Models.free_simple)
+      agent = Agents::ExecutorAgent.new(session_id: options[:session_id], **Config.agent_options['free_simple'])
       agent.run(user_instructions: user_prompt)
       puts agent.conversation.last[:message]
     end
