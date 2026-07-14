@@ -77,7 +77,7 @@ module XAeonAgents
       #
       # @return [Agent] The Plan Generator agent
       def plan_generator_agent
-        @plan_generator_agent ||= new_agent(PlanGeneratorAgent, **Models.free_complex_planning)
+        @plan_generator_agent ||= new_agent(PlanGeneratorAgent, **Config.agent_options['free_complex_planning'])
       end
     end
   end

@@ -39,7 +39,7 @@ module XAeonAgents
           diff_interpreter_agent,
           files_diff: Helpers.artifact_files_diffs(git_ref_base == 'cached' ? :cached : git_ref_base)
         )
-        step_agent(new_agent(OneLineCodeDiffSummarizerAgent, **Models.free_simple))
+        step_agent(new_agent(OneLineCodeDiffSummarizerAgent, **Config.agent_options['free_simple']))
         {
           change_intent: @artifacts[:change_intent],
           one_line_summary: @artifacts[:one_line_summary]
@@ -50,7 +50,7 @@ module XAeonAgents
       #
       # @return [Agent] The Diff Interpreter agent
       def diff_interpreter_agent
-        @diff_interpreter_agent ||= new_agent(DiffInterpreterAgent, **Models.free_simple)
+        @diff_interpreter_agent ||= new_agent(DiffInterpreterAgent, **Config.agent_options['free_simple'])
       end
     end
   end
