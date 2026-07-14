@@ -76,7 +76,7 @@ describe XAeonAgents::Cli, '#review_comments' do
         expect(github_double).to have_received(:create_pull_request_comment_reply).with(
           'owner/repo',
           42,
-          '[X-Aeon Agent ReviewResponder (Cline cline/stepfun/step-3.7-flash)] - ' \
+          '[X-Aeon Agent ReviewResponder (Cline cline/test-free-complex-planning-model)] - ' \
             'Implemented the requested validation method. In response to: ' \
             '/agent Please add a validation method.',
           666
@@ -86,7 +86,7 @@ describe XAeonAgents::Cli, '#review_comments' do
         comment_reply = {
           databaseId: 667,
           createdAt: '2024-01-02T10:01:00Z',
-          body: '[X-Aeon Agent ReviewResponder (Cline cline/stepfun/step-3.7-flash)] - ' \
+          body: '[X-Aeon Agent ReviewResponder (Cline cline/test-free-complex-planning-model)] - ' \
             'Implemented the requested validation method. In response to: ' \
             '/agent Please add a validation method.',
           author: { login: 'assistant' },
@@ -161,7 +161,7 @@ describe XAeonAgents::Cli, '#review_comments' do
             },
             {
               'author' => 'assistant',
-              'body' => '[X-Aeon Agent ReviewResponder (Cline cline/stepfun/step-3.7-flash)] - ' \
+              'body' => '[X-Aeon Agent ReviewResponder (Cline cline/test-free-complex-planning-model)] - ' \
                 'Implemented the requested validation method. In response to: ' \
                 '/agent Please add a validation method.',
               'comment_id' => 667,
@@ -200,7 +200,7 @@ describe XAeonAgents::Cli, '#review_comments' do
         expect(github_double).to have_received(:create_pull_request_comment_reply).with(
           'owner/repo',
           42,
-          '[X-Aeon Agent ReviewResponder (Cline cline/stepfun/step-3.7-flash)] - ' \
+          '[X-Aeon Agent ReviewResponder (Cline cline/test-free-complex-planning-model)] - ' \
             'Implemented the requested validation method. In response to: ' \
             '/agent Please add another method.',
           668

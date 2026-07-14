@@ -64,7 +64,7 @@ describe XAeonAgents::Cli, '#review_comments' do
           {
             databaseId: 667,
             createdAt: '2024-01-01T10:30:00Z',
-            body: '[X-Aeon Agent (Cline cline/stepfun/step-3.7-flash)] - Already replied',
+            body: '[X-Aeon Agent (Cline cline/test-free-complex-planning-model)] - Already replied',
             author: { login: 'x-aeon-agent' },
             path: 'lib/foo.rb',
             replyTo: { databaseId: 666 }
@@ -109,7 +109,7 @@ describe XAeonAgents::Cli, '#review_comments' do
             },
             {
               'author' => 'x-aeon-agent',
-              'body' => '[X-Aeon Agent (Cline cline/stepfun/step-3.7-flash)] - Already replied',
+              'body' => '[X-Aeon Agent (Cline cline/test-free-complex-planning-model)] - Already replied',
               'comment_id' => 667,
               'created_at' => '2024-01-01T10:30:00Z',
               'need_ai_reply' => false,
@@ -143,7 +143,7 @@ describe XAeonAgents::Cli, '#review_comments' do
         expect(github_double).to have_received(:create_pull_request_comment_reply).with(
           'owner/repo',
           42,
-          '[X-Aeon Agent ReviewResponder (Cline cline/stepfun/step-3.7-flash)] - ' \
+          '[X-Aeon Agent ReviewResponder (Cline cline/test-free-complex-planning-model)] - ' \
             'Implemented the requested validation method. In response to: ' \
             '/agent Please add another method.',
           668
