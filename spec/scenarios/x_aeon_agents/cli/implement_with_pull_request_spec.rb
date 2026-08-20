@@ -38,6 +38,7 @@ describe XAeonAgents::Cli, '#implement' do
         ) do
           base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
+          stub_command('bundle exec rspec --format documentation')
           run_cli 'implement', '--pr', 'Add a new feature'
           expect(exit_status).to eq 0
 
@@ -117,6 +118,7 @@ describe XAeonAgents::Cli, '#implement' do
         ) do
           base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
+          stub_command('bundle exec rspec --format documentation')
           run_cli 'implement', '--pr', '--commit', 'Add a new feature'
           expect(exit_status).to eq 0
 
@@ -251,6 +253,7 @@ describe XAeonAgents::Cli, '#implement' do
         ) do
           base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
+          stub_command('bundle exec rspec --format documentation')
           run_cli 'implement', '--pr', 'Add a new feature'
           expect(exit_status).to eq 0
 
