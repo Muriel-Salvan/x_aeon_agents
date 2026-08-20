@@ -64,15 +64,12 @@ module XAeonAgentsTest
         expect(normalize_git_ids(::Git.open(Dir.pwd).diff("#{commit.sha}^", commit.sha).patch).strip).to eq patch.strip
       end
 
-      # Mock the ProcessExecuter calls made internally by the Git Ruby gem when
-      # pushing. The Git gem relies on ProcessExecuter.run_with_capture to execute
-      # git commands, so we mock this implementation rather than the Git#push
-      # interface. This way the real Git#push code (including its option
-      # validation) runs, and any wrong usage of the Git interface in the
-      # production code is caught by the tests.
+      # Mock git pushes made by the production code, regardless of the code path
+      # used to invoke them: the Git Ruby gem's ProcessExecuter.run_with_capture
+      # abstraction, or Helpers.run_cmd which uses Open3.popen3 directly.
       #
       # Only the git push call is mocked: any other git command is forwarded to
-      # the original ProcessExecuter.run_with_capture so that it really runs.
+      # the original implementation so that it really runs.
       def mock_git_push
         @git_pushes = []
         allow(::ProcessExecuter).to receive(:run_with_capture).and_wrap_original do |original_run_with_capture, *args, **kwargs|
@@ -95,6 +92,20 @@ module XAeonAgentsTest
             original_run_with_capture.call(*args, **kwargs)
           end
         end
+        # Also intercept git push commands issued through Helpers.run_cmd, which
+        # uses Open3.popen3 directly rather than the Git Ruby gem's ProcessExecuter
+        # abstraction. We use stub_command (which mocks Open3.popen3) so that
+        # non-push run_cmd calls (e.g. VSCodium) can be independently stubbed by the
+        # tests via stub_command as well, without interference.
+        stub_command(
+          /git push/,
+          stdout: proc do |cmd|
+            cmd_tokens = cmd.to_s.split
+            push_idx = cmd_tokens.index('push')
+            git_pushes << cmd_tokens[(push_idx + 1)..] if push_idx&.positive?
+            ''
+          end
+        )
       end
 
       # Mock Git#remotes on opened Git instances so the application sees a set of
@@ -117,12 +128,13 @@ module XAeonAgentsTest
       end
 
       # @return [Array<Array<String>>] The list of git pushes that were performed.
-      #   Each information is the git command tokens that were passed to
-      #   ProcessExecuter.run_with_capture by the Git gem for a push, stripped of
-      #   the environment hash, the git binary path and the 'push' command name.
+      #   Each information is the git command tokens that followed the 'push' token,
+      #   issued either through the Git Ruby gem (via ProcessExecuter) or through
+      #   Helpers.run_cmd (via Open3). Options, the remote name and the branch
+      #   are included.
       #   For example:
       #   - ["--force", "origin", "feature-branch"]
-      #   - ["github", "feature/new-task"]
+      #   - ["--set-upstream", "github", "feature/new-task"]
       attr_reader :git_pushes
     end
   end

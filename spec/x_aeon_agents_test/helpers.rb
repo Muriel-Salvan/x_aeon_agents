@@ -29,7 +29,15 @@ module XAeonAgentsTest
     # @param exit_status [Integer, #call(command) -> Integer] Command's exit status,
     #   or the code that receives the command that was invoked and should return it.
     def stub_command(command, stdout: '', stderr: '', exit_status: 0)
-      allow(Open3).to receive(:popen3).and_call_original
+      # Only add the fall-through-to-original default stub once. RSpec prepends
+      # new stubs to the front of the list, so a second `and_call_original`
+      # (unconstrained) would shadow previously-defined `with(...)` stubs
+      # (e.g. the `/git push/` stub from mock_git_push), causing real commands
+      # to run instead of being mocked.
+      unless @open3_popen3_default_stubbed
+        allow(Open3).to receive(:popen3).and_call_original
+        @open3_popen3_default_stubbed = true
+      end
       allow(Open3).to receive(:popen3).with(command) do |cmd, &block|
         block.call(
           StringIO.new,

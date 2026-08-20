@@ -57,7 +57,11 @@ module XAeonAgents
           Helpers.git.lib.worktree_add(dir, branch_name)
         end
         # Push to remote if branch doesn't exist there yet
-        Helpers.git.push(Helpers.github_remote, branch_name, set_upstream: true)
+        # TODO: Use ruby-git when the --set-upstream option will be supported by its push method
+        # (ruby-git 4.x validates push options against PUSH_OPTION_MAP, which does not include
+        # set_upstream, so we fall back to a raw git command that both pushes and sets the
+        # upstream tracking in a single atomic operation.)
+        Helpers.run_cmd("git push --set-upstream #{Helpers.github_remote.name} #{branch_name}")
         Helpers.run_cmd("VSCodium.exe \"#{dir}\"")
         { worktree_dir: dir }
       end
