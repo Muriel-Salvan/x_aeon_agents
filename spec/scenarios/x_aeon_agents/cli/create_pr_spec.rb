@@ -21,11 +21,7 @@ describe XAeonAgents::Cli, '#create_pr' do
 
         # Verify the branch was pushed to the remote with --force (for force-with-lease)
         expect(git_pushes).to eq [
-          {
-            url: 'git@github.com:owner/repo.git',
-            branch: 'feature-branch',
-            options: { force: true }
-          }
+          ['--force', 'origin', 'feature-branch']
         ]
 
         # Verify existing PRs were checked
@@ -64,11 +60,7 @@ describe XAeonAgents::Cli, '#create_pr' do
 
         # Verify the branch was pushed to the remote with --force (for force-with-lease)
         expect(git_pushes).to eq [
-          {
-            url: 'git@github.com:owner/repo.git',
-            branch: 'feature-branch',
-            options: { force: true }
-          }
+          ['--force', 'origin', 'feature-branch']
         ]
 
         # Verify existing PRs were checked
@@ -105,11 +97,7 @@ describe XAeonAgents::Cli, '#create_pr' do
 
         # Verify the branch was pushed to the remote with --force (for force-with-lease)
         expect(git_pushes).to eq [
-          {
-            url: 'git@github.com:owner/repo.git',
-            branch: 'feature-branch',
-            options: { force: true }
-          }
+          ['--force', 'origin', 'feature-branch']
         ]
 
         # Verify existing PRs were checked
