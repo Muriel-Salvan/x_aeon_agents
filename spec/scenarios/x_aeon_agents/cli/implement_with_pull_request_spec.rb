@@ -81,11 +81,7 @@ describe XAeonAgents::Cli, '#implement' do
 
           # Verify the branch was pushed
           expect(git_pushes).to eq [
-            {
-              url: 'git@github.com:owner/repo.git',
-              branch: 'feature-branch',
-              options: { force: true }
-            }
+            ['--force', 'origin', 'feature-branch']
           ]
 
           # Verify a PR was created
@@ -181,11 +177,7 @@ describe XAeonAgents::Cli, '#implement' do
 
           # Verify the branch was pushed
           expect(git_pushes).to eq [
-            {
-              url: 'git@github.com:owner/repo.git',
-              branch: 'feature-branch',
-              options: { force: true }
-            }
+            ['--force', 'origin', 'feature-branch']
           ]
 
           # Verify a PR was created (same as without the --commit option)
@@ -317,11 +309,7 @@ describe XAeonAgents::Cli, '#implement' do
 
           # Verify the branch was pushed
           expect(git_pushes).to eq [
-            {
-              url: 'git@github.com:owner/repo.git',
-              branch: 'feature-branch',
-              options: { force: true }
-            }
+            ['--force', 'origin', 'feature-branch']
           ]
 
           # Verify a PR was created with the final revised plan.

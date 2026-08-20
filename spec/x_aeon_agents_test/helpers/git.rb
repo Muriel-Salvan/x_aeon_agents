@@ -64,20 +64,36 @@ module XAeonAgentsTest
         expect(normalize_git_ids(::Git.open(Dir.pwd).diff("#{commit.sha}^", commit.sha).patch).strip).to eq patch.strip
       end
 
-      # Mock Git#push on the next Git instance
+      # Mock the ProcessExecuter calls made internally by the Git Ruby gem when
+      # pushing. The Git gem relies on ProcessExecuter.run_with_capture to execute
+      # git commands, so we mock this implementation rather than the Git#push
+      # interface. This way the real Git#push code (including its option
+      # validation) runs, and any wrong usage of the Git interface in the
+      # production code is caught by the tests.
+      #
+      # Only the git push call is mocked: any other git command is forwarded to
+      # the original ProcessExecuter.run_with_capture so that it really runs.
       def mock_git_push
         @git_pushes = []
-        allow(::Git).to receive(:open).and_wrap_original do |original_open, *args, **kwargs|
-          @git_instance = original_open.call(*args, **kwargs)
-          allow(git_instance).to receive(:push) do |remote, branch, **options|
-            git_pushes << {
-              url: remote.url,
-              branch:,
-              options:
-            }
-            nil
+        allow(::ProcessExecuter).to receive(:run_with_capture).and_wrap_original do |original_run_with_capture, *args, **kwargs|
+          # The push command is identified by its git command tokens.
+          push_idx = args.index('push')
+          if push_idx&.positive?
+            # Record the git command after the 'push' token (options + remote name + branch)
+            git_pushes << args[(push_idx + 1)..]
+            # Return a fabricated successful process result so the Git gem
+            # considers the push as executed successfully. Only the methods the
+            # Git gem relies on are defined.
+            Struct.new(:command, :stdout, :stderr, :exitstatus) do
+              def success? = true
+
+              def signaled? = false
+
+              def timed_out? = false
+            end.new(args, '', '', 0)
+          else
+            original_run_with_capture.call(*args, **kwargs)
           end
-          git_instance
         end
       end
 
@@ -100,15 +116,14 @@ module XAeonAgentsTest
         end
       end
 
-      # @return [Array<Hash{Symbol => Object}>] The list of Git pushes that were performed.
-      #   Each information has the following properties:
-      #   - url [String] URL on which the push was performed.
-      #   - branch [String] Branch name that was pushed.
-      #   - options [Hash] Additional options for this push
+      # @return [Array<Array<String>>] The list of git pushes that were performed.
+      #   Each information is the git command tokens that were passed to
+      #   ProcessExecuter.run_with_capture by the Git gem for a push, stripped of
+      #   the environment hash, the git binary path and the 'push' command name.
+      #   For example:
+      #   - ["--force", "origin", "feature-branch"]
+      #   - ["github", "feature/new-task"]
       attr_reader :git_pushes
-
-      # @return [Git::Base, nil] The last opened Git instance that has push mocked, or nil if none
-      attr_reader :git_instance
     end
   end
 end

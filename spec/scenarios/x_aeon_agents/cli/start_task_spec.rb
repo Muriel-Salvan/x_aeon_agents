@@ -36,11 +36,7 @@ describe XAeonAgents::Cli, '#start_task' do
 
         # The new branch has been pushed
         expect(git_pushes).to eq [
-          {
-            url: 'git@github.com:owner/repo.git',
-            branch: branch_name,
-            options: { set_upstream: true }
-          }
+          ['github', branch_name]
         ]
 
         # VSCodium has been run within this worktree
@@ -94,11 +90,7 @@ describe XAeonAgents::Cli, '#start_task' do
 
         # The existing branch has been pushed
         expect(git_pushes).to eq [
-          {
-            url: 'git@github.com:owner/repo.git',
-            branch: branch_name,
-            options: { set_upstream: true }
-          }
+          ['github', branch_name]
         ]
 
         # VSCodium has been run within this worktree
@@ -204,11 +196,7 @@ describe XAeonAgents::Cli, '#start_task' do
 
         # The new branch has been pushed
         expect(git_pushes).to eq [
-          {
-            url: 'git@github.com:owner/repo.git',
-            branch: branch_name,
-            options: { set_upstream: true }
-          }
+          ['github', branch_name]
         ]
 
         # VSCodium has been run within this worktree
@@ -279,13 +267,7 @@ describe XAeonAgents::Cli, '#start_task' do
 
         # The branch has been pushed (twice: once initially, once after the new commit)
         expect(git_pushes.size).to eq 2
-        expect(git_pushes.last).to eq(
-          {
-            url: 'git@github.com:owner/repo.git',
-            branch: branch_name,
-            options: { set_upstream: true }
-          }
-        )
+        expect(git_pushes.last).to eq ['github', branch_name]
 
         # VSCodium has been run again within this worktree
         expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
