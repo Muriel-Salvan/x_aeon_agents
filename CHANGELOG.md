@@ -1,3 +1,11 @@
+# [v1.0.29](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.28...v1.0.29) (2026-08-21 14:06:00)
+
+### Patches
+
+* [chore: add TODOs and update API key descriptions](https://github.com/Muriel-Salvan/x_aeon_agents/commit/7eab6bf59ac760ed6b1b81580b9c9a65a5b9aaca)
+* [fix: use raw git push command to set upstream tracking](https://github.com/Muriel-Salvan/x_aeon_agents/commit/b13498c5e69a30bdb3e7d90aa25d27c230f1fb21)
+* [refactor: simplify git push mock assertions in specs](https://github.com/Muriel-Salvan/x_aeon_agents/commit/a70f024ba93ace278ae007baf61a2ad83530d735)
+
 # [v1.0.28](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.27...v1.0.28) (2026-07-14 17:05:02)
 
 ### Patches
