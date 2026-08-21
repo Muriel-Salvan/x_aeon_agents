@@ -62,7 +62,10 @@ module XAeonAgents
         # set_upstream, so we fall back to a raw git command that both pushes and sets the
         # upstream tracking in a single atomic operation.)
         Helpers.run_cmd("git push --set-upstream #{Helpers.github_remote.name} #{branch_name}")
+        # TODO: Make this part of the config
         Helpers.run_cmd("VSCodium.exe \"#{dir}\"")
+        # TODO: Make this part of the config
+        Dir.chdir(dir) { Helpers.run_cmd('bundle install') }
         { worktree_dir: dir }
       end
     end

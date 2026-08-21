@@ -14,6 +14,7 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
+        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -68,6 +69,7 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
+        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -118,6 +120,7 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
+        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -174,6 +177,7 @@ describe XAeonAgents::Cli, '#start_task' do
 
         mock_git_push
 
+        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -225,6 +229,7 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
+        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
