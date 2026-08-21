@@ -15,15 +15,16 @@ module XAeonAgents
     class << self
       include Logger
 
+      # TODO: Make this whole concept part of the config
       # Retrieve API keys needed for the agents from the X-Aeon launcher
       #
       # @return [Hash{Symbol => SecretString}] The keys retrieved
       def keys_from_launcher
         @keys_from_launcher ||= begin
           keys = {
-            cline_api_key: 'Cline API key',
-            github_token: 'Github API token',
-            openrouter_api_key: 'OpenRouter API key'
+            cline_api_key: 'Muriel Salvan/AI/Cline/API Keys/VSCode and CLI',
+            github_token: 'Muriel Salvan/Github/Tokens/Pushing my changes',
+            openrouter_api_key: 'Muriel Salvan/AI/OpenRouter/API Keys/VSCodium'
           }
           launcher_keys = {}
           Bundler.with_unbundled_env { `launcher safe -- #{keys.values.map { |launcher_key| "\"#{launcher_key}\"" }.join(' ')}` }.each_line do |line|
