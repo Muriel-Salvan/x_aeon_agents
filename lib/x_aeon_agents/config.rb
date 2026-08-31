@@ -5,7 +5,9 @@ require 'secret_string'
 module XAeonAgents
   # Singleton module to get all configuration of X-Aeon Agents
   module Config
-    # TODO: Add test cases for this module
+    # Name of the optional per-user / per-project configuration file
+    CONFIG_FILE_NAME = '.x_aeon_agents.rb'
+
     class << self
       include Logger
 
@@ -66,6 +68,18 @@ module XAeonAgents
         @debug ||= ENV['X_AEON_AGENTS_DEBUG'] == '1'
       end
 
+      # Candidate absolute paths of the configuration file, ordered by increasing
+      # priority (lowest first): user home directory, then current directory.
+      # This lets project settings override global ones.
+      #
+      # @return [Array<String>] The list of potential config paths
+      def config_paths
+        [
+          File.join(Dir.home, CONFIG_FILE_NAME),
+          File.join(Dir.pwd, CONFIG_FILE_NAME)
+        ]
+      end
+
       # @return [AgentOptions] The available agent options.
       def agent_options
         @agent_options ||= AgentOptions.new
@@ -82,6 +96,15 @@ module XAeonAgents
       end
 
       # @!group Internal
+
+      # Evaluate every configuration file existing at the candidate paths, from
+      # the lowest priority (user/global) to the highest (current directory), so
+      # that higher-priority files override lower-priority ones.
+      def load
+        config_paths.each do |config_file|
+          ConfigDsl.new.evaluate_file(config_file) if File.exist?(config_file)
+        end
+      end
 
       # Setup composable_agents in a lazy and memoized way
       def setup_composable_agents

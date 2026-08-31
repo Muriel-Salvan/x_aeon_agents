@@ -33,6 +33,7 @@ Use it as a **⚡ CLI** in your terminal or as a **📦 library** inside your Ru
   - [Prerequisites](#prerequisites)
   - [Install](#install)
   - [Configure](#configure)
+    - [Optional configuration file](#optional-configuration-file)
   - [Use the CLI](#use-the-cli)
   - [Use as a library](#use-as-a-library)
 - [Requirements](#requirements)
@@ -108,6 +109,21 @@ Export the required credentials as environment variables (the CLI reads them aut
 export OPENROUTER_API_KEY="sk-or-..."
 export GITHUB_TOKEN="ghp_..."
 ```
+
+### Optional configuration file
+
+You can fine-tune behaviour with an optional `.x_aeon_agents.rb` configuration file, read at the start of every `xaa` command:
+
+- `~/.x_aeon_agents.rb` — in your **home directory**, for *global / user-level* settings;
+- `.x_aeon_agents.rb` — in the **current project directory**, for *project-level* settings.
+
+When both exist, the project file is evaluated last and therefore wins over the global one. The only directive currently exposed is `debug`, which enables debug logging:
+
+```ruby
+debug true
+```
+
+For example, to always run in debug mode inside a given project, create a `.x_aeon_agents.rb` file in that project directory containing `debug true`. An explicit `--debug` / `--no-debug` command-line flag always overrides the file, and when neither the file nor a flag sets a value, the `X_AEON_AGENTS_DEBUG` environment variable is still honoured.
 
 ### Use the CLI
 
@@ -233,6 +249,7 @@ Public methods:
 - `data_dir` / `data_dir=` — X-Aeon Agents data directory. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#data_dir-class_method)
 - `default_cline_cli_args` / `default_cline_cli_args=` — default Cline CLI arguments. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#default_cline_cli_args-class_method)
 - `debug` / `debug=` — debug mode. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#debug-class_method)
+- `config_paths` — locate the optional `.x_aeon_agents.rb` config file(s) (home dir, then project dir). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config)
 - `agent_options` — the available `AgentOptions` instance. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#agent_options-class_method)
 
 ### `XAeonAgents::AgentOptions`
@@ -314,7 +331,7 @@ The documented public methods (browseable on RubyDoc.info):
 
 ### Entry point 🚪
 
-The `xaa` executable ([`bin/xaa`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa)) boots Zeitwerk auto-loading and calls `XAeonAgents::Cli.start(ARGV)`. The CLI ([`lib/x_aeon_agents/cli.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/cli.rb)) is a [Thor](https://github.com/rails/thor) application: each sub-command maps **1:1** to an agent and forwards global options (`--session-id`, `--debug`).
+The `xaa` executable ([`bin/xaa`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa)) boots Zeitwerk auto-loading and calls `XAeonAgents::Cli.start(ARGV)`. The CLI ([`lib/x_aeon_agents/cli.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/cli.rb)) is a [Thor](https://github.com/rails/thor) application: each sub-command maps **1:1** to an agent and forwards global options (`--session-id`, `--debug`). On startup, it also reads the optional `.x_aeon_agents.rb` configuration file (home directory, then project directory) so project-level settings can override global ones, and explicit command-line flags override both.
 
 ### Agents as composable workflows 🧩
 
