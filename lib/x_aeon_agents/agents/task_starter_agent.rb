@@ -64,8 +64,8 @@ module XAeonAgents
         # set_upstream, so we fall back to a raw git command that both pushes and sets the
         # upstream tracking in a single atomic operation.)
         Helpers.run_cmd("git push --set-upstream #{Helpers.github_remote.name} #{branch_name}")
-        # TODO: Make this part of the config
-        Helpers.run_cmd("VSCodium.exe \"#{dir}\"")
+        # Execute the configured callback notifying that a new worktree has been opened
+        open_worktree(dir)
         { worktree_dir: dir }
       end
 
@@ -82,6 +82,18 @@ module XAeonAgents
 
         puts "Setting up project dependencies in fresh worktree #{dir}..."
         Dir.chdir(dir) { setup_proc.call }
+      end
+
+      # Execute the callback notifying a worktree has been opened, as defined by the optional
+      # on_open_worktree method of the config DSL. Do nothing if the config does not define any
+      # callback.
+      #
+      # @param dir [String] The worktree directory that has been opened
+      def open_worktree(dir)
+        open_proc = Config.open_worktree_proc
+        return if open_proc.nil?
+
+        open_proc.call(dir)
       end
     end
   end

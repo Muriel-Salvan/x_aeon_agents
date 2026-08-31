@@ -72,6 +72,9 @@ module XAeonAgents
       # @return [Proc, nil] The Proc defining the project setup steps to execute in a fresh worktree, or nil if none
       attr_reader :setup_project_proc
 
+      # @return [Proc, nil] The Proc to execute when a worktree has been opened by the start-task command, or nil if none
+      attr_reader :open_worktree_proc
+
       # @return [Boolean] The debug mode
       def debug=(value)
         @debug = value
@@ -144,6 +147,16 @@ module XAeonAgents
       # @param steps_proc [Proc] The code to execute to install the project's dependencies
       def register_setup_project_proc(steps_proc)
         @setup_project_proc = steps_proc
+      end
+
+      # Register the Proc to execute when a worktree has been opened by the start-task command,
+      # called by the config DSL.
+      # The Proc will be evaluated every time a worktree is opened (freshly created or already
+      # existing), and is given the worktree's directory as parameter.
+      #
+      # @param callback_proc [Proc] The code to execute when a worktree has been opened
+      def register_open_worktree_proc(callback_proc)
+        @open_worktree_proc = callback_proc
       end
 
       # Setup composable_agents in a lazy and memoized way
