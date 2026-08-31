@@ -55,6 +55,8 @@ module XAeonAgents
         else
           # Call git worktree add on existing branches only
           Helpers.git.lib.worktree_add(dir, branch_name)
+          # Install the project's dependencies in the fresh worktree, as configured
+          setup_fresh_worktree(dir)
         end
         # Push to remote if branch doesn't exist there yet
         # TODO: Use ruby-git when the --set-upstream option will be supported by its push method
@@ -64,9 +66,22 @@ module XAeonAgents
         Helpers.run_cmd("git push --set-upstream #{Helpers.github_remote.name} #{branch_name}")
         # TODO: Make this part of the config
         Helpers.run_cmd("VSCodium.exe \"#{dir}\"")
-        # TODO: Make this part of the config
-        Dir.chdir(dir) { Helpers.run_cmd('bundle install') }
         { worktree_dir: dir }
+      end
+
+      private
+
+      # Execute the steps installing the project's dependencies in a fresh worktree, as
+      # defined by the optional setup_project method of the config DSL. Do nothing if the
+      # config does not define any setup step.
+      #
+      # @param dir [String] The fresh worktree directory in which to execute the setup steps
+      def setup_fresh_worktree(dir)
+        setup_proc = Config.setup_project_proc
+        return if setup_proc.nil?
+
+        puts "Setting up project dependencies in fresh worktree #{dir}..."
+        Dir.chdir(dir) { setup_proc.call }
       end
     end
   end

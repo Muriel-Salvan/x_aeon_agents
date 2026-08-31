@@ -69,6 +69,9 @@ module XAeonAgents
         @default_cline_cli_args ||= { thinking: 'xhigh' }
       end
 
+      # @return [Proc, nil] The Proc defining the project setup steps to execute in a fresh worktree, or nil if none
+      attr_reader :setup_project_proc
+
       # @return [Boolean] The debug mode
       def debug=(value)
         @debug = value
@@ -131,6 +134,16 @@ module XAeonAgents
       def register_secret_proc(secret_name, retrieval_proc)
         @secret_procs ||= {}
         @secret_procs[secret_name] = retrieval_proc
+      end
+
+      # Register the Proc defining the steps to execute in a fresh worktree to install the
+      # project's dependencies, called by the config DSL.
+      # The Proc will be evaluated only when a fresh worktree is created, with the current
+      # directory set to the worktree.
+      #
+      # @param steps_proc [Proc] The code to execute to install the project's dependencies
+      def register_setup_project_proc(steps_proc)
+        @setup_project_proc = steps_proc
       end
 
       # Setup composable_agents in a lazy and memoized way

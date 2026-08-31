@@ -15,6 +15,19 @@ module XAeonAgents
 
     expose :debug
 
+    # Define the steps to execute in a fresh worktree to install the project's dependencies.
+    # The given block is stored and evaluated only when a fresh worktree is created by the
+    # start-task command, with the current directory set to the worktree. If this method is
+    # not used in the config, no setup step is executed.
+    #
+    # Parameters::
+    # * *steps_proc* (Proc): Code executing the setup steps (can use XAeonAgents::Helpers.run_cmd to run commands)
+    def setup_project(&steps_proc)
+      Config.register_setup_project_proc(steps_proc)
+    end
+
+    expose :setup_project
+
     # Automatically expose a method per known secret name, allowing the config file
     # to define the code to retrieve this secret. The given block is stored as a Proc
     # and evaluated lazily only when the secret is needed.
