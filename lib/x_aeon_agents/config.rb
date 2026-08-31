@@ -8,17 +8,24 @@ module XAeonAgents
     # Name of the optional per-user / per-project configuration file
     CONFIG_FILE_NAME = '.x_aeon_agents.rb'
 
+    # Possible secret names that can be configured and exposed in the config DSL
+    KNOWN_SECRETS = %i[
+      cline_api_key
+      openrouter_api_key
+      github_token
+    ]
+
     class << self
       include Logger
 
       # @!group Public API
 
-      # Automatically generate accessors for secrets taken from the ENV or the Launcher
-      %i[
-        cline_api_key
-        openrouter_api_key
-        github_token
-      ].each do |secret_name|
+      # Automatically generate accessors for secrets taken from the ENV or the config DSL.
+      # The precedence order is:
+      # 1. Explicitly set with the corresponding accessor
+      # 2. Taken from the ENV variable named after the secret (uppercased)
+      # 3. Retrieved lazily by the Proc registered from the config DSL
+      KNOWN_SECRETS.each do |secret_name|
         # Set the secret from a string
         #
         # @param secret [String] The secret value
@@ -33,9 +40,14 @@ module XAeonAgents
         # @return [String, nil] The secret value, or nil if none
         define_method(secret_name) do
           @secrets ||= {}
-          @secrets[secret_name] ||= begin
-            env_secret = ENV.fetch(secret_name.to_s.upcase, nil)
-            env_secret ? SecretString.new(env_secret.dup) : Helpers.keys_from_launcher[secret_name]
+          unless @secrets.key?(secret_name)
+            @secrets[secret_name] =
+              if (env_secret = ENV.fetch(secret_name.to_s.upcase, nil))
+                SecretString.new(env_secret.dup)
+              elsif @secret_procs&.key?(secret_name)
+                proc_secret = @secret_procs[secret_name].call
+                proc_secret.nil? ? nil : SecretString.new(proc_secret.dup)
+              end
           end
           @secrets[secret_name]&.to_unprotected
         end
@@ -75,6 +87,7 @@ module XAeonAgents
       # @return [Array<String>] The list of potential config paths
       def config_paths
         [
+          # TODO: Add a path from the X_AEON_AGENTS_CONFIG env var too
           File.join(Dir.home, CONFIG_FILE_NAME),
           File.join(Dir.pwd, CONFIG_FILE_NAME)
         ]
@@ -104,6 +117,16 @@ module XAeonAgents
         config_paths.each do |config_file|
           ConfigDsl.new.evaluate_file(config_file) if File.exist?(config_file)
         end
+      end
+
+      # Register the Proc used to lazily retrieve a secret, called by the config DSL.
+      # The Proc will be evaluated only when the secret is needed, and its result memoized.
+      #
+      # @param secret_name [Symbol] The secret name
+      # @param retrieval_proc [Proc] The code to execute to retrieve the secret
+      def register_secret_proc(secret_name, retrieval_proc)
+        @secret_procs ||= {}
+        @secret_procs[secret_name] = retrieval_proc
       end
 
       # Setup composable_agents in a lazy and memoized way

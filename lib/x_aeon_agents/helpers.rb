@@ -3,7 +3,6 @@ require 'git'
 require 'launchy'
 require 'octokit'
 require 'open3'
-require 'secret_string'
 
 module XAeonAgents
   # Various helpers and utilities that are used internally
@@ -14,27 +13,6 @@ module XAeonAgents
 
     class << self
       include Logger
-
-      # TODO: Make this whole concept part of the config
-      # Retrieve API keys needed for the agents from the X-Aeon launcher
-      #
-      # @return [Hash{Symbol => SecretString}] The keys retrieved
-      def keys_from_launcher
-        @keys_from_launcher ||= begin
-          keys = {
-            cline_api_key: 'Muriel Salvan/AI/Cline/API Keys/VSCode and CLI',
-            github_token: 'Muriel Salvan/Github/Tokens/Pushing my changes',
-            openrouter_api_key: 'Muriel Salvan/AI/OpenRouter/API Keys/VSCodium'
-          }
-          launcher_keys = {}
-          Bundler.with_unbundled_env { `launcher safe -- #{keys.values.map { |launcher_key| "\"#{launcher_key}\"" }.join(' ')}` }.each_line do |line|
-            next unless line =~ /^\[PASSWORD\] \[([^\]]+)\]: (.+)$/
-
-            launcher_keys[Regexp.last_match(1)] = SecretString.new(Regexp.last_match(2))
-          end
-          keys.to_h { |key, launcher_key| [key, launcher_keys[launcher_key]] }
-        end
-      end
 
       # Execute a command while capturing its output in real time
       #
