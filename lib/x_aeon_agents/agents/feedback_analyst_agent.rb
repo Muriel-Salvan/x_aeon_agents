@@ -49,11 +49,12 @@ module XAeonAgents
             - Focus only on agent-directed comments (/agent) for requirement extraction.
             - Output clear, actionable requirements or "No requirements" if none exist.
           EO_CONSTRAINTS
-          skills: %w[
-            applying-ruby-conventions
-            applying-test-conventions
-            enforcing-project-rules
-          ],
+          # TODO: Move those in configuration
+          # skills: %w[
+          #   applying-ruby-conventions
+          #   applying-test-conventions
+          #   enforcing-project-rules
+          # ],
           **agent_params
         )
       end

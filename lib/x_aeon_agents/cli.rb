@@ -5,7 +5,9 @@ module XAeonAgents
   class Cli < Thor
     # Global options
     class_option :session_id, type: :string, desc: 'Session ID for persistence'
-    class_option :debug, type: :boolean, default: false, desc: 'Enable debug mode'
+    # Defaults to nil so the absence of the flag can be told apart from an
+    # explicit --no-debug (which lets the config file or ENV take precedence).
+    class_option :debug, type: :boolean, default: nil, desc: 'Enable debug mode'
 
     # --------------------------------------------------------------------------- #
     # review-comments: Address Pull Request review comments
@@ -371,13 +373,14 @@ module XAeonAgents
     end
 
     no_commands do
-      # Initializes the CLI and applies global configuration from options.
+      # Initializes the CLI and applies global configuration from the optional
+      # .x_aeon_agents.rb config file, then from explicit command-line options.
       #
       # @param args [Array<Object>] Arguments forwarded to Thor's constructor
       def initialize(*)
         super
-        # Handle all the global setup from options
-        Config.debug = options[:debug]
+        Config.load
+        Config.debug = options[:debug] unless options[:debug].nil?
       end
     end
   end
