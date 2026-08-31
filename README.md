@@ -117,13 +117,21 @@ You can fine-tune behaviour with an optional `.x_aeon_agents.rb` configuration f
 - `~/.x_aeon_agents.rb` — in your **home directory**, for *global / user-level* settings;
 - `.x_aeon_agents.rb` — in the **current project directory**, for *project-level* settings.
 
-When both exist, the project file is evaluated last and therefore wins over the global one. The only directive currently exposed is `debug`, which enables debug logging:
+When both exist, the project file is evaluated last and therefore wins over the global one. Exposed directives:
+
+- `debug true` / `debug false` — enable or disable debug logging. An explicit `--debug` / `--no-debug` command-line flag always overrides it, and when neither the file nor a flag sets a value, the `X_AEON_AGENTS_DEBUG` environment variable is still honoured.
+- `cline_api_key`, `openrouter_api_key` and `github_token` — declare, using a block, custom Ruby code to retrieve the corresponding secret when it is needed, instead of relying on the `CLINE_API_KEY` / `OPENROUTER_API_KEY` / `GITHUB_TOKEN` environment variables:
 
 ```ruby
-debug true
+cline_api_key do
+  # Any Ruby code that returns the key
+  File.read('/path/to/my/key').strip
+end
 ```
 
-For example, to always run in debug mode inside a given project, create a `.x_aeon_agents.rb` file in that project directory containing `debug true`. An explicit `--debug` / `--no-debug` command-line flag always overrides the file, and when neither the file nor a flag sets a value, the `X_AEON_AGENTS_DEBUG` environment variable is still honoured.
+The block is evaluated lazily, only the first time the secret is actually needed, and its result is then cached for the whole session.
+
+For example, to always run in debug mode inside a given project, create a `.x_aeon_agents.rb` file in that project directory containing `debug true`.
 
 ### Use the CLI
 
@@ -189,6 +197,8 @@ XAeonAgents::Agents::CommitterAgent.new.run
 - **`GITHUB_TOKEN`** environment variable — a GitHub personal access token used by Octokit for API access
 - **`OPENROUTER_API_KEY`** environment variable — an OpenRouter API key that powers the AI agents through RubyLLM
 - **`CLINE_API_KEY`** environment variable (optional) — only required when driving the Cline agent integration
+
+Each of these secrets can alternatively be retrieved by custom code declared in the [optional configuration file](#optional-configuration-file).
 
 ## Features
 

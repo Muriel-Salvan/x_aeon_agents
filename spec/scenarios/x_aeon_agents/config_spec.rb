@@ -3,6 +3,7 @@ describe XAeonAgents::Config do
   # spec_helper around hook pre-populates some of it.
   before do
     described_class.instance_variable_set(:@secrets, nil)
+    described_class.instance_variable_set(:@secret_procs, nil)
     described_class.instance_variable_set(:@data_dir, nil)
     described_class.instance_variable_set(:@default_cline_cli_args, nil)
     described_class.instance_variable_set(:@debug, nil)
@@ -38,6 +39,40 @@ describe XAeonAgents::Config do
   # Whether the project config file should be created by the shared examples
   let(:create_project_config) { false }
 
+  # Shared examples validating that a secret is retrieved through its dedicated config
+  # DSL method: the retrieval code defined in the config file is evaluated lazily when
+  # the secret is read, and its result is memoized.
+  shared_examples 'a secret retrievable through the config DSL' do |secret_name|
+    it "retrieves #{secret_name} using the code defined in the config DSL" do
+      with_config_files(
+        project_content: <<~CONFIG
+          #{secret_name} do
+            'dsl-secret'
+          end
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.send(secret_name)).to eq 'dsl-secret'
+      end
+    end
+
+    it "evaluates the #{secret_name} retrieval code only when needed and memoizes its result" do
+      with_config_files(
+        project_content: <<~CONFIG
+          #{secret_name} do
+            File.write('retrieval_counter.txt', (File.exist?('retrieval_counter.txt') ? File.read('retrieval_counter.txt').to_i : 0) + 1)
+            'lazy-secret'
+          end
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.send(secret_name)).to eq 'lazy-secret'
+        expect(described_class.send(secret_name)).to eq 'lazy-secret'
+        expect(File.read('retrieval_counter.txt')).to eq '1'
+      end
+    end
+  end
+
   shared_examples 'loading a config DSL file' do
     it 'loads the config file when no CLI flag is given' do
       with_config_files(
@@ -68,6 +103,14 @@ describe XAeonAgents::Config do
       ) do
         run_cli 'prompt', 'test', '--no-debug'
         expect(described_class.debug).to be false
+      end
+    end
+  end
+
+  describe 'with a config DSL declaring secret retrieval' do
+    XAeonAgents::Config::KNOWN_SECRETS.each do |secret_name|
+      describe "##{secret_name}" do
+        it_behaves_like 'a secret retrievable through the config DSL', secret_name
       end
     end
   end
@@ -135,14 +178,7 @@ describe XAeonAgents::Config do
             ENV.delete(env_name)
           end
 
-          it 'falls back to the launcher keys when neither configured nor in ENV' do
-            allow(XAeonAgents::Helpers).to receive(:keys_from_launcher)
-              .and_return(secret_name => SecretString.new('launcher-secret'))
-            expect(described_class.send(secret_name)).to eq 'launcher-secret'
-          end
-
           it 'returns nil when no secret is available' do
-            allow(XAeonAgents::Helpers).to receive(:keys_from_launcher).and_return({})
             expect(described_class.send(secret_name)).to be_nil
           end
         end
