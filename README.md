@@ -140,6 +140,15 @@ end
 ```
 
 The block is evaluated right after the worktree has been created, with the current directory set to the worktree. If it is not defined, no setup step is executed.
+- `on_open_worktree` — declare, using a block, a callback to execute every time the `start-task` command opens a worktree (freshly created or already existing), after the branch has been pushed to the remote. The block is given the worktree's directory as parameter:
+
+```ruby
+on_open_worktree do |dir|
+  system "VSCodium.exe \"#{dir}\""
+end
+```
+
+If it is not defined, nothing is executed when a worktree is opened.
 
 For example, to always run in debug mode inside a given project, create a `.x_aeon_agents.rb` file in that project directory containing `debug true`.
 

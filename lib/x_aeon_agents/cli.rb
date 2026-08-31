@@ -339,12 +339,17 @@ module XAeonAgents
     desc 'start-task', 'Open a new git worktree for a feature branch'
     long_desc <<~LONGDESC
       Interactive command that prompts for a branch name, creates the branch
-      (if it does not exist), sets up a git worktree in .worktrees/, pushes
-      the branch upstream, and opens it in VSCodium.
+      (if it does not exist), sets up a git worktree in .worktrees/ and pushes
+      the branch upstream.
 
       When the config file defines project setup steps with the setup_project
       method, they are executed in the worktree right after its creation
       (fresh worktrees only).
+
+      When the config file defines a callback with the on_open_worktree method,
+      it is executed every time a worktree is opened (freshly created or already
+      existing), after the branch has been pushed. It is given the worktree's
+      directory as parameter. If it is not defined, nothing is executed.
 
       The --branch option gives the branch name directly, so the command is
       not interactive anymore (no prompt to STDIN).

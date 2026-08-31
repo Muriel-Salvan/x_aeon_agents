@@ -1,6 +1,6 @@
 describe XAeonAgents::Cli, '#start_task' do
   describe 'using a new branch' do
-    it 'creates a worktree, a new branch, pushes it and opens VSCodium' do
+    it 'creates a worktree, a new branch and pushes it' do
       branch_name = 'feature/new-task'
       worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
       with_git_workspace(
@@ -13,15 +13,6 @@ describe XAeonAgents::Cli, '#start_task' do
 
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
-
-        vscodium_command = nil
-        stub_command(
-          "VSCodium.exe \"#{worktree_dir}\"",
-          stdout: proc do |cmd|
-            vscodium_command = cmd
-            ''
-          end
-        )
 
         run_cli 'start-task'
         expect(exit_status).to eq 0
@@ -39,9 +30,6 @@ describe XAeonAgents::Cli, '#start_task' do
           ['--set-upstream', 'github', branch_name]
         ]
 
-        # VSCodium has been run within this worktree
-        expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
-
         # The main repo (not worktree) is still on the main branch with the same SHA
         expect(Git.open(Dir.pwd).current_branch).to eq main_branch
         expect(Git.open(Dir.pwd).gcommit('HEAD').sha).to eq main_sha
@@ -50,7 +38,7 @@ describe XAeonAgents::Cli, '#start_task' do
   end
 
   describe 'using an existing branch' do
-    it 'keeps the existing branch, pushes it and opens VSCodium' do
+    it 'keeps the existing branch and pushes it' do
       branch_name = 'feature/existing-task'
       worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
       with_git_workspace(
@@ -68,15 +56,6 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
-        vscodium_command = nil
-        stub_command(
-          "VSCodium.exe \"#{worktree_dir}\"",
-          stdout: proc do |cmd|
-            vscodium_command = cmd
-            ''
-          end
-        )
-
         run_cli 'start-task'
         expect(exit_status).to eq 0
 
@@ -92,9 +71,6 @@ describe XAeonAgents::Cli, '#start_task' do
         expect(git_pushes).to eq [
           ['--set-upstream', 'github', branch_name]
         ]
-
-        # VSCodium has been run within this worktree
-        expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
 
         # The main repo (not worktree) is still on the main branch with the same SHA
         expect(Git.open(Dir.pwd).current_branch).to eq main_branch
@@ -118,15 +94,6 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
-        vscodium_command = nil
-        stub_command(
-          "VSCodium.exe \"#{worktree_dir}\"",
-          stdout: proc do |cmd|
-            vscodium_command = cmd
-            ''
-          end
-        )
-
         # First call
         run_cli 'start-task'
         expect(exit_status).to eq 0
@@ -146,9 +113,6 @@ describe XAeonAgents::Cli, '#start_task' do
 
         # The branch is kept with the same SHA (no new commit, no duplicate creation)
         expect(Git.open(Dir.pwd).gcommit(branch_name).sha).to eq branch_sha
-
-        # VSCodium has been run again within this worktree
-        expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
 
         # The main repo (not worktree) is still on the main branch with the same SHA
         expect(Git.open(Dir.pwd).current_branch).to eq main_branch
@@ -174,15 +138,6 @@ describe XAeonAgents::Cli, '#start_task' do
 
         mock_git_push
 
-        vscodium_command = nil
-        stub_command(
-          "VSCodium.exe \"#{worktree_dir}\"",
-          stdout: proc do |cmd|
-            vscodium_command = cmd
-            ''
-          end
-        )
-
         run_cli 'start-task', '--branch', branch_name
         expect(exit_status).to eq 0
 
@@ -198,9 +153,6 @@ describe XAeonAgents::Cli, '#start_task' do
         expect(git_pushes).to eq [
           ['--set-upstream', 'github', branch_name]
         ]
-
-        # VSCodium has been run within this worktree
-        expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
 
         # The main repo (not worktree) is still on the main branch with the same SHA
         expect(Git.open(Dir.pwd).current_branch).to eq main_branch
@@ -224,15 +176,6 @@ describe XAeonAgents::Cli, '#start_task' do
 
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
-
-        vscodium_command = nil
-        stub_command(
-          "VSCodium.exe \"#{worktree_dir}\"",
-          stdout: proc do |cmd|
-            vscodium_command = cmd
-            ''
-          end
-        )
 
         # First call with a session-id
         run_cli 'start-task', '--session-id', session_id
@@ -268,9 +211,6 @@ describe XAeonAgents::Cli, '#start_task' do
         # The branch has been pushed (twice: once initially, once after the new commit)
         expect(git_pushes.size).to eq 2
         expect(git_pushes.last).to eq ['--set-upstream', 'github', branch_name]
-
-        # VSCodium has been run again within this worktree
-        expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
 
         # The main repo (not worktree) is still on the main branch with the same SHA
         expect(Git.open(Dir.pwd).current_branch).to eq main_branch
@@ -356,14 +296,6 @@ describe XAeonAgents::Cli, '#start_task' do
             ''
           end
         )
-        vscodium_command = nil
-        stub_command(
-          "VSCodium.exe \"#{worktree_dir}\"",
-          stdout: proc do |cmd|
-            vscodium_command = cmd
-            ''
-          end
-        )
 
         run_cli 'start-task', '--branch', branch_name
         expect(exit_status).to eq 0
@@ -377,7 +309,6 @@ describe XAeonAgents::Cli, '#start_task' do
 
         # The rest of the process has been performed as usual
         expect(git_pushes).to eq [['--set-upstream', 'github', branch_name]]
-        expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
       end
     end
   end
@@ -399,7 +330,6 @@ describe XAeonAgents::Cli, '#start_task' do
             ''
           end
         )
-        stub_command("VSCodium.exe \"#{worktree_dir}\"")
 
         run_cli 'start-task', '--branch', branch_name
         expect(exit_status).to eq 0
@@ -417,7 +347,6 @@ describe XAeonAgents::Cli, '#start_task' do
   describe 'calling start_task twice on the same branch with setup_project steps' do
     it 'executes the setup steps only for the freshly created worktree' do
       branch_name = 'feature/setup-steps-idempotent'
-      worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
       with_git_workspace(
         files: { 'test.txt' => "original\n" },
         remotes: { 'github' => 'git@github.com:owner/repo.git' }
@@ -437,7 +366,6 @@ describe XAeonAgents::Cli, '#start_task' do
             ''
           end
         )
-        stub_command("VSCodium.exe \"#{worktree_dir}\"")
 
         # First call: the worktree is freshly created
         run_cli 'start-task', '--branch', branch_name
@@ -450,6 +378,120 @@ describe XAeonAgents::Cli, '#start_task' do
 
         # The setup steps have been executed only once, for the fresh worktree only
         expect(setup_commands.size).to eq 1
+      end
+    end
+  end
+
+  describe 'when the config DSL defines an on_open_worktree callback' do
+    it 'executes the callback with the worktree directory, after the branch has been pushed' do
+      branch_name = 'feature/with-open-callback'
+      worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
+      with_git_workspace(
+        files: { 'test.txt' => "original\n" },
+        remotes: { 'github' => 'git@github.com:owner/repo.git' }
+      ) do
+        File.write('.x_aeon_agents.rb', <<~CONFIG)
+          on_open_worktree do |dir|
+            XAeonAgents::Helpers.run_cmd "echo opened \#{dir}"
+          end
+        CONFIG
+
+        mock_git_push
+        opened_dirs = []
+        stub_command(
+          /echo/,
+          stdout: proc do |cmd|
+            opened_dirs << [cmd, git_pushes.size]
+            ''
+          end
+        )
+
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+
+        # The callback has been executed exactly once, with the worktree directory as parameter
+        expect(opened_dirs).to eq [["echo opened #{worktree_dir}", 1]]
+
+        # The callback has been executed after the branch has been pushed
+        expect(git_pushes).to eq [['--set-upstream', 'github', branch_name]]
+
+        # The worktree has been created as usual
+        expect(Dir).to exist(worktree_dir)
+        expect(Git.open(worktree_dir).current_branch).to eq branch_name
+      end
+    end
+  end
+
+  describe 'when the config DSL does not define an on_open_worktree callback' do
+    it 'does not execute anything when the worktree is opened' do
+      branch_name = 'feature/without-open-callback'
+      worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
+      with_git_workspace(
+        files: { 'test.txt' => "original\n" },
+        remotes: { 'github' => 'git@github.com:owner/repo.git' }
+      ) do
+        mock_git_push
+        executed_commands = []
+        stub_command(
+          /VSCodium/,
+          stdout: proc do |cmd|
+            executed_commands << cmd
+            ''
+          end
+        )
+
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+
+        # No command has been executed to open the worktree
+        expect(executed_commands).to be_empty
+
+        # The worktree has been created and pushed as usual
+        expect(Dir).to exist(worktree_dir)
+        expect(Git.open(worktree_dir).current_branch).to eq branch_name
+        expect(git_pushes).to eq [['--set-upstream', 'github', branch_name]]
+      end
+    end
+  end
+
+  describe 'calling start_task twice on the same branch with an on_open_worktree callback' do
+    it 'executes the callback every time the worktree is opened' do
+      branch_name = 'feature/open-callback-idempotent'
+      worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
+      with_git_workspace(
+        files: { 'test.txt' => "original\n" },
+        remotes: { 'github' => 'git@github.com:owner/repo.git' }
+      ) do
+        File.write('.x_aeon_agents.rb', <<~CONFIG)
+          on_open_worktree do |dir|
+            XAeonAgents::Helpers.run_cmd "echo opened \#{dir}"
+          end
+        CONFIG
+
+        mock_git_push
+        opened_dirs = []
+        stub_command(
+          /echo/,
+          stdout: proc do |cmd|
+            opened_dirs << cmd
+            ''
+          end
+        )
+
+        # First call: the worktree is freshly created
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+        expect(opened_dirs.size).to eq 1
+
+        # Second call: the worktree already exists
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+
+        # The callback has been executed again for the existing worktree
+        expect(opened_dirs).to eq [
+          "echo opened #{worktree_dir}",
+          "echo opened #{worktree_dir}"
+        ]
       end
     end
   end
