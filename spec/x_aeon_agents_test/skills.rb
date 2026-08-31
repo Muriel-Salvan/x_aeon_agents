@@ -3,7 +3,7 @@ module XAeonAgentsTest
     class << self
       # @return [String] Local skills' test directory
       def skills_test_dir
-        'skills.test'
+        '.x_aeon_agents_test/skills'
       end
 
       # @return [Integer] The skills' quality  compliance threshold
