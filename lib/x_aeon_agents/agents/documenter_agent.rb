@@ -30,12 +30,13 @@ module XAeonAgents
             - Documentation describes the CURRENT STATE only.
             - Documentation is NOT a changelog.
           EO_CONSTRAINTS
-          skills: %w[
-            applying-ruby-conventions
-            applying-test-conventions
-            updating-doc
-            enforcing-project-rules
-          ],
+          # TODO: Move those in configuration
+          # skills: %w[
+          #   applying-ruby-conventions
+          #   applying-test-conventions
+          #   updating-doc
+          #   enforcing-project-rules
+          # ],
           **agent_params
         )
       end

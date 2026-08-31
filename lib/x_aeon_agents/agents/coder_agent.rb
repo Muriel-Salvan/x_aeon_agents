@@ -69,11 +69,12 @@ module XAeonAgents
             Always provide the final result in your response.
             Always validate your answer with checking the code and running it if possible.
           EO_CONSTRAINTS
-          skills: %w[
-            applying-ruby-conventions
-            applying-test-conventions
-            enforcing-project-rules
-          ],
+          # TODO: Move those in configuration
+          # skills: %w[
+          #   applying-ruby-conventions
+          #   applying-test-conventions
+          #   enforcing-project-rules
+          # ],
           **agent_params
         )
       end
