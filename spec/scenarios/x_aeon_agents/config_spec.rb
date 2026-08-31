@@ -16,20 +16,31 @@ describe XAeonAgents::Config do
     stub_agent_run
   end
 
-  # Writes optional global and project DSL config files in their real locations
-  # and yields within the workspace. The global config lives in a mocked
-  # Dir.home, the project one in the current directory (simulated via with_workspace).
-  # A nil content means the file is not created.
+  # Writes optional global, project and env-var designated DSL config files in
+  # their real locations and yields within the workspace. The global config
+  # lives in a mocked Dir.home, the project one in the current directory
+  # (simulated via with_workspace), and the env-var one in a temporary directory
+  # referenced by the X_AEON_AGENTS_CONFIG environment variable. A nil content
+  # means the file is not created.
   #
   # @param global_content [String, nil] Content of the global config file, or nil to not create it
   # @param project_content [String, nil] Content of the project config file, or nil to not create it
-  def with_config_files(global_content: nil, project_content: nil, &)
+  # @param env_content [String, nil] Content of the config file designated by the X_AEON_AGENTS_CONFIG env var, or nil to not create it
+  def with_config_files(global_content: nil, project_content: nil, env_content: nil, &)
     home_dir = temp_dir('home')
     allow(Dir).to receive(:home).and_return(home_dir)
     File.write(File.join(home_dir, '.x_aeon_agents.rb'), global_content) if global_content
-    with_workspace do
-      File.write('.x_aeon_agents.rb', project_content) if project_content
-      yield
+    env_config_path = File.expand_path('.x_aeon_agents_test/env_config/.x_aeon_agents.rb')
+    FileUtils.mkdir_p(File.dirname(env_config_path))
+    File.write(env_config_path, env_content) if env_content
+    begin
+      with_workspace do
+        File.write('.x_aeon_agents.rb', project_content) if project_content
+        ENV['X_AEON_AGENTS_CONFIG'] = env_config_path if env_content
+        yield
+      end
+    ensure
+      ENV.delete('X_AEON_AGENTS_CONFIG')
     end
   end
 
@@ -282,6 +293,36 @@ describe XAeonAgents::Config do
       with_config_files(global_content: "debug true\n", project_content: "debug false\n") do
         run_cli 'prompt', 'test'
         expect(described_class.debug).to be false
+      end
+    end
+  end
+
+  describe 'with an X_AEON_AGENTS_CONFIG env var designating a DSL config file' do
+    it 'loads the config file designated by the env var' do
+      with_config_files(env_content: "debug true\n") do
+        expect(described_class.config_paths.last).to eq ENV.fetch('X_AEON_AGENTS_CONFIG')
+        run_cli 'prompt', 'test'
+        expect(described_class.debug).to be true
+      end
+    end
+
+    it 'lets the env-var designated config file override the global and project config files' do
+      with_config_files(
+        global_content: "debug true\n",
+        project_content: "debug true\n",
+        env_content: "debug false\n"
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.debug).to be false
+      end
+    end
+
+    it 'still loads the global config file when the env var designates a non-existing path' do
+      with_config_files(global_content: "debug true\n") do
+        with_env_var('X_AEON_AGENTS_CONFIG', File.expand_path('non_existing/.x_aeon_agents.rb')) do
+          run_cli 'prompt', 'test'
+          expect(described_class.debug).to be true
+        end
       end
     end
   end

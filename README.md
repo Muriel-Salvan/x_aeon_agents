@@ -115,9 +115,10 @@ export GITHUB_TOKEN="ghp_..."
 You can fine-tune behaviour with an optional `.x_aeon_agents.rb` configuration file, read at the start of every `xaa` command:
 
 - `~/.x_aeon_agents.rb` — in your **home directory**, for *global / user-level* settings;
-- `.x_aeon_agents.rb` — in the **current project directory**, for *project-level* settings.
+- `.x_aeon_agents.rb` — in the **current project directory**, for *project-level* settings;
+- any path stored in the **`X_AEON_AGENTS_CONFIG`** environment variable, for *explicitly designated* settings.
 
-When both exist, the project file is evaluated last and therefore wins over the global one. Exposed directives:
+When several exist, they are evaluated in that order and the last one wins: the project file overrides the global one, and the `X_AEON_AGENTS_CONFIG` file overrides them both. Exposed directives:
 
 - `debug true` / `debug false` — enable or disable debug logging. An explicit `--debug` / `--no-debug` command-line flag always overrides it, and when neither the file nor a flag sets a value, the `X_AEON_AGENTS_DEBUG` environment variable is still honoured.
 - `cline_api_key`, `openrouter_api_key` and `github_token` — declare, using a block, custom Ruby code to retrieve the corresponding secret when it is needed, instead of relying on the `CLINE_API_KEY` / `OPENROUTER_API_KEY` / `GITHUB_TOKEN` environment variables:

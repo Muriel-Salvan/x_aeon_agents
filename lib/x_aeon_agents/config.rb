@@ -81,16 +81,20 @@ module XAeonAgents
       end
 
       # Candidate absolute paths of the configuration file, ordered by increasing
-      # priority (lowest first): user home directory, then current directory.
-      # This lets project settings override global ones.
+      # priority (lowest first): user home directory, current directory, then the
+      # path given by the X_AEON_AGENTS_CONFIG environment variable if set.
+      # This lets project settings override global ones, and the env var designated
+      # file override them all.
       #
       # @return [Array<String>] The list of potential config paths
       def config_paths
-        [
-          # TODO: Add a path from the X_AEON_AGENTS_CONFIG env var too
+        paths = [
           File.join(Dir.home, CONFIG_FILE_NAME),
           File.join(Dir.pwd, CONFIG_FILE_NAME)
         ]
+        env_config_path = ENV.fetch('X_AEON_AGENTS_CONFIG', nil)
+        paths << env_config_path if env_config_path && !env_config_path.empty?
+        paths
       end
 
       # @return [AgentOptions] The available agent options.
