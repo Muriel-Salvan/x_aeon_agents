@@ -342,6 +342,10 @@ module XAeonAgents
       (if it does not exist), sets up a git worktree in .worktrees/, pushes
       the branch upstream, and opens it in VSCodium.
 
+      When the config file defines project setup steps with the setup_project
+      method, they are executed in the worktree right after its creation
+      (fresh worktrees only).
+
       The --branch option gives the branch name directly, so the command is
       not interactive anymore (no prompt to STDIN).
 

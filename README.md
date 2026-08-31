@@ -131,6 +131,15 @@ end
 ```
 
 The block is evaluated lazily, only the first time the secret is actually needed, and its result is then cached for the whole session.
+- `setup_project` — declare, using a block, the steps to execute in a freshly created git worktree to install the project's dependencies (used by the `start-task` command):
+
+```ruby
+setup_project do
+  system 'bundle install'
+end
+```
+
+The block is evaluated right after the worktree has been created, with the current directory set to the worktree. If it is not defined, no setup step is executed.
 
 For example, to always run in debug mode inside a given project, create a `.x_aeon_agents.rb` file in that project directory containing `debug true`.
 

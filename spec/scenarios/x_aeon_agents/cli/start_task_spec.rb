@@ -14,7 +14,6 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
-        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -69,7 +68,6 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
-        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -120,7 +118,6 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
-        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -177,7 +174,6 @@ describe XAeonAgents::Cli, '#start_task' do
 
         mock_git_push
 
-        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -229,7 +225,6 @@ describe XAeonAgents::Cli, '#start_task' do
         mock_git_push
         allow($stdin).to receive(:gets).and_return(branch_name)
 
-        stub_command('bundle install')
         vscodium_command = nil
         stub_command(
           "VSCodium.exe \"#{worktree_dir}\"",
@@ -333,6 +328,128 @@ describe XAeonAgents::Cli, '#start_task' do
           # The existing worktree is left untouched on the other branch
           expect(Git.open(worktree_dir).current_branch).to eq other_branch
         end
+      end
+    end
+  end
+
+  describe 'when the config DSL defines setup_project steps' do
+    it 'executes the setup steps in the freshly created worktree' do
+      branch_name = 'feature/with-setup-steps'
+      worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
+      with_git_workspace(
+        files: { 'test.txt' => "original\n" },
+        remotes: { 'github' => 'git@github.com:owner/repo.git' }
+      ) do
+        # Define the setup steps through the config DSL, in the project's config file
+        File.write('.x_aeon_agents.rb', <<~CONFIG)
+          setup_project do
+            XAeonAgents::Helpers.run_cmd 'echo setup-step'
+          end
+        CONFIG
+
+        mock_git_push
+        setup_commands = []
+        stub_command(
+          'echo setup-step',
+          stdout: proc do |cmd|
+            setup_commands << [cmd, Dir.pwd]
+            ''
+          end
+        )
+        vscodium_command = nil
+        stub_command(
+          "VSCodium.exe \"#{worktree_dir}\"",
+          stdout: proc do |cmd|
+            vscodium_command = cmd
+            ''
+          end
+        )
+
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+
+        # The worktree has been created
+        expect(Dir).to exist(worktree_dir)
+        expect(Git.open(worktree_dir).current_branch).to eq branch_name
+
+        # The setup step has been executed exactly once, from within the fresh worktree
+        expect(setup_commands).to eq [['echo setup-step', File.expand_path(worktree_dir)]]
+
+        # The rest of the process has been performed as usual
+        expect(git_pushes).to eq [['--set-upstream', 'github', branch_name]]
+        expect(vscodium_command).to eq "VSCodium.exe \"#{worktree_dir}\""
+      end
+    end
+  end
+
+  describe 'when the config DSL does not define setup_project steps' do
+    it 'does not execute any setup step in the freshly created worktree' do
+      branch_name = 'feature/without-setup-steps'
+      worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
+      with_git_workspace(
+        files: { 'test.txt' => "original\n" },
+        remotes: { 'github' => 'git@github.com:owner/repo.git' }
+      ) do
+        mock_git_push
+        setup_commands = []
+        stub_command(
+          /echo/,
+          stdout: proc do |cmd|
+            setup_commands << cmd
+            ''
+          end
+        )
+        stub_command("VSCodium.exe \"#{worktree_dir}\"")
+
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+
+        # No setup step has been executed
+        expect(setup_commands).to be_empty
+
+        # The worktree has been created as usual
+        expect(Dir).to exist(worktree_dir)
+        expect(Git.open(worktree_dir).current_branch).to eq branch_name
+      end
+    end
+  end
+
+  describe 'calling start_task twice on the same branch with setup_project steps' do
+    it 'executes the setup steps only for the freshly created worktree' do
+      branch_name = 'feature/setup-steps-idempotent'
+      worktree_dir = ".worktrees/#{branch_name.tr('/', '_')}"
+      with_git_workspace(
+        files: { 'test.txt' => "original\n" },
+        remotes: { 'github' => 'git@github.com:owner/repo.git' }
+      ) do
+        File.write('.x_aeon_agents.rb', <<~CONFIG)
+          setup_project do
+            XAeonAgents::Helpers.run_cmd 'echo setup-step'
+          end
+        CONFIG
+
+        mock_git_push
+        setup_commands = []
+        stub_command(
+          'echo setup-step',
+          stdout: proc do |cmd|
+            setup_commands << cmd
+            ''
+          end
+        )
+        stub_command("VSCodium.exe \"#{worktree_dir}\"")
+
+        # First call: the worktree is freshly created
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+        expect(setup_commands.size).to eq 1
+
+        # Second call: the worktree already exists
+        run_cli 'start-task', '--branch', branch_name
+        expect(exit_status).to eq 0
+
+        # The setup steps have been executed only once, for the fresh worktree only
+        expect(setup_commands.size).to eq 1
       end
     end
   end
