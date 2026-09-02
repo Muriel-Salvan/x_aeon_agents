@@ -13,6 +13,9 @@
 #   framework default.
 # @param expected_default_options_kept [Hash{Symbol => Object}] The framework defaults that are not overwritten by
 #   the config DSL, expected to still be applied.
+# @param configurable_kwarg [Symbol, nil] The kwarg used to validate the config DSL behaviors
+#   needing a single kwarg (several configure_agent calls, configs of other agent classes). If nil
+#   (default), the first one of configured_kwargs is used.
 # @param expected_singleton_modules [Array<Module>] The modules expected to be included in the
 #   agent's singleton class after instantiation (eg. the prompt rendering strategies applied by
 #   the AgentDefaults mixin or by the agent's framework class).
@@ -21,10 +24,14 @@ shared_examples 'an agent using AgentDefaults' do |
   configured_kwargs:,
   expected_default_options:,
   expected_default_options_kept:,
+  configurable_kwarg: nil,
   expected_singleton_modules: []
 |
   # Name of the tested agent class, as used by the config DSL
   let(:agent_class_name) { agent_class.name.split('::').last }
+
+  # Kwarg used to validate the config DSL behaviors needing a single kwarg
+  let(:tested_configurable_kwarg) { configurable_kwarg || configured_kwargs.keys.first }
 
   describe "testing agent class #{agent_class}" do
     describe 'validating initialization' do
@@ -61,6 +68,37 @@ shared_examples 'an agent using AgentDefaults' do |
         expected_default_options_kept.each do |kwargs_name, expected_value|
           expect(agent.received_kwargs[kwargs_name]).to eq expected_value
         end
+      end
+
+      it 'lets several configure_agent calls read and modify the configured options' do
+        XAeonAgents::ConfigDsl.new.evaluate <<~CONFIG
+          configure_agent(:#{agent_class_name}) do
+            { #{tested_configurable_kwarg}: 'initial' }
+          end
+          configure_agent(:#{agent_class_name}) do |agent_config|
+            agent_config[:#{tested_configurable_kwarg}] = "\#{agent_config[:#{tested_configurable_kwarg}]} modified"
+            agent_config
+          end
+        CONFIG
+        expect(agent_class.new.received_kwargs[tested_configurable_kwarg]).to eq 'initial modified'
+      end
+
+      it 'lets explicitly given kwargs take precedence over the configured ones' do
+        XAeonAgents::ConfigDsl.new.evaluate <<~CONFIG
+          configure_agent(:#{agent_class_name}) do
+            { #{tested_configurable_kwarg}: 'from-config' }
+          end
+        CONFIG
+        expect(agent_class.new(tested_configurable_kwarg => 'explicit').received_kwargs[tested_configurable_kwarg]).to eq 'explicit'
+      end
+
+      it 'ignores configure_agent calls for other agent classes' do
+        XAeonAgents::ConfigDsl.new.evaluate <<~CONFIG
+          configure_agent(:SomeOtherAgent) do
+            { #{tested_configurable_kwarg}: 'should-not-apply' }
+          end
+        CONFIG
+        expect(agent_class.new.received_kwargs[tested_configurable_kwarg]).not_to eq 'should-not-apply'
       end
     end
   end
