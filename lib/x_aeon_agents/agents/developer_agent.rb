@@ -40,17 +40,18 @@ module XAeonAgents
         planner_agent = new_agent(PlannerAgent)
         step_agent(planner_agent)
 
-        coder_agent = new_agent(CoderAgent, **Config.agent_options['free_complex'])
+        coder_agent = new_agent(CoderAgent)
 
         step_agent(
           coder_agent,
           user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_agent.artifact_ref(:plan)}`."
         )
+        # TODO: Make that a log
         puts "===== Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
         step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent])) if @commit
 
-        tester_agent = new_agent(TesterAgent, **Config.agent_options['free_complex'])
+        tester_agent = new_agent(TesterAgent)
 
         step(:test) do
           # TODO: Move this in the configuration
@@ -58,6 +59,7 @@ module XAeonAgents
           @artifacts[:tests_cmd] = tests_cmd
           idx_test = 0
           loop do
+            # TODO: Make that a log
             puts
             puts "===== Run tests ##{idx_test}..."
             test_result = Helpers.run_cmd(tests_cmd, expected_exit_status: nil)
@@ -105,6 +107,7 @@ module XAeonAgents
                 ]
               }
             )
+            # TODO: Make that a log
             puts "===== Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
             # Integrate potential implementation plan modifications
             unless @artifacts[:plan_modifications].strip.empty?
@@ -125,7 +128,7 @@ module XAeonAgents
 
         step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
 
-        documenter_agent = new_agent(DocumenterAgent, **Config.agent_options['free_complex'])
+        documenter_agent = new_agent(DocumenterAgent)
         @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
 
         step_agent(
@@ -199,6 +202,7 @@ module XAeonAgents
             ]
           }
         )
+        # TODO: Make that a log
         puts "===== Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
         if @commit || @pull_request
@@ -226,6 +230,7 @@ module XAeonAgents
           )
         end
 
+        # TODO: Make that a log
         puts
         puts 'Requirements implemented successfully'
 

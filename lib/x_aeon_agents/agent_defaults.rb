@@ -42,14 +42,16 @@ module XAeonAgents
               case self
               when ComposableAgents::AiAgents::Agent
                 Config.setup_ai_agents
-                # TODO: Retrieve AiAgents default options here
-                {}
+                {
+                  strategy: ComposableAgents::PromptRenderingStrategy::Markdown
+                }
               when ComposableAgents::Cline::Agent
                 Config.setup_cline
-                # TODO: Retrieve Cline default options here
-                {}
+                {
+                  api_key: Config.cline_api_key,
+                  cli_options: Config.default_cline_cli_args
+                }
               else
-                # TODO: Retrieve other agents default options here
                 {}
               end
             kwargs_from_config = kwargs_from_agent_defaults
@@ -62,7 +64,6 @@ module XAeonAgents
               *args,
               composable_agents_dir: "#{@session_dir}/composable_agents",
               run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
-              # TODO: Implement a more subtle kwargs merge (depending on the properties, it could be some concatenation or merges).
               **kwargs_from_config.merge(kwargs)
             )
           end

@@ -38,12 +38,6 @@ module XAeonAgents
             - You may only analyze and propose plans.
             - Do NOT execute the plan yourself.
           EO_CONSTRAINTS
-          # TODO: Move those in configuration
-          # skills: %w[
-          #   applying-ruby-conventions
-          #   applying-test-conventions
-          #   enforcing-project-rules
-          # ],
           **agent_params
         )
       end

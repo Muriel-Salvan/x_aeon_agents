@@ -55,10 +55,10 @@ describe XAeonAgents::Cli, '#implement' do
               Mocked change intent from base git ref cached
 
               Co-authored by X-Aeon AI Agents:
-              * Coder (Cline cline/test-free-complex-model)
-              * Tester (Cline cline/test-free-complex-model)
-              * Documenter (Cline cline/test-free-complex-model)
-              * Diff interpreter (AiAgent openrouter/free)
+              * Coder (Cline cline/anthropic/claude-sonnet-4.6)
+              * Tester (Cline cline/anthropic/claude-sonnet-4.6)
+              * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+              * Diff interpreter (AiAgent gpt-4o-mini)
             EO_COMMIT
             <<~EO_PATCH
               diff --git a/README.md b/README.md
@@ -100,11 +100,11 @@ describe XAeonAgents::Cli, '#implement' do
 
               # Co-authored by X-Aeon AI Agents
 
-              - Planner (Cline cline/test-free-complex-planning-model)
-              - Coder (Cline cline/test-free-complex-model)
-              - Tester (Cline cline/test-free-complex-model)
-              - Documenter (Cline cline/test-free-complex-model)
-              - Diff interpreter (AiAgent openrouter/free)
+              - Planner (Cline cline/anthropic/claude-sonnet-4.6)
+              - Coder (Cline cline/anthropic/claude-sonnet-4.6)
+              - Tester (Cline cline/anthropic/claude-sonnet-4.6)
+              - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+              - Diff interpreter (AiAgent gpt-4o-mini)
             EO_DESCRIPTION
           )
         end
@@ -135,8 +135,8 @@ describe XAeonAgents::Cli, '#implement' do
               Mocked change intent from base git ref cached
 
               Co-authored by X-Aeon AI Agents:
-              * Documenter (Cline cline/test-free-complex-model)
-              * Diff interpreter (AiAgent openrouter/free)
+              * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+              * Diff interpreter (AiAgent gpt-4o-mini)
             EO_COMMIT
             <<~EO_PATCH
               diff --git a/README.md b/README.md
@@ -160,8 +160,8 @@ describe XAeonAgents::Cli, '#implement' do
               Mocked change intent from base git ref cached
 
               Co-authored by X-Aeon AI Agents:
-              * Coder (Cline cline/test-free-complex-model)
-              * Diff interpreter (AiAgent openrouter/free)
+              * Coder (Cline cline/anthropic/claude-sonnet-4.6)
+              * Diff interpreter (AiAgent gpt-4o-mini)
             EO_COMMIT
             <<~EO_PATCH
               diff --git a/new_feature.rb b/new_feature.rb
@@ -197,11 +197,11 @@ describe XAeonAgents::Cli, '#implement' do
 
               # Co-authored by X-Aeon AI Agents
 
-              - Planner (Cline cline/test-free-complex-planning-model)
-              - Coder (Cline cline/test-free-complex-model)
-              - Tester (Cline cline/test-free-complex-model)
-              - Documenter (Cline cline/test-free-complex-model)
-              - Diff interpreter (AiAgent openrouter/free)
+              - Planner (Cline cline/anthropic/claude-sonnet-4.6)
+              - Coder (Cline cline/anthropic/claude-sonnet-4.6)
+              - Tester (Cline cline/anthropic/claude-sonnet-4.6)
+              - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+              - Diff interpreter (AiAgent gpt-4o-mini)
             EO_DESCRIPTION
           )
         end
@@ -285,10 +285,10 @@ describe XAeonAgents::Cli, '#implement' do
               Mocked change intent from base git ref cached
 
               Co-authored by X-Aeon AI Agents:
-              * Coder (Cline cline/test-free-complex-model)
-              * Tester (Cline cline/test-free-complex-model)
-              * Documenter (Cline cline/test-free-complex-model)
-              * Diff interpreter (AiAgent openrouter/free)
+              * Coder (Cline cline/anthropic/claude-sonnet-4.6)
+              * Tester (Cline cline/anthropic/claude-sonnet-4.6)
+              * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+              * Diff interpreter (AiAgent gpt-4o-mini)
             EO_COMMIT
             <<~EO_PATCH
               diff --git a/README.md b/README.md
@@ -355,11 +355,11 @@ describe XAeonAgents::Cli, '#implement' do
 
                 # Co-authored by X-Aeon AI Agents
 
-                - Planner (Cline cline/test-free-complex-planning-model)
-                - Coder (Cline cline/test-free-complex-model)
-                - Tester (Cline cline/test-free-complex-model)
-                - Documenter (Cline cline/test-free-complex-model)
-                - Diff interpreter (AiAgent openrouter/free)
+                - Planner (Cline cline/anthropic/claude-sonnet-4.6)
+                - Coder (Cline cline/anthropic/claude-sonnet-4.6)
+                - Tester (Cline cline/anthropic/claude-sonnet-4.6)
+                - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+                - Diff interpreter (AiAgent gpt-4o-mini)
               EO_DESCRIPTION
             }
           )
