@@ -2,6 +2,9 @@ module XAeonAgents
   # Mixin setting up default settings for agents.
   # This mixin is meant to be the last prepended mixin in all Agent classes.
   module AgentDefaults
+    # Give all agents access to the logging helpers (log, log_debug, log_warn, say).
+    include Logger
+
     class << self
       # Get the singleton session ID.
       # If it is the first time it is invoked, use a default session ID.

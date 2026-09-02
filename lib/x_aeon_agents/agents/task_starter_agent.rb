@@ -30,7 +30,7 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(branch_name:)
         dir = ".worktrees/#{branch_name.tr('/', '_')}"
-        puts "Setting worktree #{dir} to work on branch #{branch_name}..."
+        log "Setting worktree #{dir} to work on branch #{branch_name}..."
         # Create the branch if it does not exist (without checking it out)
         Helpers.git.branch(branch_name).create unless Helpers.git.branches.any? { |branch| branch.name == branch_name }
         # Create the git worktree only if it does not exist yet (idempotent)
@@ -80,7 +80,7 @@ module XAeonAgents
         setup_proc = Config.setup_project_proc
         return if setup_proc.nil?
 
-        puts "Setting up project dependencies in fresh worktree #{dir}..."
+        log_debug "Setting up project dependencies in fresh worktree #{dir}"
         Dir.chdir(dir) { setup_proc.call }
       end
 

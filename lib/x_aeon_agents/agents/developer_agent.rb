@@ -46,8 +46,7 @@ module XAeonAgents
           coder_agent,
           user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_agent.artifact_ref(:plan)}`."
         )
-        # TODO: Make that a log
-        puts "===== Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
+        log "Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
         step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent])) if @commit
 
@@ -59,11 +58,9 @@ module XAeonAgents
           @artifacts[:tests_cmd] = tests_cmd
           idx_test = 0
           loop do
-            # TODO: Make that a log
-            puts
-            puts "===== Run tests ##{idx_test}..."
+            log "Run tests ##{idx_test}..."
             test_result = Helpers.run_cmd(tests_cmd, expected_exit_status: nil)
-            puts "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
+            log "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
             @artifacts[:tests_output] = <<~EO_ARTIFACT
               ```
               #{test_result[:stdout]}
@@ -107,8 +104,7 @@ module XAeonAgents
                 ]
               }
             )
-            # TODO: Make that a log
-            puts "===== Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
+            log "Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
             # Integrate potential implementation plan modifications
             unless @artifacts[:plan_modifications].strip.empty?
               plan_modifications = @artifacts.delete(:plan_modifications)
@@ -202,8 +198,7 @@ module XAeonAgents
             ]
           }
         )
-        # TODO: Make that a log
-        puts "===== Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
+        log "Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
         if @commit || @pull_request
           step_agent(
@@ -230,9 +225,7 @@ module XAeonAgents
           )
         end
 
-        # TODO: Make that a log
-        puts
-        puts 'Requirements implemented successfully'
+        say 'Requirements implemented successfully'
 
         @artifacts
       end

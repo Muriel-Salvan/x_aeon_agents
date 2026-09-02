@@ -306,7 +306,7 @@ module XAeonAgents
           )
         end
 
-        puts "#{readme_file_path} has been generated successfully."
+        say "#{readme_file_path} has been generated successfully."
 
         @artifacts
       end
