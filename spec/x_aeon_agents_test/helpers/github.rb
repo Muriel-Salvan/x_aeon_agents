@@ -160,26 +160,20 @@ module XAeonAgentsTest
       # @return [Octokit, nil] The last mocked Github double, or nil if none
       attr_reader :github_double
 
-      # Set up a complete Github Pull Request scenario for tests.
+      # Set up the git workspace of a complete Github Pull Request scenario for tests,
+      # without mocking the Github API.
       #
       # Initializes a git workspace on a feature branch with an initial commit, then adds an
       # extra commit so the head SHA differs from the base SHA (simulating a normal Pull Request).
       # The real git SHAs are used so that git diff operations in the code under test do not fail.
-      # Finally, mocks the Github API with a single Pull Request (number 42, slug 'owner/repo')
-      # carrying the provided +review_comments+, and stubs the reply-to-comment API so tests can
-      # assert on it.
+      # They are recorded so that mock_github_pr can mock the Github API with the corresponding
+      # Pull Request.
       #
-      # @param review_comments [Array<Hash{Symbol => Object}>] List of review comments to attach to the
-      #   mocked Pull Request. Each comment can contain:
-      #   - databaseId [Integer] The comment database ID (optional, auto-assigned starting at 100 when omitted)
-      #   - createdAt [String] The comment creation timestamp
-      #   - body [String] The comment body
-      #   - author [Hash] The comment author, with a :login key
-      #   - path [String] The file path the comment is attached to
-      #   - replyTo [Hash, nil] The replied-to comment, with a :databaseId key, or nil
-      # @yield Test code that will execute inside the git workspace, with the Github API mocked and
-      #   the Pull Request reply API stubbed.
-      def with_github_pr(review_comments: [])
+      # As it performs no rspec-mocks stubbing, this helper is safe to be called from around
+      # hooks (i.e. outside of the per-test mocks lifecycle), unlike with_github_pr.
+      #
+      # @yield Test code that will execute inside the git workspace.
+      def with_github_pr_workspace
         with_git_workspace(
           files: { 'test.txt' => "original\n" },
           branch: 'feature-branch',
@@ -193,26 +187,63 @@ module XAeonAgentsTest
           git = ::Git.open(Dir.pwd)
           git.add('test.txt')
           git.commit('Add feature change')
-          head_sha = git.rev_parse('HEAD')
-          mock_github(
-            pull_requests: [
-              {
-                ref: 'feature-branch',
-                number: 42,
-                slug: 'owner/repo',
-                title: 'My Pull Request',
-                body: 'PR body description',
-                base_sha: base_sha,
-                head_sha: head_sha,
-                review_comments: review_comments
-              }
-            ]
-          )
-          allow(github_double).to receive(:create_pull_request_comment_reply)
-
+          @github_pr_shas = { base_sha: base_sha, head_sha: git.rev_parse('HEAD') }
           yield
         end
       end
+
+      # Mock the Github API for the Pull Request scenario set up by with_github_pr_workspace:
+      # a single Pull Request (number 42, slug 'owner/repo') using the real git SHAs recorded
+      # by with_github_pr_workspace, and stubs the reply-to-comment API so tests can assert on it.
+      #
+      # As it performs rspec-mocks stubbing, this helper must be called within the per-test
+      # mocks lifecycle (from a before hook or an example body), not from around hooks.
+      #
+      # @param review_comments [Array<Hash{Symbol => Object}>] List of review comments to attach to the
+      #   mocked Pull Request. Each comment can contain:
+      #   - databaseId [Integer] The comment database ID (optional, auto-assigned starting at 100 when omitted)
+      #   - createdAt [String] The comment creation timestamp
+      #   - body [String] The comment body
+      #   - author [Hash] The comment author, with a :login key
+      #   - path [String] The file path the comment is attached to
+      #   - replyTo [Hash, nil] The replied-to comment, with a :databaseId key, or nil
+      def mock_github_pr(review_comments: [])
+        raise 'Call with_github_pr_workspace before mock_github_pr' unless @github_pr_shas
+
+        mock_github(
+          pull_requests: [
+            {
+              ref: 'feature-branch',
+              number: 42,
+              slug: 'owner/repo',
+              title: 'My Pull Request',
+              body: 'PR body description',
+              base_sha: @github_pr_shas[:base_sha],
+              head_sha: @github_pr_shas[:head_sha],
+              review_comments: review_comments
+            }
+          ]
+        )
+        allow(github_double).to receive(:create_pull_request_comment_reply)
+      end
+
+      # Set up a complete Github Pull Request scenario for tests.
+      #
+      # Convenience wrapper composing with_github_pr_workspace and mock_github_pr.
+      # As mock_github_pr performs rspec-mocks stubbing, this helper must be called within
+      # the per-test mocks lifecycle (from an example body), not from around hooks.
+      #
+      # @param review_comments [Array<Hash{Symbol => Object}>] List of review comments to attach to the
+      #   mocked Pull Request (see mock_github_pr).
+      # @yield Test code that will execute inside the git workspace, with the Github API mocked and
+      #   the Pull Request reply API stubbed.
+      def with_github_pr(review_comments: [])
+        with_github_pr_workspace do
+          mock_github_pr(review_comments: review_comments)
+          yield
+        end
+      end
+
     end
   end
 end

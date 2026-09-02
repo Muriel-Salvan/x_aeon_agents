@@ -53,6 +53,7 @@ module XAeonAgents
         tester_agent = new_agent(TesterAgent, **Config.agent_options['free_complex'])
 
         step(:test) do
+          # TODO: Move this in the configuration
           tests_cmd = 'bundle exec rspec --format documentation'
           @artifacts[:tests_cmd] = tests_cmd
           idx_test = 0
