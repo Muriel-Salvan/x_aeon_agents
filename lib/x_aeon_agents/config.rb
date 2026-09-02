@@ -103,11 +103,6 @@ module XAeonAgents
         paths
       end
 
-      # @return [AgentOptions] The available agent options.
-      def agent_options
-        @agent_options ||= AgentOptions.new
-      end
-
       # Configure X-Aeon Agents
       #
       # @param kwargs [Hash] Any configuration property that can be set

@@ -296,24 +296,6 @@ Public methods:
 - `default_cline_cli_args` / `default_cline_cli_args=` — default Cline CLI arguments. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#default_cline_cli_args-class_method)
 - `debug` / `debug=` — debug mode. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#debug-class_method)
 - `config_paths` — locate the optional `.x_aeon_agents.rb` config file(s) (home dir, then project dir). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config)
-- `agent_options` — the available `AgentOptions` instance. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#agent_options-class_method)
-
-### `XAeonAgents::AgentOptions`
-
-Provides agent options (model, strategy, etc.) keyed by agent category. These options can be passed to an agent's constructor.
-
-**Usecase** — read the options for a given category:
-
-```ruby
-opts = XAeonAgents::Config.agent_options['free_simple']
-# => { model: 'openrouter/free', strategy: ComposableAgents::PromptRenderingStrategy::Markdown }
-```
-
-More details: [RubyDoc — XAeonAgents::AgentOptions](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/AgentOptions)
-
-Public methods:
-- `[](agent_category)` — get the options for a category (lazily evaluated). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/AgentOptions#%5B%5D-instance_method)
-- `[]=(agent_category, agent_options)` — set the options for a category. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/AgentOptions)
 
 ### `XAeonAgents::GenHelpers`
 
@@ -390,6 +372,7 @@ Each agent is enriched by the `AgentDefaults` mixin ([`lib/x_aeon_agents/agent_d
 
 - injects `new_agent(...)`, `step(...)` and `step_agent(...)` to build multi-step pipelines;
 - auto-configures the underlying frameworks (`setup_composable_agents`, `setup_ai_agents`, `setup_cline`);
+- sets default constructor kwargs for the underlying AI framework (`strategy` for AI agents, `api_key` + `cli_options` for Cline agents), which can be overwritten per agent class with the `configure_agent` config DSL;
 - manages a per-session directory under `Config.data_dir/sessions/<id>`;
 - prepends `ArtifactContract` + `Resumable` mixins for input/output validation and pause/resume.
 
@@ -415,7 +398,7 @@ flowchart TD
 
 ### Configuration & providers 🔐
 
-[`XAeonAgents::Config`](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config) is a singleton holding secrets (`cline_api_key`, `openrouter_api_key`, `github_token`), the data directory, debug flag and per-category `AgentOptions` (model + strategy, e.g. `free_simple`, `free_complex`). LLM access flows through `Providers::Cline` ([`lib/x_aeon_agents/providers/cline.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/providers/cline.rb)), an OpenAI-compatible [RubyLLM](https://github.com/crmne/ruby_llm) provider targeting the Cline API.
+[`XAeonAgents::Config`](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config) is a singleton holding secrets (`cline_api_key`, `openrouter_api_key`, `github_token`), the data directory and debug flag. Agents' options (model, strategy, ...) can be customized per agent class with the `configure_agent` config DSL. LLM access flows through `Providers::Cline` ([`lib/x_aeon_agents/providers/cline.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/providers/cline.rb)), an OpenAI-compatible [RubyLLM](https://github.com/crmne/ruby_llm) provider targeting the Cline API.
 
 ### Skills & ERB templating 📚
 
