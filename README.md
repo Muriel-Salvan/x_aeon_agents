@@ -150,6 +150,23 @@ end
 
 If it is not defined, nothing is executed when a worktree is opened.
 
+- `configure_agent` — declare, using a block, the default kwargs to be used when initializing agents of a given class. The block is evaluated every time an agent of this class is instantiated: it is given the currently merged configuration of the agent (a Hash of kwargs, that can be modified in place), and can return a Hash of additional kwargs to be merged into this configuration:
+
+```ruby
+configure_agent(:PlanGeneratorAgent) do
+  {
+    model: 'deepseek/deepseek-v4-flash',
+    cli_options: { plan: true }
+  }
+end
+
+configure_agent(:PlanGeneratorAgent) do |agent_config|
+  agent_config[:skills].push('applying-ruby-conventions')
+  agent_config
+end
+```
+
+This method is re-entrant: it can be called several times for the same agent class, from the same config file or from different ones (global, project, env-var designated): each call sees the configuration accumulated by the previous ones, in the order the config files are evaluated. This lets a global config define base settings, and a project config read and adapt them.
 For example, to always run in debug mode inside a given project, create a `.x_aeon_agents.rb` file in that project directory containing `debug true`.
 
 ### Use the CLI

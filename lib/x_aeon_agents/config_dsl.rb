@@ -43,6 +43,22 @@ module XAeonAgents
 
     expose :on_open_worktree
 
+    # Configure the default kwargs to be used when initializing agents of a given class.
+    # The given block is evaluated every time an agent of this class is instantiated: it is given
+    # the currently merged configuration of the agent (a Hash of kwargs, that can be modified in
+    # place), and can return a Hash of additional kwargs to be merged into this configuration.
+    # This method is re-entrant: it can be called several times for the same agent class, from the
+    # same config file or from different ones (global, project, env-var designated): each call sees
+    # the configuration accumulated by the previous ones, in the order the config files are evaluated.
+    #
+    # Parameters::
+    # * *agent_class_name* (Symbol): Name of the agent class to configure (eg. :PlanGeneratorAgent)
+    def configure_agent(agent_class_name, &config_proc)
+      Config.register_agent_config_proc(agent_class_name, config_proc)
+    end
+
+    expose :configure_agent
+
     # Automatically expose a method per known secret name, allowing the config file
     # to define the code to retrieve this secret. The given block is stored as a Proc
     # and evaluated lazily only when the secret is needed.

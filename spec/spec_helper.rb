@@ -51,6 +51,7 @@ RSpec.configure do |config|
     # Clear possible caches of the real application
     XAeonAgents::Config.instance_variable_set(:@setup_project_proc, nil)
     XAeonAgents::Config.instance_variable_set(:@open_worktree_proc, nil)
+    XAeonAgents::Config.instance_variable_set(:@agent_config_procs, nil)
     XAeonAgents::AgentDefaults.instance_variable_set(:@singleton_session_id, nil)
     XAeonAgents::Helpers.instance_variable_set(:@git, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github_remote, nil)

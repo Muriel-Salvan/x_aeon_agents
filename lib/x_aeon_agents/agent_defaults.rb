@@ -38,11 +38,23 @@ module XAeonAgents
           def initialize(*args, session_id: nil, **kwargs)
             # If we inherit from some frameworks initialize them now.
             Config.setup_composable_agents
-            case self
-            when ComposableAgents::AiAgents::Agent
-              Config.setup_ai_agents
-            when ComposableAgents::Cline::Agent
-              Config.setup_cline
+            kwargs_from_agent_defaults =
+              case self
+              when ComposableAgents::AiAgents::Agent
+                Config.setup_ai_agents
+                # TODO: Retrieve AiAgents default options here
+                {}
+              when ComposableAgents::Cline::Agent
+                Config.setup_cline
+                # TODO: Retrieve Cline default options here
+                {}
+              else
+                # TODO: Retrieve other agents default options here
+                {}
+              end
+            kwargs_from_config = kwargs_from_agent_defaults
+            Config.agent_config_procs(self.class.name.split('::').last.to_sym).each do |config_proc|
+              kwargs_from_config = kwargs_from_config.merge(config_proc.call(kwargs_from_config))
             end
             @session_id = session_id || AgentDefaults.singleton_session_id
             @session_dir = "#{Config.data_dir}/sessions/#{@session_id}"
@@ -50,7 +62,8 @@ module XAeonAgents
               *args,
               composable_agents_dir: "#{@session_dir}/composable_agents",
               run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
-              **kwargs
+              # TODO: Implement a more subtle kwargs merge (depending on the properties, it could be some concatenation or merges).
+              **kwargs_from_config.merge(kwargs)
             )
           end
         end

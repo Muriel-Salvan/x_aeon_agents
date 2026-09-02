@@ -159,6 +159,27 @@ module XAeonAgents
         @open_worktree_proc = callback_proc
       end
 
+      # Register the Proc configuring default kwargs for agents of a given class, called by the
+      # config DSL. Procs are registered in the order the config files are evaluated (global, then
+      # project, then env-var designated), and are called in this order when an agent of the class
+      # is instantiated: each one is given the kwargs merged by the previous ones, so that it can
+      # read and modify them.
+      #
+      # @param agent_class_name [Symbol] The name of the agent class to configure (eg. :PlanGeneratorAgent)
+      # @param config_proc [Proc] The proc computing the agent's default kwargs, given the currently merged ones
+      def register_agent_config_proc(agent_class_name, config_proc)
+        @agent_config_procs ||= {}
+        (@agent_config_procs[agent_class_name] ||= []) << config_proc
+      end
+
+      # Get the Procs configuring agents of a given class, in the order they were registered.
+      #
+      # @param agent_class_name [Symbol] The name of the agent class (eg. :PlanGeneratorAgent)
+      # @return [Array<Proc>] The registered procs, or an empty list if none
+      def agent_config_procs(agent_class_name)
+        (@agent_config_procs || {}).fetch(agent_class_name, [])
+      end
+
       # Setup composable_agents in a lazy and memoized way
       def setup_composable_agents
         ENV['COMPOSABLE_AGENTS_DEBUG'] = '1' if debug

@@ -6,6 +6,7 @@ require 'time'
 
 module XAeonAgentsTest
   module Helpers
+    include AgentConfigurability
     include Cli
     include Debug
     include DeveloperAgent
