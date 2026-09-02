@@ -130,12 +130,10 @@ module XAeonAgents
               @artifacts[:one_line_summary].strip,
               sections.map(&:strip).join("\n\n")
             )
-            # TODO: Make that a log_info
-            log_debug "Created new Pull Request for branch #{head_branch}: #{new_pr.html_url}"
+            say "Created new Pull Request for branch #{head_branch}: #{new_pr.html_url}"
           end
         else
-          # TODO: Make that a log_info
-          log_debug "A Pull Request for branch #{head_branch} already exists: #{existing_pr.html_url}"
+          say "A Pull Request for branch #{head_branch} already exists: #{existing_pr.html_url}"
         end
         {}
       end

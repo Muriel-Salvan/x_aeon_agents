@@ -61,8 +61,7 @@ module XAeonAgents
           end
           Helpers.git.commit(content)
 
-          puts
-          puts 'Commit created successfully.'
+          say 'Commit created successfully.'
         end
         {}
       end

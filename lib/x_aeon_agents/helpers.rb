@@ -164,8 +164,8 @@ module XAeonAgents
         File.write(content_file, content)
         begin
           Launchy.open(content_file)
-          puts
-          puts <<~EO_STDOUT
+          say
+          say <<~EO_STDOUT
             Review the following content: #{description}.
             #{
               (
