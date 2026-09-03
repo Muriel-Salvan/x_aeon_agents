@@ -9,8 +9,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
             case agent
             when XAeonAgents::Agents::PlanGeneratorAgent
               { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
-            when XAeonAgents::Agents::TesterAgent
-              { plan_modifications: '' }
             when XAeonAgents::Agents::CoderAgent
               # Simulate a file modification done by the coder
               File.write('new_feature.rb', "puts 'New feature added'\n")
@@ -25,7 +23,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
           }
         )
         stub_review_content
-        stub_command('bundle exec rspec --format documentation', stdout: "All tests passed\n")
         stub_git_diff_interpreter_agent
         mock_github
       end
@@ -38,7 +35,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
         ) do
           base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
-          stub_command('bundle exec rspec --format documentation')
           described_class.new(session_id: nil, commit: false, pull_request: true).run(requirements: 'Add a new feature')
 
           # Verify commits made (Documenter commits when @pull_request is true)
@@ -55,7 +51,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
               Co-authored by X-Aeon AI Agents:
               * Coder (Cline cline/anthropic/claude-sonnet-4.6)
-              * Tester (Cline cline/anthropic/claude-sonnet-4.6)
               * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
               * Diff interpreter (AiAgent gpt-4o-mini)
             EO_COMMIT
@@ -101,7 +96,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
               - Planner (Cline cline/anthropic/claude-sonnet-4.6)
               - Coder (Cline cline/anthropic/claude-sonnet-4.6)
-              - Tester (Cline cline/anthropic/claude-sonnet-4.6)
               - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
               - Diff interpreter (AiAgent gpt-4o-mini)
             EO_DESCRIPTION
@@ -117,7 +111,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
         ) do
           base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
-          stub_command('bundle exec rspec --format documentation')
           described_class.new(session_id: nil, commit: true, pull_request: true).run(requirements: 'Add a new feature')
 
           # Verify commits made (Coder commits when @commit is true, Documenter commits when @pull_request or @commit is true)
@@ -197,7 +190,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
               - Planner (Cline cline/anthropic/claude-sonnet-4.6)
               - Coder (Cline cline/anthropic/claude-sonnet-4.6)
-              - Tester (Cline cline/anthropic/claude-sonnet-4.6)
               - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
               - Diff interpreter (AiAgent gpt-4o-mini)
             EO_DESCRIPTION
@@ -220,8 +212,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
               agent.track_message(message: agent.render_instructions(kwargs[:user_instructions]), author: 'user')
               agent.track_message(message: "I devised a new plan (v#{plan_version})", author: 'assistant')
               { plan: "Detailed step-by-step plan (v#{plan_version}) for requirements \"#{kwargs[:requirements]}\"" }
-            when XAeonAgents::Agents::TesterAgent
-              { plan_modifications: '' }
             when XAeonAgents::Agents::CoderAgent
               agent.track_message(message: 'Which file name should I use?', author: 'assistant', question: true)
               agent.track_message(message: 'new_feature.rb', author: 'user')
@@ -238,7 +228,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
         )
         # User reviews the plan and gives 2 rounds of feedback before accepting (empty prompt).
         stub_review_content(stdin_response: ['Please add logging', 'Please add tests', ''])
-        stub_command('bundle exec rspec --format documentation', stdout: "All tests passed\n")
         stub_git_diff_interpreter_agent
         mock_github
       end
@@ -251,7 +240,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
         ) do
           base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
-          stub_command('bundle exec rspec --format documentation')
           described_class.new(session_id: nil, commit: false, pull_request: true).run(requirements: 'Add a new feature')
 
           # PlanGeneratorAgent should have run 3 times: initial plan + 2 user revisions.
@@ -264,7 +252,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
           expect(plan_calls[2][:kwargs][:user_instructions]).to include('Please add tests')
 
           # The final (accepted) plan is v3 and flows to Coder and Documenter.
-          # (TesterAgent is not run here because the tests pass on the first try.)
+          # (TesterAgent is not run here because no tests command is configured.)
           final_plan = 'Detailed step-by-step plan (v3) for requirements "Add a new feature"'
           expect(find_run_calls_for(XAeonAgents::Agents::CoderAgent)[:kwargs][:plan]).to eq final_plan
           expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq final_plan
@@ -273,7 +261,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
           git_log = Git.open(Dir.pwd).log.execute
           expect(git_log.count).to eq(2) # Initial + Total commit
 
-          # Most recent commit should be from Documenter (with Coder + Tester + Documenter as authors)
+          # Most recent commit should be from Documenter (with Coder + Documenter as authors)
           expect_commit(
             git_log[0],
             <<~EO_COMMIT,
@@ -283,7 +271,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
               Co-authored by X-Aeon AI Agents:
               * Coder (Cline cline/anthropic/claude-sonnet-4.6)
-              * Tester (Cline cline/anthropic/claude-sonnet-4.6)
               * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
               * Diff interpreter (AiAgent gpt-4o-mini)
             EO_COMMIT
@@ -354,11 +341,80 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
                 - Planner (Cline cline/anthropic/claude-sonnet-4.6)
                 - Coder (Cline cline/anthropic/claude-sonnet-4.6)
-                - Tester (Cline cline/anthropic/claude-sonnet-4.6)
                 - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
                 - Diff interpreter (AiAgent gpt-4o-mini)
               EO_DESCRIPTION
             }
+          )
+        end
+      end
+
+      it 'includes the Tester in the PR description and commit when a tests command is configured' do
+        # Stub the tests command to pass on the first run: the Tester never runs,
+        # but it is still credited as an agent involved in the implementation.
+        stub_command('bundle exec rspec --format documentation', stdout: "All tests passed\n")
+        with_git_workspace(
+          files: {
+            'test.txt' => "original\n",
+            '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+          },
+          branch: 'feature-branch',
+          remotes: { 'origin' => 'git@github.com:owner/repo.git' }
+        ) do
+          base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
+          # Isolate the configuration loading from any real user configuration file
+          allow(Dir).to receive(:home).and_return(temp_dir('home'))
+          # Load the config file, like the CLI does before running the agent
+          XAeonAgents::Config.load
+          mock_git_push
+          described_class.new(session_id: nil, commit: false, pull_request: true).run(requirements: 'Add a new feature')
+
+          # The tests passed on the first run, so TesterAgent has never been called
+          expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)).to be_nil
+
+          # The Tester is still credited in the Documenter commit
+          git_log = Git.open(Dir.pwd).log.execute
+          expect(git_log.count).to eq(2) # Initial + Total commit
+          expect_commit(
+            git_log[0],
+            <<~EO_COMMIT,
+              Mocked 1-line summary of changes from base cached
+
+              Mocked change intent from base git ref cached
+
+              Co-authored by X-Aeon AI Agents:
+              * Coder (Cline cline/anthropic/claude-sonnet-4.6)
+              * Tester (Cline cline/anthropic/claude-sonnet-4.6)
+              * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+              * Diff interpreter (AiAgent gpt-4o-mini)
+            EO_COMMIT
+            <<~EO_PATCH
+              diff --git a/README.md b/README.md
+              new file mode git_file_mode
+              index git_short_hash..git_short_hash
+              --- /dev/null
+              +++ b/README.md
+              @@ -0,0 +1,3 @@
+              +# Test Project
+              +
+              +This is a test project.
+              diff --git a/new_feature.rb b/new_feature.rb
+              new file mode git_file_mode
+              index git_short_hash..git_short_hash
+              --- /dev/null
+              +++ b/new_feature.rb
+              @@ -0,0 +1 @@
+              +puts 'New feature added'
+            EO_PATCH
+          )
+
+          # The Tester is also credited in the PR description
+          expect(github_double).to have_received(:create_pull_request).with(
+            'owner/repo',
+            base_sha,
+            'feature-branch',
+            "Mocked 1-line summary of changes from base #{base_sha}",
+            an_object_satisfying { |actual| actual.include?('- Tester (Cline cline/anthropic/claude-sonnet-4.6)') }
           )
         end
       end

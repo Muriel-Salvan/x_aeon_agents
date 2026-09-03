@@ -140,6 +140,13 @@ end
 ```
 
 The block is evaluated right after the worktree has been created, with the current directory set to the worktree. If it is not defined, no setup step is executed.
+- `test_project_cmd` — declare the command line used to run the project's tests suite, executed by the `implement` command after each code change and after each fix made by the Tester agent:
+
+```ruby
+test_project_cmd 'bundle exec rspec'
+```
+
+If it is not defined, the `implement` command does not run any tests.
 - `on_open_worktree` — declare, using a block, a callback to execute every time the `start-task` command opens a worktree (freshly created or already existing), after the branch has been pushed to the remote. The block is given the worktree's directory as parameter:
 
 ```ruby

@@ -1,6 +1,8 @@
 describe XAeonAgents::Agents::DeveloperAgent do
   describe 'user reviewing implementation plan' do
     before do
+      # Isolate the configuration loading from any real user configuration file
+      allow(Dir).to receive(:home).and_return(temp_dir('home'))
       # Stub all ComposableAgents::Cline::Agent and ComposableAgents::AiAgents::Agent subclasses.
       # These handle the actual agent runs (PlanGeneratorAgent, CoderAgent, TesterAgent, DocumenterAgent).
       plan_version = 0
@@ -31,9 +33,17 @@ describe XAeonAgents::Agents::DeveloperAgent do
       )
     end
 
+    # Define the tests command through the config DSL, in the project's config file, then
+    # load the config file, like the CLI does before running the agent.
+    def with_test_project_cmd
+      File.write('.x_aeon_agents.rb', "test_project_cmd 'bundle exec rspec --format documentation'\n")
+      XAeonAgents::Config.load
+    end
+
     it 'calls PlanGeneratorAgent multiple times when user gives feedback, validates inputs per call, and uses accepted plan for downstream agents' do
       stub_review_content(stdin_response: ['Please add more details to the plan', ''])
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
+        with_test_project_cmd
         described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
 
         # PlanGeneratorAgent should have been called exactly 2 times (initial + after user feedback)
@@ -96,6 +106,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
         File.write(file_path, "# User Modified Plan\n\nThis was edited by the user.")
       end
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
+        with_test_project_cmd
         described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
 
         # PlanGeneratorAgent should have been called exactly 1 time (only initial generation)
@@ -140,6 +151,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
         File.write(file_path, "# Revised Plan (v#{edit_version})\n\nUpdated by user before feedback.\n")
       end
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
+        with_test_project_cmd
         described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
 
         # PlanGeneratorAgent should have been called exactly 2 times (initial + after feedback with diffs)

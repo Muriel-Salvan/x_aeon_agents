@@ -7,8 +7,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
         case agent
         when XAeonAgents::Agents::PlanGeneratorAgent
           { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
-        when XAeonAgents::Agents::TesterAgent
-          { plan_modifications: '' }
         when XAeonAgents::Agents::CoderAgent
           File.write('new_feature.rb', <<~RUBY)
             puts 'New feature added'
@@ -27,7 +25,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
       }
     )
     stub_review_content
-    stub_command('bundle exec rspec --format documentation', stdout: "All tests passed\n")
   end
 
   it_behaves_like 'an agent with common behavior', described_class

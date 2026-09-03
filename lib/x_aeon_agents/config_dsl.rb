@@ -28,6 +28,19 @@ module XAeonAgents
 
     expose :setup_project
 
+    # Define the command line to run the project's tests suite, used by the implement command
+    # to validate code changes after they have been done. The given command line is run by the
+    # DeveloperAgent every time it needs to run the tests suite. If this method is not used in
+    # the config, no tests are run by the implement command.
+    #
+    # Parameters::
+    # * *command_line* (String): Command line running the whole tests suite
+    def test_project_cmd(command_line)
+      Config.test_project_cmd = command_line
+    end
+
+    expose :test_project_cmd
+
     # Define the callback to execute when a worktree has been opened by the start-task command.
     # The given block is stored and evaluated every time a worktree is opened (freshly created
     # or already existing), after the branch has been pushed to the remote. It is given the

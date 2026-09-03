@@ -1,6 +1,8 @@
 describe XAeonAgents::Agents::DeveloperAgent do
   describe 'testing aspects of the development' do
     before do
+      # Isolate the configuration loading from any real user configuration file
+      allow(Dir).to receive(:home).and_return(temp_dir('home'))
       # Stub Launchy.open and $stdin.gets to avoid interactive prompts during plan review
       stub_review_content
       # Override the default stub to return plan_modifications from TesterAgent
@@ -18,22 +20,40 @@ describe XAeonAgents::Agents::DeveloperAgent do
           end
         }
       )
-      # Override the test command stub to fail twice, then succeed
+    end
+
+    # Load the project's config file, like the CLI does before running the agent.
+    # The config file should be part of the git workspace files, defining the tests command.
+    def with_test_project_cmd
+      XAeonAgents::Config.load
+    end
+
+    # Stub the tests command to fail a given number of times before succeeding.
+    #
+    # @param failures_count [Integer] Number of times the tests command fails before succeeding
+    def stub_failing_tests_command(failures_count)
       call_count = 0
       stub_command(
         'bundle exec rspec --format documentation',
         stdout: lambda do |_cmd|
           call_count += 1
-          call_count <= 2 ? "Test failure ##{call_count}\n" : "All tests passed\n"
+          call_count <= failures_count ? "Test failure ##{call_count}\n" : "All tests passed\n"
         end,
         exit_status: lambda do |_cmd|
-          call_count <= 2 ? 1 : 0
+          call_count <= failures_count ? 1 : 0
         end
       )
     end
 
     it 'calls TesterAgent repeatedly until tests pass, validating inputs per call' do
-      with_git_workspace(files: { 'test.txt' => "original\n" }) do
+      with_git_workspace(
+        files: {
+          'test.txt' => "original\n",
+          '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+        }
+      ) do
+        with_test_project_cmd
+        stub_failing_tests_command(2)
         described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
 
         # TesterAgent should have been called exactly 2 times
@@ -161,6 +181,89 @@ describe XAeonAgents::Agents::DeveloperAgent do
       end
     end
 
+    it 'does not call TesterAgent when tests pass on the first run' do
+      with_git_workspace(
+        files: {
+          'test.txt' => "original\n",
+          '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+        }
+      ) do
+        with_test_project_cmd
+        stub_failing_tests_command(0)
+        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+
+        # No test failed, so TesterAgent has never been called
+        expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)).to be_nil
+        # The DocumenterAgent receives the original, unmodified plan
+        expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq(
+          'Detailed step-by-step plan for requirements "Add a new feature"'
+        )
+      end
+    end
+
+    context 'when TesterAgent reports no plan modification' do
+      before do
+        # Override the default stub to report no plan modification from TesterAgent
+        stub_agent_run(
+          stub_handler: lambda { |agent, **kwargs|
+            case agent
+            when XAeonAgents::Agents::PlanGeneratorAgent
+              { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
+            when XAeonAgents::Agents::TesterAgent
+              File.write('test.rb', "puts 'Fixed test'\n")
+              { plan_modifications: '' }
+            else
+              {}
+            end
+          }
+        )
+      end
+
+      it 'does not modify the plan' do
+        with_git_workspace(
+          files: {
+            'test.txt' => "original\n",
+            '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+          }
+        ) do
+          with_test_project_cmd
+          stub_failing_tests_command(1)
+          described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+
+          # TesterAgent has been called once, after the single test failure
+          expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true).size).to eq 1
+          # No plan modification was reported, so the plan is not revised
+          expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq(
+            'Detailed step-by-step plan for requirements "Add a new feature"'
+          )
+        end
+      end
+    end
+
+    context 'when the config DSL does not define a tests command' do
+      it 'skips the tests and commit steps, going directly to documentation' do
+        with_git_workspace(files: { 'test.txt' => "original\n" }) do
+          test_runs = []
+          stub_command(
+            /bundle exec rspec/,
+            stdout: proc do |cmd|
+              test_runs << cmd
+              ''
+            end
+          )
+          described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+
+          # No tests have been run, and TesterAgent has never been called
+          expect(test_runs).to be_empty
+          expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)).to be_nil
+          # Documentation is still generated, from the original plan
+          expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq(
+            'Detailed step-by-step plan for requirements "Add a new feature"'
+          )
+        end
+      end
+    end
+
     context 'when plan modifications have different Markdown header levels' do
       before do
         # Override the TesterAgent stub to return modifications with different header levels per call
@@ -194,22 +297,17 @@ describe XAeonAgents::Agents::DeveloperAgent do
             end
           }
         )
-        # Override the test command stub to fail twice, then succeed
-        call_count = 0
-        stub_command(
-          'bundle exec rspec --format documentation',
-          stdout: lambda do |_cmd|
-            call_count += 1
-            call_count <= 2 ? "Test failure ##{call_count}\n" : "All tests passed\n"
-          end,
-          exit_status: lambda do |_cmd|
-            call_count <= 2 ? 1 : 0
-          end
-        )
+        stub_failing_tests_command(2)
       end
 
       it 'aligns Markdown headers correctly in the plan artifact' do
-        with_git_workspace(files: { 'test.txt' => "original\n" }) do
+        with_git_workspace(
+          files: {
+            'test.txt' => "original\n",
+            '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+          }
+        ) do
+          with_test_project_cmd
           described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
           # The 2nd TesterAgent receives the plan with Revision #0, where headers were aligned to level 2
           expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true)[1][:kwargs][:plan]).to eq <<~EO_PLAN

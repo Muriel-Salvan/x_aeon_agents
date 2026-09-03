@@ -223,6 +223,26 @@ describe XAeonAgents::Config do
     end
   end
 
+  describe '#test_project_cmd' do
+    it 'returns nil when no config file defines a tests command' do
+      with_config_files do
+        run_cli 'prompt', 'test'
+        expect(described_class.test_project_cmd).to be_nil
+      end
+    end
+
+    it 'returns the command line defined in the config DSL' do
+      with_config_files(
+        project_content: <<~CONFIG
+          test_project_cmd 'bundle exec rspec'
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.test_project_cmd).to eq 'bundle exec rspec'
+      end
+    end
+  end
+
   describe 'with only a global DSL config file' do
     let(:create_global_config) { true }
 
