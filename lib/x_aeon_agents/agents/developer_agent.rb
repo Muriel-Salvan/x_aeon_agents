@@ -50,79 +50,81 @@ module XAeonAgents
 
         step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent])) if @commit
 
-        tester_agent = new_agent(TesterAgent)
+        tester_agent = nil
+        tests_cmd = Config.test_project_cmd
+        unless tests_cmd.nil?
+          tester_agent = new_agent(TesterAgent)
 
-        step(:test) do
-          # TODO: Move this in the configuration
-          tests_cmd = 'bundle exec rspec --format documentation'
-          @artifacts[:tests_cmd] = tests_cmd
-          idx_test = 0
-          loop do
-            log "Run tests ##{idx_test}..."
-            test_result = Helpers.run_cmd(tests_cmd, expected_exit_status: nil)
-            log "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
-            @artifacts[:tests_output] = <<~EO_ARTIFACT
-              ```
-              #{test_result[:stdout]}
-              ```
-            EO_ARTIFACT
-            break if test_result[:exit_status].zero?
+          step(:test) do
+            @artifacts[:tests_cmd] = tests_cmd
+            idx_test = 0
+            loop do
+              log "Run tests ##{idx_test}..."
+              test_result = Helpers.run_cmd(tests_cmd, expected_exit_status: nil)
+              log "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
+              @artifacts[:tests_output] = <<~EO_ARTIFACT
+                ```
+                #{test_result[:stdout]}
+                ```
+              EO_ARTIFACT
+              break if test_result[:exit_status].zero?
 
-            @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
-            step_agent(
-              tester_agent,
-              user_instructions: {
-                ordered_list: [
-                  <<~EO_STEP,
-                    Understand the initial requirements from the artifact named `#{tester_agent.artifact_ref(:requirements)}`
+              @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
+              step_agent(
+                tester_agent,
+                user_instructions: {
+                  ordered_list: [
+                    <<~EO_STEP,
+                      Understand the initial requirements from the artifact named `#{tester_agent.artifact_ref(:requirements)}`
 
-                    - Understand those requirements and their intent.
-                  EO_STEP
-                  <<~EO_STEP,
-                    Understand the implementation plan from the artifact named `#{tester_agent.artifact_ref(:plan)}`
+                      - Understand those requirements and their intent.
+                    EO_STEP
+                    <<~EO_STEP,
+                      Understand the implementation plan from the artifact named `#{tester_agent.artifact_ref(:plan)}`
 
-                    - Understand all the steps of the implementation plan.
-                  EO_STEP
-                  <<~EO_STEP,
-                    Understand the file changes from the artifact named `#{tester_agent.artifact_ref(:files_diffs)}`
+                      - Understand all the steps of the implementation plan.
+                    EO_STEP
+                    <<~EO_STEP,
+                      Understand the file changes from the artifact named `#{tester_agent.artifact_ref(:files_diffs)}`
 
-                    - Understand what was the intent of the developer implementing the requirements.
-                  EO_STEP
-                  <<~EO_STEP,
-                    Analyze the full output of unit tests run from the artifact named `#{tester_agent.artifact_ref(:tests_output)}`
+                      - Understand what was the intent of the developer implementing the requirements.
+                    EO_STEP
+                    <<~EO_STEP,
+                      Analyze the full output of unit tests run from the artifact named `#{tester_agent.artifact_ref(:tests_output)}`
 
-                    - Check every error reported in the output.
-                  EO_STEP
-                  'Fix any issue that unit tests are surfacing, while keeping the original intent of the requirements',
-                  'Remember any inconsistency and modification you need to make to the implementation plan ' \
-                    'so that your fixes are in-line with a better implementation plan',
-                  <<~EO_STEP
-                    Make sure all tests are running without issue after your fixes
+                      - Check every error reported in the output.
+                    EO_STEP
+                    'Fix any issue that unit tests are surfacing, while keeping the original intent of the requirements',
+                    'Remember any inconsistency and modification you need to make to the implementation plan ' \
+                      'so that your fixes are in-line with a better implementation plan',
+                    <<~EO_STEP
+                      Make sure all tests are running without issue after your fixes
 
-                    - You can run tests again using the provided tests command from the artifact named `#{tester_agent.artifact_ref(:tests_cmd)}` to test your own fixes.
-                  EO_STEP
-                ]
-              }
-            )
-            log "Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
-            # Integrate potential implementation plan modifications
-            unless @artifacts[:plan_modifications].strip.empty?
-              plan_modifications = @artifacts.delete(:plan_modifications)
-              @artifacts[:plan] = <<~EO_PLAN
-                #{@artifacts[:plan].strip}
+                      - You can run tests again using the provided tests command from the artifact named `#{tester_agent.artifact_ref(:tests_cmd)}` to test your own fixes.
+                    EO_STEP
+                  ]
+                }
+              )
+              log "Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
+              # Integrate potential implementation plan modifications
+              unless @artifacts[:plan_modifications].strip.empty?
+                plan_modifications = @artifacts.delete(:plan_modifications)
+                @artifacts[:plan] = <<~EO_PLAN
+                  #{@artifacts[:plan].strip}
 
-                # Revision ##{idx_test} to the implementation plan
+                  # Revision ##{idx_test} to the implementation plan
 
-                #{ComposableAgents::Utils::Markdown.align_markdown_headers(plan_modifications, level: 2)}
+                  #{ComposableAgents::Utils::Markdown.align_markdown_headers(plan_modifications, level: 2)}
 
-              EO_PLAN
+                EO_PLAN
+              end
+              step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
+              idx_test += 1
             end
-            step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
-            idx_test += 1
           end
-        end
 
-        step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
+          step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
+        end
 
         documenter_agent = new_agent(DocumenterAgent)
         @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
@@ -206,7 +208,7 @@ module XAeonAgents
               CommitterAgent,
               user_review: false,
               stage: :all,
-              authors: (@commit ? [] : [coder_agent, tester_agent]) + [documenter_agent]
+              authors: (@commit ? [] : [coder_agent, tester_agent].compact) + [documenter_agent]
             )
           )
         end
@@ -220,7 +222,7 @@ module XAeonAgents
                 coder_agent,
                 tester_agent,
                 documenter_agent
-              ]
+              ].compact
             )
           )
         end

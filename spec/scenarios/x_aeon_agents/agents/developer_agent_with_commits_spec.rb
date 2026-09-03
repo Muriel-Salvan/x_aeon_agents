@@ -2,17 +2,15 @@ require 'git'
 
 describe XAeonAgents::Agents::DeveloperAgent do
   describe 'commits steps of the development' do
-    context 'when tests pass on the first try' do
+    context 'when no tests command is configured' do
       before do
         # Stub all ComposableAgents::Cline::Agent and ComposableAgents::AiAgents::Agent subclasses.
-        # These handle the actual agent runs (PlanGeneratorAgent, CoderAgent, TesterAgent, DocumenterAgent).
+        # These handle the actual agent runs (PlanGeneratorAgent, CoderAgent, DocumenterAgent).
         stub_agent_run(
           stub_handler: lambda { |agent, **kwargs|
             case agent
             when XAeonAgents::Agents::PlanGeneratorAgent
               { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
-            when XAeonAgents::Agents::TesterAgent
-              { plan_modifications: '' }
             when XAeonAgents::Agents::CoderAgent
               # Simulate a file modification done by the coder
               File.write('new_feature.rb', "puts 'New feature added'\n")
@@ -28,8 +26,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
         )
         # Stub Launchy.open and $stdin.gets to avoid interactive prompts during plan review
         stub_review_content
-        # Stub the test run command to return success on first try, so TesterAgent is not called.
-        stub_command('bundle exec rspec --format documentation', stdout: "All tests passed\n")
         # Stub GitDiffInterpreterAgent to avoid AI calls during commits.
         # The run method outputs the 2 needed artifacts (one_line_summary, change_intent)
         # using the content of the input artifacts (the actual git cached diff).
@@ -111,6 +107,8 @@ describe XAeonAgents::Agents::DeveloperAgent do
       before do
         # Stub Launchy.open and $stdin.gets to avoid interactive prompts during plan review
         stub_review_content
+        # Isolate the configuration loading from any real user configuration file
+        allow(Dir).to receive(:home).and_return(temp_dir('home'))
         # Override the default stub to return plan_modifications from TesterAgent.
         # A revision counter increments on each call and is embedded in both the
         # file content and the plan_modifications so that each call produces a unique diff.
@@ -156,7 +154,14 @@ describe XAeonAgents::Agents::DeveloperAgent do
       end
 
       it 'creates a commit for each tester fix revision' do
-        with_git_workspace(files: { 'test.txt' => "original\n" }) do
+        with_git_workspace(
+          files: {
+            'test.txt' => "original\n",
+            '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+          }
+        ) do
+          # Load the config file, like the CLI does before running the agent
+          XAeonAgents::Config.load
           described_class.new(session_id: nil, commit: true, pull_request: false).run(requirements: 'Add a new feature')
 
           git_log = Git.open(Dir.pwd).log.execute

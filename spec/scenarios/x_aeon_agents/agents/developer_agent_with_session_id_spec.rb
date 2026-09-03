@@ -7,8 +7,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
           case agent
           when XAeonAgents::Agents::PlanGeneratorAgent
             { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
-          when XAeonAgents::Agents::TesterAgent
-            { plan_modifications: '' }
           when XAeonAgents::Agents::CoderAgent
             coder_revision += 1
             File.write('new_feature.rb', "puts 'Feature revision #{coder_revision}'\n")
@@ -22,7 +20,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
         }
       )
       stub_review_content
-      stub_command('bundle exec rspec --format documentation', stdout: "All tests passed\n")
     end
 
     it 'reuses session to keep old CoderAgent output and uses a new session for fresh output' do

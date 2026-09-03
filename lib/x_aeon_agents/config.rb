@@ -75,6 +75,9 @@ module XAeonAgents
       # @return [Proc, nil] The Proc to execute when a worktree has been opened by the start-task command, or nil if none
       attr_reader :open_worktree_proc
 
+      # @return [String, nil] Command line running the project's tests suite, used by the implement command, or nil if none
+      attr_accessor :test_project_cmd
+
       # @return [Boolean] The debug mode
       def debug=(value)
         @debug = value
