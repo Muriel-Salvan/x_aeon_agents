@@ -23,6 +23,10 @@ Layout/MultilineOperationIndentation:
 Lint/UnusedMethodArgument:
   AllowUnusedKeywordArguments: true
 
+# Adding the extra private modifier is just noise
+Lint/UselessConstantScoping:
+  Enabled: false
+
 # It's ok to have longer methods, while keeping readability.
 Metrics/AbcSize:
   Max: 130
@@ -49,7 +53,7 @@ Metrics/MethodLength:
 
 # It's ok to have longer methods, while keeping readability.
 Metrics/ModuleLength:
-  Max: 140
+  Max: 150
 
 # kwargs should not count towards max parameters list.
 Metrics/ParameterLists:
