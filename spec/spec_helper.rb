@@ -1,6 +1,6 @@
 require 'simplecov'
 SimpleCov.start do
-  minimum_coverage 97
+  minimum_coverage 98
 end
 require 'simplecov-cobertura'
 SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
@@ -34,6 +34,13 @@ spec_loader.setup
 RSpec.configure do |config|
   # Automatically include our helpers
   config.include XAeonAgentsTest::Helpers
+
+  # Stub the AI models discovery to avoid any network access in unit tests.
+  # Agents of the AiAgents kind call RubyLLM::Models.refresh! when instantiated,
+  # which would otherwise fetch live model registries from OpenRouter and models.dev.
+  config.before do
+    allow(RubyLLM::Models).to receive(:refresh!)
+  end
 
   # Around hook for all test cases
   # Don't use a before hook for that purpose, as before hooks are always run after around hooks.
