@@ -70,6 +70,37 @@ module XAeonAgents
               **kwargs_from_config.merge(kwargs)
             )
           end
+
+          # Define a step that can be serialized and resumed.
+          # This will store the state of this step in the file system.
+          # If this step was already executed, skip it and update its artifacts from the file system store.
+          #
+          # @param step_name [Symbol] Step name.
+          # @param kwargs [Hash{Symbol => Object}] Additional input artifacts to merge before the step executes.
+          # @yield The code called for this step
+          def step(step_name = :step, **kwargs, &)
+            # TODO: Remember the sequence of the steps in a hierarchical structure (steps can be called inside steps) so that we can later log the hierarchy like that:
+            # +- step_name #1
+            # |  +- step_name #1.1
+            # |  +- step_name #1.2
+            # +- step_name #2
+            #    +- step_name #2.1
+            #       +- step_name #2.1.1
+            # The stored node in the structure should be an ordered array of Hash with simple information: step_name, agent, kwargs, children (Array of Hash).
+            # Make sure it uses also step_agent in this process (step and step_agent can be called hierarchically in any sequence).
+            # Store the whole hierarchy in an instance variable.
+            super
+          end
+
+          # Define a step that will just run an agent.
+          # This will use the artifacts store for input and output artifacts.
+          # Handle the context of the agent if needed.
+          #
+          # @param agent [Agent] The agent to run.
+          # @param kwargs [Hash{Symbol => Object}] Additional input artifacts to merge before the step executes.
+          def step_agent(agent, **kwargs)
+            super
+          end
         end
       )
     end
