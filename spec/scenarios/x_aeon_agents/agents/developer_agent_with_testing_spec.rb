@@ -173,13 +173,21 @@ describe XAeonAgents::Agents::DeveloperAgent do
             when XAeonAgents::Agents::TesterAgent
               tester_call_count += 1
               if tester_call_count == 1
-                { plan_modifications: "# Level 1 fix header
+                {
+                  plan_modifications: <<~EO_MODIF.chomp
+                    # Level 1 fix header
 
-Content for first fix" }
+                    Content for first fix
+                  EO_MODIF
+                }
               else
-                { plan_modifications: "### Level 3 fix header
+                {
+                  plan_modifications: <<~EO_MODIF.chomp
+                    ### Level 3 fix header
 
-Content for second fix" }
+                    Content for second fix
+                  EO_MODIF
+                }
               end
             else
               {}

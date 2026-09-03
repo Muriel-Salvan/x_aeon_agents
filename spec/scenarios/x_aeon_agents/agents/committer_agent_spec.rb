@@ -79,11 +79,13 @@ describe XAeonAgents::Agents::CommitterAgent do
         File.write('test.txt', "modified\n")
         `git add test.txt`
         stub_review_content do |file_path|
-          File.write(file_path, "Custom commit message
+          File.write(file_path, <<~EO_CONTENT.chomp)
+            Custom commit message
 
-Edited by user
+            Edited by user
 
-#{File.read(file_path)}")
+            #{File.read(file_path)}
+          EO_CONTENT
         end
         described_class.new(session_id: nil, stage: :if_empty).run
         git_log = Git.open(Dir.pwd).log.execute

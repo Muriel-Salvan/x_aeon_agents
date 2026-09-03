@@ -10,14 +10,16 @@ describe XAeonAgents::Agents::DeveloperAgent do
         when XAeonAgents::Agents::TesterAgent
           { plan_modifications: '' }
         when XAeonAgents::Agents::CoderAgent
-          File.write('new_feature.rb', "puts 'New feature added'
-")
+          File.write('new_feature.rb', <<~RUBY)
+            puts 'New feature added'
+          RUBY
           {}
         when XAeonAgents::Agents::DocumenterAgent
-          File.write('README.md', "# Test Project
+          File.write('README.md', <<~README)
+            # Test Project
 
-This is a test project.
-")
+            This is a test project.
+          README
           {}
         else
           {}
@@ -151,10 +153,11 @@ This is a test project.
       expect(tester_run_call).to be_nil
 
       expect(File.exist?('README.md')).to be true
-      expect(File.read('README.md')).to eq("# Test Project
+      expect(File.read('README.md')).to eq(<<~README)
+        # Test Project
 
-This is a test project.
-")
+        This is a test project.
+      README
     end
   end
 end

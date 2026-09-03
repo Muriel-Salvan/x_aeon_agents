@@ -32,6 +32,10 @@ module XAeonAgents
     #
     # @param pull_request_number [Integer, nil] The GitHub Pull Request number to process, or nil to auto-detect
     def review_comments(pull_request_number = nil)
+      # TODO: For each command of the CLI, create a new test scenarios file named spec/scenarios/x_aeon_agents/cli/{command}_spec.rb.
+      #   In those scenario files, we should use the `run_cli` helper to run the CLI command, and stub the agent classes used by the CLI command.
+      #   Test cases should validate that the right CLI arguments are then given to the agent's constructor and run calls, and that the output artifacts (mocked by the agent run result) are used properly (in stdout, exit_status...).
+      #   Several test cases can be identified to cover corner cases of the CLI (optional arguments, default values...).
       Agents::ReviewResolverAgent.new(session_id: options[:session_id]).run(
         pull_request_number: pull_request_number ? Integer(pull_request_number) : nil
       )
