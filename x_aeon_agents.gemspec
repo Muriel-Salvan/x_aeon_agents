@@ -27,10 +27,13 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'json', '~> 2.18'
   spec.add_dependency 'launchy', '~> 3.1'
   spec.add_dependency 'octokit', '~> 10.0'
+  spec.add_dependency 'pastel', '~> 0.8'
   spec.add_dependency 'ruby_llm', '~> 1.14'
   spec.add_dependency 'secret_string', '~> 1.1'
   spec.add_dependency 'sqlite3', '~> 2.9'
   spec.add_dependency 'thor', '~> 1.5'
+  spec.add_dependency 'tty-cursor', '~> 0.7'
+  spec.add_dependency 'tty-table', '~> 0.12'
   spec.add_dependency 'zeitwerk', '~> 2.7'
 
   spec.metadata['rubygems_mfa_required'] = 'true'
