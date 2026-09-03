@@ -20,6 +20,37 @@ module XAeonAgentsTest
         # @return [#call(agent, *args, **kwargs) -> Hash{Symbol => Object}, nil] Optional custom handler called by
         #   the stubbed +run+ method (see Helpers::PromptAgentsStub#stub_agent_run).
         attr_accessor :stub_handler
+
+        # Record an Agent.new (constructor) call in the new_calls collector.
+        #
+        # @param agent [ComposableAgents::Agent] The agent that was instantiated.
+        # @param args [Array] All args that were given to the `new` method.
+        # @param kwargs [Hash] All kwargs that were given to the `new` method.
+        def record_new_call(agent, args, kwargs)
+          (new_calls || []) << {
+            agent:,
+            args: args.map(&:clone),
+            kwargs: kwargs.to_h { |k, v| [k, v.clone] }
+          }
+        end
+
+        # Record an Agent#run call in the run_calls collector.
+        # Only the kwargs belonging to the agent's input artifacts contracts are kept, like the
+        # ArtifactContract mixin would do before executing the real +run+ method.
+        #
+        # @param agent [ComposableAgents::Agent] The agent that was run.
+        # @param args [Array] All args that were given to the `run` method.
+        # @param kwargs [Hash] All kwargs that were given to the `run` method.
+        # @return [Hash] The kwargs filtered to the agent's input artifacts contracts.
+        def record_run_call(agent, args, kwargs)
+          filtered_artifacts = kwargs.slice(*agent.send(:input_artifacts_contracts).keys)
+          (run_calls || []) << {
+            agent:,
+            args: args.map(&:clone),
+            kwargs: filtered_artifacts.to_h { |k, v| [k, v.clone] }
+          }
+          filtered_artifacts
+        end
       end
 
       # Intercept Agent.new to capture constructor arguments, then let
@@ -28,25 +59,14 @@ module XAeonAgentsTest
       # into composable_agents_dir before this interceptor runs, so captured
       # kwargs reflect the post-AgentDefaults state.
       def initialize(*args, **kwargs)
-        (PromptAgentsStubAgent.new_calls || []) << {
-          agent: self,
-          args: args.map(&:clone),
-          kwargs: kwargs.to_h { |k, v| [k, v.clone] }
-        }
+        PromptAgentsStubAgent.record_new_call(self, args, kwargs)
         super
       end
 
       # Intercept Agent#run to capture call arguments, delegate to the
       # test's stub_handler (if any), and prevent real AI calls.
       def run(*args, **kwargs)
-        # It could be that ArtifactContracts would have filtered kwargs later, so do it here too so that
-        # we only validate in our tests relevant input artifacts.
-        filtered_artifacts = kwargs.slice(*input_artifacts_contracts.keys)
-        (PromptAgentsStubAgent.run_calls || []) << {
-          agent: self,
-          args: args.map(&:clone),
-          kwargs: filtered_artifacts.to_h { |k, v| [k, v.clone] }
-        }
+        filtered_artifacts = PromptAgentsStubAgent.record_run_call(self, args, kwargs)
         PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **filtered_artifacts) : {}
       end
 
