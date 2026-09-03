@@ -66,16 +66,37 @@ module XAeonAgentsTest
         EO_HEADER
       end
 
+      # Default values of the gen_* options, as transmitted by the CLI when using its default options
+      # (all sections enabled)
+      DEFAULT_GEN_OPTIONS = {
+        gen_about: true,
+        gen_quick_start: true,
+        gen_requirements: true,
+        gen_features: true,
+        gen_public_api: true,
+        gen_documentation: true,
+        gen_how_it_works: true,
+        gen_development: true,
+        gen_contributing: true,
+        gen_license: true
+      }
+
       # Run the README generator and capture its output.
       #
-      # @param cli_args [Array<String>] CLI arguments to pass to the generator
+      # TODO: Make run_kwargs as the remaining real kwargs of this method.
+      # @param run_kwargs [Hash] Keyword arguments to pass to the agent's run method (overriding default gen_* options)
       # @param existing_content [String, nil] Optional content to write to the file before generation
-      def run_readme_generator(*cli_args, existing_content: nil)
+      # @param session_id [String, nil] Optional session ID to use
+      def run_readme_generator(run_kwargs: {}, existing_content: nil, session_id: nil)
         # Make sure git.remotes will return 1 remote pointing to a Github fake test repository
         mock_git_remotes
         # Write existing content if provided
         File.write(readme_path, existing_content) if existing_content
-        run_cli 'generate-readme', '--readme-file-path', readme_path, *cli_args
+        XAeonAgents::Agents::ReadmeGeneratorAgent.new(session_id: session_id).run(
+          **DEFAULT_GEN_OPTIONS,
+          **run_kwargs,
+          readme_file_path: readme_path
+        )
       end
 
       MOCKED_ARTIFACTS = {
