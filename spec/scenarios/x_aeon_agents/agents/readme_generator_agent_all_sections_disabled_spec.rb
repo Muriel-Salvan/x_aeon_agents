@@ -22,14 +22,15 @@ describe XAeonAgents::Agents::ReadmeGeneratorAgent do
     it 'generates an empty README when it does not exist' do
       stub_agent_run
       run_readme_generator(run_kwargs: default_run_kwargs, existing_content: nil)
-      expect(readme_content).to eq "
-
-## Table of contents
+      expect(readme_content).to eq <<~EO_TOC
 
 
+        ## Table of contents
 
 
-"
+
+
+      EO_TOC
     end
 
     it 'still re-generates the TOC of an existing README without modifying existing sections' do

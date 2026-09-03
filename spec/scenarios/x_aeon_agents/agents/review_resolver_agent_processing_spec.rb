@@ -30,9 +30,11 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
 
           # Validate that FeedbackAnalystAgent received the right input artifacts
           feedback_inputs = find_run_calls_for(XAeonAgents::Agents::FeedbackAnalystAgent)[:kwargs]
-          expect(feedback_inputs[:pr_description]).to eq "# My Pull Request
+          expect(feedback_inputs[:pr_description]).to eq <<~EO_DESC.chomp
+            # My Pull Request
 
-PR body description"
+            PR body description
+          EO_DESC
           expect(normalize_git_ids(feedback_inputs[:pr_files_diffs])).to eq <<~EO_DIFF.chomp
             diff --git a/test.txt b/test.txt
             index git_short_hash..git_short_hash git_file_mode
@@ -127,9 +129,11 @@ PR body description"
 
           # Validate that FeedbackAnalystAgent received the right input artifacts
           feedback_inputs = find_run_calls_for(XAeonAgents::Agents::FeedbackAnalystAgent)[:kwargs]
-          expect(feedback_inputs[:pr_description]).to eq "# My Pull Request
+          expect(feedback_inputs[:pr_description]).to eq <<~EO_DESC.chomp
+            # My Pull Request
 
-PR body description"
+            PR body description
+          EO_DESC
           expect(normalize_git_ids(feedback_inputs[:pr_files_diffs])).to eq <<~EO_DIFF.chomp
             diff --git a/test.txt b/test.txt
             index git_short_hash..git_short_hash git_file_mode
