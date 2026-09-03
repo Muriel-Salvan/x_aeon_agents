@@ -243,7 +243,6 @@ module XAeonAgentsTest
           yield
         end
       end
-
     end
   end
 end
