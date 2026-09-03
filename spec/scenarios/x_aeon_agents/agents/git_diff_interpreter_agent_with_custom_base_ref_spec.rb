@@ -3,18 +3,6 @@ describe XAeonAgents::Agents::GitDiffInterpreterAgent do
     stub_diff_agents
   end
 
-  # TODO: Don't use this method anymore: expectations should be written on the resulting output artifacts in the test scenarios directly. No need to convert to String output.
-  def run_interpret_diffs(base_ref = 'HEAD', session_id: nil)
-    result = described_class.new(session_id: session_id).run(git_ref_base: base_ref)
-    <<~EO_OUTPUT
-      ===== Code diffs interpretation:
-
-      #{result[:one_line_summary].strip}
-
-      #{result[:change_intent].strip}
-    EO_OUTPUT
-  end
-
   context 'with a custom base ref' do
     it 'supports a relative ref such as HEAD~1' do
       with_git_workspace(files: { 'test.txt' => "version 1\n" }) do
@@ -23,12 +11,11 @@ describe XAeonAgents::Agents::GitDiffInterpreterAgent do
         git_base.add('test.txt')
         git_base.commit('Second commit')
         File.write('test.txt', "version 3\n")
-        output = run_interpret_diffs('HEAD~1')
-        expect(normalize_git_ids(output)).to include <<~EO_STDOUT
-          ===== Code diffs interpretation:
-
+        result = described_class.new(session_id: nil).run(git_ref_base: 'HEAD~1')
+        expect(normalize_git_ids(result[:one_line_summary])).to eq <<~EO_ARTIFACT.chomp
           1-line summary of "Mocked change intent from the following diffs: ### New untracked files    ### git diff  ``` diff --git a/test.txt b/test.txt index git_short_hash..git_short_hash git_file_mode --- a/test.txt +++ b/test.txt @@ -1 +1 @@ -version 1 +version 3 ```  "
-
+        EO_ARTIFACT
+        expect(normalize_git_ids(result[:change_intent].strip)).to eq <<~EO_ARTIFACT.chomp
           Mocked change intent from the following diffs:
           ### New untracked files
 
@@ -45,7 +32,7 @@ describe XAeonAgents::Agents::GitDiffInterpreterAgent do
           -version 1
           +version 3
           ```
-        EO_STDOUT
+        EO_ARTIFACT
       end
     end
 
@@ -57,12 +44,11 @@ describe XAeonAgents::Agents::GitDiffInterpreterAgent do
         git_base.add('test.txt')
         git_base.commit('Second commit')
         File.write('test.txt', "version 3\n")
-        output = run_interpret_diffs('feature-branch')
-        expect(normalize_git_ids(output)).to include <<~EO_STDOUT
-          ===== Code diffs interpretation:
-
+        result = described_class.new(session_id: nil).run(git_ref_base: 'feature-branch')
+        expect(normalize_git_ids(result[:one_line_summary])).to eq <<~EO_ARTIFACT.chomp
           1-line summary of "Mocked change intent from the following diffs: ### New untracked files    ### git diff  ``` diff --git a/test.txt b/test.txt index git_short_hash..git_short_hash git_file_mode --- a/test.txt +++ b/test.txt @@ -1 +1 @@ -version 1 +version 3 ```  "
-
+        EO_ARTIFACT
+        expect(normalize_git_ids(result[:change_intent].strip)).to eq <<~EO_ARTIFACT.chomp
           Mocked change intent from the following diffs:
           ### New untracked files
 
@@ -79,7 +65,7 @@ describe XAeonAgents::Agents::GitDiffInterpreterAgent do
           -version 1
           +version 3
           ```
-        EO_STDOUT
+        EO_ARTIFACT
       end
     end
 
@@ -89,12 +75,11 @@ describe XAeonAgents::Agents::GitDiffInterpreterAgent do
         # TODO: Use the Git library
         `git add test.txt`
         File.write('test.txt', "unstaged change\n")
-        output = run_interpret_diffs('cached')
-        expect(normalize_git_ids(output)).to include <<~EO_STDOUT
-          ===== Code diffs interpretation:
-
+        result = described_class.new(session_id: nil).run(git_ref_base: 'cached')
+        expect(normalize_git_ids(result[:one_line_summary])).to eq <<~EO_ARTIFACT.chomp
           1-line summary of "Mocked change intent from the following diffs: ### git diff --cached  ``` diff --git a/test.txt b/test.txt index git_short_hash..git_short_hash git_file_mode --- a/test.txt +++ b/test.txt @@ -1 +1 @@ -original content +staged modification ```  "
-
+        EO_ARTIFACT
+        expect(normalize_git_ids(result[:change_intent].strip)).to eq <<~EO_ARTIFACT.chomp
           Mocked change intent from the following diffs:
           ### git diff --cached
 
@@ -107,7 +92,7 @@ describe XAeonAgents::Agents::GitDiffInterpreterAgent do
           -original content
           +staged modification
           ```
-        EO_STDOUT
+        EO_ARTIFACT
       end
     end
   end
