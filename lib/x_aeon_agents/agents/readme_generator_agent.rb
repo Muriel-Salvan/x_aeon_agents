@@ -58,6 +58,7 @@ module XAeonAgents
         gen_contributing: true,
         gen_license: true
       )
+        super
         # Each section of the README has a dedicated agent who generates its content in an artifact.
         if gen_about
           about_analyzer_agent = new_agent(Readme::AboutAnalyzerAgent)

@@ -24,6 +24,7 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run
+        super
         case @stage
         when :all
           Helpers.git.add(all: true)

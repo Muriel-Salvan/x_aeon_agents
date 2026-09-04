@@ -29,6 +29,7 @@ module XAeonAgents
       # @param requirements [String] Requirements to be implemented
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(requirements:)
+        super
         # Initial artifacts
         step(:setup_requirements) do
           @artifacts.merge!(

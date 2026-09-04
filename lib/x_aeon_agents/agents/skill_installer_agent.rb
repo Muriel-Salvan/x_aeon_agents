@@ -18,6 +18,7 @@ module XAeonAgents
       # @param agent [String] Agent name to be used to install skills
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(agent: 'cline')
+        super
         agent_name = agent.to_sym
         original_no_color = ENV.fetch('NO_COLOR', nil)
         ENV['NO_COLOR'] = '1'

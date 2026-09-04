@@ -24,6 +24,7 @@ module XAeonAgents
       #   When nil, the Pull Request is auto-detected from the current git branch.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(pull_request_number: nil)
+        super
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
         pull_request_number = resolve_pull_request_number(pull_request_number)

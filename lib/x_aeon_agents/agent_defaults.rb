@@ -6,12 +6,15 @@ module XAeonAgents
     include Logger
 
     class << self
-      # Get the singleton session ID.
-      # If it is the first time it is invoked, use a default session ID.
+      # @return [String] The singleton session ID. If it is the first time it is invoked, use a default session ID.
       def singleton_session_id
         @singleton_session_id ||= Time.now.utc.strftime('%Y-%m-%d-%H-%M-%S-%N')
       end
+
+      # @return [Array<Agent>] List of root agents (not instantiated from another agent).
+      attr_accessor :root_agents
     end
+    AgentDefaults.root_agents = []
 
     # Instantiate a new agent.
     # Transfer the same session to the new agent.
@@ -21,7 +24,7 @@ module XAeonAgents
     # @param kwargs [Hash] Constructor kwargs
     # @return [ComposableAgents::Agent] The new agent
     def new_agent(agent_class, *args, **kwargs)
-      agent_class.new(*args, session_id: @session_id, **kwargs)
+      agent_class.new(*args, session_id: @session_id, parent_agent: self, **kwargs)
     end
 
     # Hook called when this mixin is prepended in a class
@@ -35,10 +38,12 @@ module XAeonAgents
         Module.new do
           # Constructor
           #
-          # @param args [Array] Agent's constructor arguments
-          # @param session_id [String, nil] Specific X-Aeon session id to be used, or nil if none
-          # @param kwargs [Array] Agent's constructor kwargs
-          def initialize(*args, session_id: nil, **kwargs)
+          # @param args [Array] Agent's constructor arguments.
+          # @param session_id [String, nil] Specific X-Aeon session id to be used, or nil if none.
+          # @param parent_agent [Agent, nil] Agent that is initializing this agent, or nil if none.
+          # @param kwargs [Array] Agent's constructor kwargs.
+          def initialize(*args, session_id: nil, parent_agent: nil, **kwargs)
+            AgentDefaults.root_agents << self if parent_agent.nil?
             # If we inherit from some frameworks initialize them now.
             Config.setup_composable_agents
             kwargs_from_agent_defaults =
@@ -69,37 +74,6 @@ module XAeonAgents
               run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
               **kwargs_from_config.merge(kwargs)
             )
-          end
-
-          # Define a step that can be serialized and resumed.
-          # This will store the state of this step in the file system.
-          # If this step was already executed, skip it and update its artifacts from the file system store.
-          #
-          # @param step_name [Symbol] Step name.
-          # @param kwargs [Hash{Symbol => Object}] Additional input artifacts to merge before the step executes.
-          # @yield The code called for this step
-          def step(step_name = :step, **kwargs, &)
-            # TODO: Remember the sequence of the steps in a hierarchical structure (steps can be called inside steps) so that we can later log the hierarchy like that:
-            # +- step_name #1
-            # |  +- step_name #1.1
-            # |  +- step_name #1.2
-            # +- step_name #2
-            #    +- step_name #2.1
-            #       +- step_name #2.1.1
-            # The stored node in the structure should be an ordered array of Hash with simple information: step_name, agent, kwargs, children (Array of Hash).
-            # Make sure it uses also step_agent in this process (step and step_agent can be called hierarchically in any sequence).
-            # Store the whole hierarchy in an instance variable.
-            super
-          end
-
-          # Define a step that will just run an agent.
-          # This will use the artifacts store for input and output artifacts.
-          # Handle the context of the agent if needed.
-          #
-          # @param agent [Agent] The agent to run.
-          # @param kwargs [Hash{Symbol => Object}] Additional input artifacts to merge before the step executes.
-          def step_agent(agent, **kwargs)
-            super
           end
         end
       )

@@ -34,6 +34,7 @@ module XAeonAgents
       #   Supports comma-separated values within each element. If nil or empty, all skills are generated.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(output_dir: 'skills', skill_names: nil)
+        super
         transformations = {
           '.erb' => proc { |src_file| GenHelpers::ErbEvaluator.new(src_file).result }
         }.freeze

@@ -29,6 +29,7 @@ module XAeonAgents
       # @param requirements [String] The initial requirements.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(requirements:)
+        super
         user_instructions = {
           ordered_list: [
             "Read the initial requirements from the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
