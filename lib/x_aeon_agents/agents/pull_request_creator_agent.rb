@@ -32,6 +32,7 @@ module XAeonAgents
       # @param requirements [String, nil] The initial requirements, or nil if none.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(base_sha:, requirements: nil)
+        super
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
         repo_name = Helpers.github_repo

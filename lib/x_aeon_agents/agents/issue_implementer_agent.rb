@@ -27,6 +27,7 @@ module XAeonAgents
       # @param github_issue_number [Integer] The GitHub issue number
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(github_issue_number:)
+        super
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
         issue = Helpers.github.issue(Helpers.github_repo, github_issue_number)

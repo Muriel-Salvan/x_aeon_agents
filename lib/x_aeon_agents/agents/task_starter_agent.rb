@@ -29,6 +29,7 @@ module XAeonAgents
       # @param branch_name [String] Name of the git branch to create worktree for
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(branch_name:)
+        super
         dir = ".worktrees/#{branch_name.tr('/', '_')}"
         log "Setting worktree #{dir} to work on branch #{branch_name}..."
         # Create the branch if it does not exist (without checking it out)

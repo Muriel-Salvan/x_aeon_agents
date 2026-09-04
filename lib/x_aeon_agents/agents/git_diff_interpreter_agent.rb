@@ -35,6 +35,7 @@ module XAeonAgents
       # @param git_ref_base [String] The git reference to diff with. Use 'cached' for the staging area.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(git_ref_base:)
+        super
         step_agent(
           diff_interpreter_agent,
           files_diff: Helpers.artifact_files_diffs(git_ref_base == 'cached' ? :cached : git_ref_base)
