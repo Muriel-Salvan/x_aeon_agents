@@ -46,7 +46,13 @@ module XAeonAgents
                 SecretString.new(env_secret.dup)
               elsif @secret_procs&.key?(secret_name)
                 proc_secret = @secret_procs[secret_name].call
-                proc_secret.nil? ? nil : SecretString.new(proc_secret.dup)
+                if proc_secret.nil?
+                  nil
+                elsif proc_secret.is_a?(String)
+                  SecretString.new(proc_secret.dup)
+                else
+                  proc_secret
+                end
               end
           end
           @secrets[secret_name]&.to_unprotected
