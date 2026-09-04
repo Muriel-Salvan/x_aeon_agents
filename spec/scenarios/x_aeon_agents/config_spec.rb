@@ -83,6 +83,62 @@ describe XAeonAgents::Config do
     end
   end
 
+  # Shared examples validating that a secret is retrieved when the config DSL block
+  # returns a SecretString directly (instead of a plain String). The config code must
+  # keep the already-protected value untouched (not re-wrap it), so the accessor still
+  # exposes the underlying unprotected String.
+  shared_examples 'a secret provided directly as a SecretString through the config DSL' do |secret_name|
+    it "retrieves #{secret_name} using the code defined in the config DSL when it returns a SecretString" do
+      with_config_files(
+        project_content: <<~CONFIG
+          #{secret_name} do
+            SecretString.new('dsl-secret')
+          end
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.send(secret_name)).to eq 'dsl-secret'
+      end
+    end
+
+    it "exposes the #{secret_name} SecretString as an unprotected String without re-wrapping it" do
+      with_config_files(
+        project_content: <<~CONFIG
+          #{secret_name} do
+            SecretString.new('dsl-secret')
+          end
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        value = described_class.send(secret_name)
+        # The accessor returns the unprotected String (via SecretString#to_unprotected),
+        # not the SecretString object itself nor a doubly-wrapped SecretString.
+        expect(value).to be_a(String)
+        expect(value).to eq 'dsl-secret'
+        # The memoized stored value is the SecretString returned by the DSL, kept as-is.
+        stored = described_class.instance_variable_get(:@secrets)[secret_name]
+        expect(stored).to be_a(SecretString)
+        expect(stored.to_unprotected).to eq 'dsl-secret'
+      end
+    end
+
+    it "evaluates the #{secret_name} retrieval code returning a SecretString only when needed and memoizes its result" do
+      with_config_files(
+        project_content: <<~CONFIG
+          #{secret_name} do
+            File.write('retrieval_counter.txt', (File.exist?('retrieval_counter.txt') ? File.read('retrieval_counter.txt').to_i : 0) + 1)
+            SecretString.new('lazy-secret')
+          end
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.send(secret_name)).to eq 'lazy-secret'
+        expect(described_class.send(secret_name)).to eq 'lazy-secret'
+        expect(File.read('retrieval_counter.txt')).to eq '1'
+      end
+    end
+  end
+
   shared_examples 'loading a config DSL file' do
     it 'loads the config file when no CLI flag is given' do
       with_config_files(
@@ -121,6 +177,7 @@ describe XAeonAgents::Config do
     XAeonAgents::Config::KNOWN_SECRETS.each do |secret_name|
       describe "##{secret_name}" do
         it_behaves_like 'a secret retrievable through the config DSL', secret_name
+        it_behaves_like 'a secret provided directly as a SecretString through the config DSL', secret_name
       end
     end
   end
