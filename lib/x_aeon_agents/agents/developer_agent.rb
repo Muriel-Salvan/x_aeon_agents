@@ -47,7 +47,7 @@ module XAeonAgents
           coder_agent,
           user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_agent.artifact_ref(:plan)}`."
         )
-        log "Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
+        logger.info "Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
         step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent])) if @commit
 
@@ -60,9 +60,9 @@ module XAeonAgents
             @artifacts[:tests_cmd] = tests_cmd
             idx_test = 0
             loop do
-              log "Run tests ##{idx_test}..."
+              logger.info "Run tests ##{idx_test}..."
               test_result = Helpers.run_cmd(tests_cmd, expected_exit_status: nil)
-              log "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
+              logger.info "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
               @artifacts[:tests_output] = <<~EO_ARTIFACT
                 ```
                 #{test_result[:stdout]}
@@ -106,7 +106,7 @@ module XAeonAgents
                   ]
                 }
               )
-              log "Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
+              logger.info "Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
               # Integrate potential implementation plan modifications
               unless @artifacts[:plan_modifications].strip.empty?
                 plan_modifications = @artifacts.delete(:plan_modifications)
@@ -201,7 +201,7 @@ module XAeonAgents
             ]
           }
         )
-        log "Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
+        logger.info "Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
         if @commit || @pull_request
           step_agent(
@@ -228,7 +228,7 @@ module XAeonAgents
           )
         end
 
-        say 'Requirements implemented successfully'
+        logger << 'Requirements implemented successfully'
 
         @artifacts
       end

@@ -36,7 +36,7 @@ module XAeonAgents
           raise "Unknown staging strategy: #{@stage}"
         end
         if Helpers.git_diff_cached.empty?
-          log_debug 'Nothing to commit'
+          logger.debug 'Nothing to commit'
         else
           git_diff_interpreter_agent = GitDiffInterpreterAgent.new
           git_diff_interpreter_agent_output = git_diff_interpreter_agent.run(git_ref_base: 'cached')
@@ -62,7 +62,7 @@ module XAeonAgents
           end
           Helpers.git.commit(content)
 
-          say 'Commit created successfully.'
+          logger << 'Commit created successfully.'
         end
         {}
       end

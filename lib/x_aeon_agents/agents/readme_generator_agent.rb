@@ -307,7 +307,7 @@ module XAeonAgents
           )
         end
 
-        say "#{readme_file_path} has been generated successfully."
+        logger << "#{readme_file_path} has been generated successfully."
 
         @artifacts
       end
@@ -431,7 +431,7 @@ module XAeonAgents
         temp_file = "#{@session_dir}/tmp/content_to_be_toced.md"
         FileUtils.mkdir_p File.dirname(temp_file)
         File.write(temp_file, markdown)
-        log_debug 'Generating Table of Contents using doctoc...'
+        logger.debug 'Generating Table of Contents using doctoc...'
         Helpers.run_cmd("npx doctoc --github --notitle --stdout #{temp_file}")[:stdout].gsub(/==================\n.+$/m, '').strip
       end
     end

@@ -2,8 +2,12 @@ module XAeonAgents
   # Mixin setting up default settings for agents.
   # This mixin is meant to be the last prepended mixin in all Agent classes.
   module AgentDefaults
-    # Give all agents access to the logging helpers (log, log_debug, log_warn, say).
-    include Logger
+    # Give all agents access to the shared logger instance.
+    #
+    # @return [Logger] The shared logger instance
+    def logger
+      Config.logger
+    end
 
     class << self
       # @return [String] The singleton session ID. If it is the first time it is invoked, use a default session ID.
@@ -72,6 +76,7 @@ module XAeonAgents
               *args,
               composable_agents_dir: "#{@session_dir}/composable_agents",
               run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
+              logger: Config.logger,
               **kwargs_from_config.merge(kwargs)
             )
           end

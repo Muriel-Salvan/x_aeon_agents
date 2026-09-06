@@ -66,8 +66,8 @@ module XAeonAgents
               dest_dir,
               transformations.key?(file_ext) ? relative_path.sub(/#{Regexp.escape(file_ext)}$/, '') : relative_path
             )
-            say "Processing: #{relative_path}"
-            say "    Output: #{dst_file}"
+            logger << "Processing: #{relative_path}"
+            logger << "    Output: #{dst_file}"
             begin
               FileUtils.mkdir_p(File.dirname(dst_file))
               if transformations.key?(file_ext)
@@ -75,19 +75,15 @@ module XAeonAgents
               else
                 FileUtils.cp(src_file, dst_file)
               end
-              say '    Status: ✓ Processed successfully'
+              logger << '    Status: ✓ Processed successfully'
             rescue StandardError => e
-              say "    Status: ✗ Error - #{e.message}\n    #{e.backtrace.first}"
+              logger << "    Status: ✗ Error - #{e.message}\n    #{e.backtrace.first}"
               failed = true
             end
-            say
+            logger << ''
           end
 
-        if failed
-          say 'Skills generated with some errors (see above).'
-        else
-          say 'Skills generated successfully.'
-        end
+        logger << (failed ? 'Skills generated with some errors (see above).' : 'Skills generated successfully.')
         { success: !failed }
       end
     end

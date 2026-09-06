@@ -12,8 +12,6 @@ module XAeonAgents
     end
 
     class << self
-      include Logger
-
       # Execute a command while capturing its output in real time
       #
       # @param cmd [String] Command to be run
@@ -43,7 +41,7 @@ module XAeonAgents
             end
           ].each(&:join)
           exit_status = wait_thr.value.exitstatus
-          log_debug "Command `#{cmd}` exited with status: #{exit_status}"
+          Config.logger.debug "Command `#{cmd}` exited with status: #{exit_status}"
           if !expected_exit_status.nil? && exit_status != expected_exit_status
             raise UnexpectedExitStatusError, "Command `#{cmd}` exited with status #{exit_status} (expected #{expected_exit_status})"
           end
@@ -164,8 +162,8 @@ module XAeonAgents
         File.write(content_file, content)
         begin
           Launchy.open(content_file)
-          say
-          say <<~EO_STDOUT
+          Config.logger << ''
+          Config.logger << <<~EO_STDOUT
             Review the following content: #{description}.
             #{
               (
