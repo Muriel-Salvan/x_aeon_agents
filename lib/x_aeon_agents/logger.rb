@@ -58,17 +58,6 @@ module XAeonAgents
       self.level = INFO
     end
 
-    # Enable or disable debug mode.
-    # Debug messages are at DEBUG level, so this also drives the level-based severity predicates
-    # (debug?, info?...) used by third-party libraries (eg. RubyLLM decides to log HTTP bodies
-    # through the debug? predicate).
-    #
-    # @param value [Boolean] Debug mode
-    # TODO: Remove this method and use level = DEBUG
-    def debug=(value)
-      self.level = value ? DEBUG : INFO
-    end
-
     # Log a message with a given severity, and output it according to the rules defined by this logger:
     # - Messages at or above the level threshold are printed as full formatted lines.
     # - Messages under the level threshold are printed as truncated 1-line activity messages that get
@@ -141,7 +130,8 @@ module XAeonAgents
     # @param message [String] The message to truncate
     # @return [String] The truncated message
     def activity_message(message)
-      message.size > DEBUG_MESSAGE_MAX_SIZE ? "#{message[0, DEBUG_MESSAGE_MAX_SIZE - 3]}..." : message
+      one_line_message = message.gsub("\n", ' ')
+      one_line_message.size > DEBUG_MESSAGE_MAX_SIZE ? "#{one_line_message[0, DEBUG_MESSAGE_MAX_SIZE - 3]}..." : one_line_message
     end
 
     # Output a given line to stdout.
