@@ -90,7 +90,7 @@ module XAeonAgents
       # @return [Boolean] The debug mode
       def debug=(value)
         @debug = value
-        logger.debug = debug
+        logger.level = debug ? Logger::DEBUG : Logger::INFO
       end
 
       # @return [Boolean] The debug mode
@@ -122,7 +122,7 @@ module XAeonAgents
         kwargs.each do |property, value|
           send(:"#{property}=", value)
         end
-        logger.debug = debug
+        self.debug = debug
       end
 
       # @!group Internal
