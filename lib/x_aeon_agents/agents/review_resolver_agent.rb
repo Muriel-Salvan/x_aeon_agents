@@ -34,13 +34,13 @@ module XAeonAgents
         @artifacts[:conversations] = gather_comments(pull_request_number)
 
         if @artifacts[:conversations].empty?
-          log_debug "No PR reviews conversations found that need X-Aeon Agents input for PR ##{pull_request_number}"
+          logger.debug "No PR reviews conversations found that need X-Aeon Agents input for PR ##{pull_request_number}"
         else
-          log_debug "Found #{@artifacts[:conversations].size} PR reviews conversations that need X-Aeon Agents input for PR ##{pull_request_number}"
+          logger.debug "Found #{@artifacts[:conversations].size} PR reviews conversations that need X-Aeon Agents input for PR ##{pull_request_number}"
           @artifacts[:open_comments_to_agents] = @artifacts[:conversations].map do |conversation|
             conversation.select { |comment| comment['need_ai_reply'] }
           end.flatten(1)
-          log_debug "Found #{@artifacts[:open_comments_to_agents].size} PR review comments that need X-Aeon Agents to reply for PR ##{pull_request_number}"
+          logger.debug "Found #{@artifacts[:open_comments_to_agents].size} PR review comments that need X-Aeon Agents to reply for PR ##{pull_request_number}"
 
           step(:extract_requirements) do
             pr = Helpers.github.pull_request(Helpers.github_repo, pull_request_number)

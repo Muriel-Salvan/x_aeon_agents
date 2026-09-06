@@ -1,3 +1,4 @@
+require 'logger'
 require 'time'
 require 'human_number'
 require 'tty-cursor'
@@ -8,15 +9,23 @@ require 'tty-table'
 I18n.load_path += Dir[File.join(Gem::Specification.find_by_name('human_number').gem_dir, 'lib', 'locales', '*.yml')]
 
 module XAeonAgents
-  # Mixin adding logging capabilities
-  module Logger
+  # Logger used by all X-Aeon Agents components.
+  # This is a standard Ruby Logger (inheriting from ::Logger), so that third-party libraries
+  # (RubyLLM, ai-agents, composable_agents...) can share the same singleton instance.
+  #
+  # The messages that are under the level threshold (eg. debug messages when debug mode is off)
+  # are still printed as 1-line activity messages that get rewritten at each new log line, so that
+  # we can still follow some activity without polluting the output. The status (see #build_status_string)
+  # is always displayed below the log lines.
+  #
+  # User-facing messages that should not be formatted (they can be parsed by automated tasks) can be
+  # output directly with the standard #<< interface.
+  class Logger < ::Logger
+    # @!group Public API
+
     class << self
-      # @return [Boolean] Global debug switch.
-      attr_accessor :debug
-
-      # @return [TTY::Cursor] Global Cursor instance
+      # @return [TTY::Cursor] Cursor instance
       attr_accessor :cursor
-
     end
     self.cursor = TTY::Cursor
 
@@ -26,42 +35,90 @@ module XAeonAgents
     # Size of the tokens progress bar displayed in status, in characters
     STATUS_BAR_SIZE = 20
 
-    # Log a message
+    # Labels of each severity, used to display the severity in formatted log lines
+    SEVERITY_LABELS = {
+      DEBUG => 'D',
+      INFO => 'I',
+      WARN => 'W',
+      ERROR => 'E',
+      FATAL => 'F',
+      UNKNOWN => 'U'
+    }.freeze
+
+    # Mapping of severity names (Symbols or Strings) to ::Logger severity constants,
+    # to accept severities that are not given as integers
+    SEVERITY_TO_LEVEL = ::Logger::Severity.constants.to_h do |severity_name|
+      [severity_name.to_s.downcase.to_sym, ::Logger::Severity.const_get(severity_name)]
+    end.freeze
+
+    # Constructor.
+    # No actual log device is used: all messages are output through the status-aware output machinery.
+    def initialize
+      super(File::NULL)
+      self.level = INFO
+    end
+
+    # Enable or disable debug mode.
+    # Debug messages are at DEBUG level, so this also drives the level-based severity predicates
+    # (debug?, info?...) used by third-party libraries (eg. RubyLLM decides to log HTTP bodies
+    # through the debug? predicate).
     #
-    # @param message [String, nil] Message to be displayed, or nil if the message is given lazily through a code block
-    # @param level [Symbol] Message level
-    # @yield [#call -> String] Optional code returning a [String] for lazy evaluation
-    # @yieldreturn [String] The message to be displayed
-    def log(message, level: :info)
-      message = yield if block_given?
-      log_line = "[#{Time.now.utc.strftime('%F %T')}] - [#{level.to_s[0].upcase}] - #{message}"
-      if level != :debug || Logger.debug
-        say log_line
+    # @param value [Boolean] Debug mode
+    # TODO: Remove this method and use level = DEBUG
+    def debug=(value)
+      self.level = value ? DEBUG : INFO
+    end
+
+    # Log a message with a given severity, and output it according to the rules defined by this logger:
+    # - Messages at or above the level threshold are printed as full formatted lines.
+    # - Messages under the level threshold are printed as truncated 1-line activity messages that get
+    #   rewritten by the next full log line.
+    #
+    # @param severity [Integer, Symbol, String] Severity of the message (any of ::Logger's severity constants)
+    # @param message [String, Exception, nil] Message to log, or nil if given through a block or progname
+    # @param progname [String, nil] Message to use if the message is nil
+    # @yield The optional code returning the message to log
+    # @yieldreturn [String] The message to log
+    # @return [Boolean] True, as ::Logger#add does
+    def add(severity, message = nil, progname = nil, &) # rubocop:disable Naming/PredicateMethod
+      severity = SEVERITY_TO_LEVEL.fetch(severity) { severity || UNKNOWN }
+      message = yield if message.nil? && block_given?
+      message = progname if message.nil?
+      message = message.message if message.is_a?(Exception)
+      return true if message.nil?
+
+      if severity < level
+        log_output(activity_message(message), new_line: false)
       else
-        # Put debug logs just as the last line, just to show activity without putting too much on screen.
-        log_output(message.strip.gsub("\n", ' ')[0..(DEBUG_MESSAGE_MAX_SIZE - 1)], new_line: false)
+        log_output(full_log_line(severity, message))
       end
+      true
     end
 
-    # Log a debug message
+    # Log a message with the given severity.
+    # Defined because ::Logger defines #log as an alias of #add, and aliases are bound at definition time:
+    #   without redefining it here, #log would not use this class' #add override.
     #
-    # @param message [String] Message to log.
-    def log_debug(message)
-      log(message, level: :debug)
+    # @param severity [Integer, Symbol, String] Severity of the message
+    # @param message [String, Exception, nil] Message to log, or nil if given through a block or progname
+    # @param progname [String, nil] Message to use if the message is nil
+    # @yield The optional code returning the message to log
+    # @yieldreturn [String] The message to log
+    # @return [Boolean] True, as ::Logger#add does
+    def log(severity, message = nil, progname = nil, &)
+      add(severity, message, progname, &)
     end
 
-    # Log a warn message
+    # Output a message to the user without any formatting (no timestamp, no severity prefix),
+    # while still keeping the status displayed below the output. This is the standard ::Logger
+    # interface for dumping raw messages, used here to output messages that can be parsed by
+    # automated tasks.
     #
-    # @param message [String] Message to log.
-    def log_warn(message)
-      log(message, level: :warn)
-    end
-
-    # Say a message to the user (puts on stdout)
-    #
-    # @param message [String] Message to say.
-    def say(message = '')
-      log_output(message)
+    # @param message [String] Message to output
+    # @return [self]
+    def <<(message)
+      log_output(message.to_s)
+      self
     end
 
     private
@@ -69,6 +126,23 @@ module XAeonAgents
     # Make sure the correct line separator is used depending on the OS.
     # Commands using WSL can mess this up, so we enforce it.
     LINE_SEPARATOR = Gem.win_platform? ? "\r\n" : "\n"
+
+    # Format a message as a full log line with timestamp and severity prefix.
+    #
+    # @param severity [Integer] The severity level
+    # @param message [String] The message to format
+    # @return [String] The formatted log line
+    def full_log_line(severity, message)
+      "[#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S')}] - [#{SEVERITY_LABELS[severity]}] - #{message}"
+    end
+
+    # Format a message as a truncated activity line (used for sub-threshold messages).
+    #
+    # @param message [String] The message to truncate
+    # @return [String] The truncated message
+    def activity_message(message)
+      message.size > DEBUG_MESSAGE_MAX_SIZE ? "#{message[0, DEBUG_MESSAGE_MAX_SIZE - 3]}..." : message
+    end
 
     # Output a given line to stdout.
     # Handle the case when we are in TTY or not.

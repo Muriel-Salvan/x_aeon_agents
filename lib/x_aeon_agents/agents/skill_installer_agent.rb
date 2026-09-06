@@ -36,7 +36,7 @@ module XAeonAgents
           )
         end
 
-        say 'Skills identified in the skillkit manifest and their dependencies have been installed successfully'
+        logger << 'Skills identified in the skillkit manifest and their dependencies have been installed successfully'
         { installed: true }
       end
 
@@ -55,7 +55,7 @@ module XAeonAgents
         }
         skills_dir = agents_config[agent][:skills_dir]
 
-        log "Install skills #{repo} / #{skills.join(',')}..."
+        logger.info "Install skills #{repo} / #{skills.join(',')}..."
         Helpers.run_cmd("skillkit install #{repo} --yes --skills=#{skills.join(',')} --agent=#{agent}")
         fix_skills_metadata(skills, agent)
 
@@ -94,7 +94,7 @@ module XAeonAgents
           next if json['subpath'].start_with?('skills/')
 
           json['subpath'] = "skills/#{json['subpath']}"
-          log_debug "Fix subpath of #{json_file}"
+          logger.debug "Fix subpath of #{json_file}"
           File.write(json_file, JSON.pretty_generate(json))
         end
       end
