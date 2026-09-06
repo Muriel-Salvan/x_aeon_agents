@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'sqlite3', '~> 2.9'
   spec.add_dependency 'thor', '~> 1.5'
   spec.add_dependency 'tty-cursor', '~> 0.7'
+  spec.add_dependency 'tty-screen', '~> 0.8'
   spec.add_dependency 'tty-table', '~> 0.12'
   spec.add_dependency 'zeitwerk', '~> 2.7'
 

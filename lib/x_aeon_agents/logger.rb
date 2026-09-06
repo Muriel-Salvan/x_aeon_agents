@@ -2,6 +2,7 @@ require 'logger'
 require 'time'
 require 'human_number'
 require 'tty-cursor'
+require 'tty-screen'
 require 'tty-table'
 
 # Load the HumanNumber locale files, as it does not do it automatically.
@@ -17,6 +18,9 @@ module XAeonAgents
   # are still printed as 1-line activity messages that get rewritten at each new log line, so that
   # we can still follow some activity without polluting the output. The status (see #build_status_string)
   # is always displayed below the log lines.
+  # Activity messages and status lines are truncated to the terminal width, so that they always
+  # occupy exactly one row on screen: this guarantees the cursor bookkeeping stays exact even when
+  # full log lines are wider than the terminal.
   #
   # User-facing messages that should not be formatted (they can be parsed by automated tasks) can be
   # output directly with the standard #<< interface.
@@ -56,6 +60,9 @@ module XAeonAgents
     def initialize
       super(File::NULL)
       self.level = INFO
+      # Cursor bookkeeping for the status-aware output (see #output_with_status).
+      @last_status_size = 0
+      @previous_line_debug = false
     end
 
     # Log a message with a given severity, and output it according to the rules defined by this logger:
@@ -136,7 +143,7 @@ module XAeonAgents
 
     # Output a given line to stdout.
     # Handle the case when we are in TTY or not.
-    # - If in a TTY: Output the line with padding and display a status if any at the bottom.
+    # - If in a TTY: Output the line with the status displayed below it.
     # - Else: Output the line, unless it shouldn't have a new line at the end (meaning it was a debug line not supposed to stay on screen).
     #
     # @param message [String] The message to output
@@ -144,28 +151,77 @@ module XAeonAgents
     def log_output(message, new_line: true)
       if $stdout.tty?
         status_string = build_status_string.strip
-        unless status_string.empty?
-          @last_status_size ||= 0
-          # Go back to where the log line should start.
-          nbr_lines_rewind = @last_status_size + (@previous_line_debug ? 1 : 0)
-          print Logger.cursor.up(nbr_lines_rewind) if nbr_lines_rewind.positive?
-          # Shift to the bottom as many lines as our log lines have, so that status stays below.
-          nbr_lines_to_log = message.count("\n") + (@previous_line_debug ? 0 : 1)
-          print "\e[#{nbr_lines_to_log}L" if nbr_lines_to_log.positive?
-
-          # Pad potential stdout line with spaces to remove potential debug messages that could have been longer than this message.
-          $stdout.write "#{message}#{' ' * [0, DEBUG_MESSAGE_MAX_SIZE - message.size].max}#{LINE_SEPARATOR}"
-
-          # Keep an extra line between the real logs and the status
-          $stdout.write "#{LINE_SEPARATOR}#{status_string}#{LINE_SEPARATOR}"
-          @last_status_size = status_string.count("\n") + 2
-          @previous_line_debug = !new_line
+        if status_string.empty?
+          # No status to display yet: only full log lines are output plainly, and activity messages
+          # are dropped (they will be displayed once the status machinery starts).
+          $stdout.write "#{message}#{LINE_SEPARATOR}" if new_line && !message.empty?
+          @last_status_size = 0
+          @previous_line_debug = false
+        else
+          output_with_status(message, new_line:, status_string:)
         end
         $stdout.flush
       elsif new_line
         $stdout.write "#{message}#{LINE_SEPARATOR}"
         $stdout.flush
       end
+    end
+
+    # Output a message in the log area, with the status displayed below it.
+    # The message is written on the first free line below the previous log lines (overwriting the
+    # previous activity message if any), and the status is rewritten below it, so that it always
+    # stays at the bottom of the log lines.
+    #
+    # The cursor bookkeeping relies on the status lines and activity messages occupying exactly one
+    # row each on screen (hence they are truncated to the terminal width), and on the status fitting
+    # on the screen along with the log line above it. Full log messages are left untouched: they can
+    # wrap freely, as the rows they occupy are always above the status and don't influence the
+    # cursor positions relative to the status.
+    #
+    # @param message [String] The message to output
+    # @param new_line [Boolean] Should we insert a new line or overwrite the previous activity message?
+    # @param status_string [String] Non-empty status to display below the message
+    def output_with_status(message, new_line:, status_string:)
+      screen_width = TTY::Screen.width
+      status_lines = status_string.split(/\r?\n/).map { |line| fit_line(line, screen_width - 1) }
+      if status_lines.size + 2 > TTY::Screen.height
+        # The status cannot fit on screen with the log line above it: degrade to plain sequential
+        # output, and reset the display bookkeeping.
+        $stdout.write "#{message}#{LINE_SEPARATOR}" if new_line && !message.empty?
+        $stdout.write "#{LINE_SEPARATOR}#{status_string}#{LINE_SEPARATOR}"
+        @last_status_size = 0
+        @previous_line_debug = false
+        return
+      end
+      # Truncate activity messages to the screen width, so that they always occupy exactly 1 row.
+      message = fit_line(message, [DEBUG_MESSAGE_MAX_SIZE, screen_width - 1].min) unless new_line
+      # When overwriting a previous activity message, pad the message with spaces to erase leftovers.
+      padding =
+        if @previous_line_debug
+          ' ' * [0, [DEBUG_MESSAGE_MAX_SIZE, screen_width - 1].min - message.size].max
+        else
+          ''
+        end
+      # Go back to where the log line should start.
+      nbr_lines_rewind = @last_status_size + (@previous_line_debug ? 1 : 0)
+      print Logger.cursor.up(nbr_lines_rewind) if nbr_lines_rewind.positive?
+      # Shift to the bottom as many lines as our log lines have, so that status stays below.
+      nbr_lines_to_log = message.count("\n") + (@previous_line_debug ? 0 : 1)
+      print "\e[#{nbr_lines_to_log}L" if nbr_lines_to_log.positive?
+      $stdout.write "#{message}#{padding}#{LINE_SEPARATOR}"
+      # Keep an extra line between the real logs and the status
+      $stdout.write "#{LINE_SEPARATOR}#{status_lines.join(LINE_SEPARATOR)}#{LINE_SEPARATOR}"
+      @last_status_size = status_lines.size + 1
+      @previous_line_debug = !new_line
+    end
+
+    # Truncate a line from its end, so that it occupies exactly one row on screen and never wraps.
+    #
+    # @param line [String] The line to fit
+    # @param max_size [Integer] Maximum number of characters allowed
+    # @return [String] The fitted line
+    def fit_line(line, max_size)
+      line.size > max_size ? line[0, max_size] : line
     end
 
     # Build a nice multi-line String displaying the status of all steps of all runs of all agents.
