@@ -87,7 +87,7 @@ RSpec/NestedGroups:
 RSpec/Output:
   Exclude:
     # This file handles test debug output
-    - spec/x_aeon_agents_test/helpers/debug.rb
+    - spec/x_aeon_agents_test/helpers/log.rb
 
 # I don't want to pollute my code with something that should be integrated in the language
 Style/FrozenStringLiteralComment:
