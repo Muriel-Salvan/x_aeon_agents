@@ -266,7 +266,7 @@ module XAeonAgents
       # Extract and normalize the data for logging
       steps_run_map = proc do |step_run_info|
         {
-          step_name: step_run_info[:step_name],
+          step_name: step_run_info[:agent].nil? ? step_run_info[:step_name] : step_run_info[:agent].name,
           # Position of the step in the hierarchy of steps (empty for the virtual root nodes).
           # It is used to display the hierarchy in the status.
           index: step_run_info[:index],
@@ -281,7 +281,7 @@ module XAeonAgents
       status_info = AgentDefaults.root_agents.map do |root_agent|
         root_agent.runs_info.map.with_index do |run_info, idx_run|
           root_step = {
-            step_name: :"#{root_agent.name}-#{idx_run}",
+            step_name: :"#{root_agent.name}#{" (run ##{idx_run})" if root_agent.runs_info.size > 1}",
             index: [],
             created_at: run_info.started_at,
             agent: root_agent,
@@ -322,7 +322,8 @@ module XAeonAgents
           status_hierarchy_name(node),
           usage_display ? usage_display[:cost] : '',
           usage_display ? status_progress_block(usage_display, tokens_width, limit_width) : '',
-          node[:agent].respond_to?(:full_name) ? pastel.dim(node[:agent].full_name) : ''
+          # Remove the name part from the full name as it is already in the step name
+          node[:agent].respond_to?(:full_name) ? pastel.dim(node[:agent].full_name.gsub(node[:agent].name, '').strip) : ''
         ]
       end
       return '' if rows.empty?
