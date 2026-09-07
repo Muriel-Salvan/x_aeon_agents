@@ -27,12 +27,163 @@ describe XAeonAgents::AgentDefaults do
     expected_singleton_modules: [ComposableAgents::PromptRenderingStrategy::Markdown]
   )
 
-  # The normal Agents defaults
-  it_behaves_like(
-    'an agent using AgentDefaults',
-    XAeonAgentsTest::Agents::TestAgent,
-    configured_kwargs: { name: 'config-name' },
-    expected_default_options: {},
-    expected_default_options_kept: {}
-  )
+  describe 'normal agents' do
+    # The normal Agents defaults
+    it_behaves_like(
+      'an agent using AgentDefaults',
+      XAeonAgentsTest::Agents::TestAgent,
+      configured_kwargs: { name: 'config-name' },
+      expected_default_options: {},
+      expected_default_options_kept: {}
+    )
+
+    describe 'validating status logging' do
+      # Colored emojis expected in the status, per step status
+      let(:status_emojis) do
+        {
+          executed: status_pastel.green('✓'),
+          started: status_pastel.yellow('◌'),
+          error: status_pastel.red('✗')
+        }
+      end
+
+      # Make sure agents instantiated by other examples don't pollute the displayed status
+      before { described_class.root_agents = [] }
+
+      it 'displays the status of 1 root agent having 1 nested step' do
+        status_while_outer_step_started = expected_status_string(
+          [
+            ["#{status_emojis[:started]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:started]} └─ outer_step", '', '', '']
+          ]
+        )
+        status_while_inner_step_started = expected_status_string(
+          [
+            ["#{status_emojis[:started]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:started]} └─ outer_step", '', '', ''],
+            ["#{status_emojis[:started]}    └─ inner_step", '', '', '']
+          ]
+        )
+        # The nested step is executed before its parent, so both statuses are displayed at the same time
+        status_when_inner_step_executed = expected_status_string(
+          [
+            ["#{status_emojis[:started]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:started]} └─ outer_step", '', '', ''],
+            ["#{status_emojis[:executed]}    └─ inner_step", '', '', '']
+          ]
+        )
+        status_when_all_executed = expected_status_string(
+          [
+            ["#{status_emojis[:executed]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:executed]} └─ outer_step", '', '', ''],
+            ["#{status_emojis[:executed]}    └─ inner_step", '', '', '']
+          ]
+        )
+
+        with_tty_status do
+          agent = XAeonAgentsTest::Agents::TestAgent.new(name: 'RootAgent')
+          agent.run_proc = lambda do
+            step(:outer_step) do
+              logger.info 'Outer step is running'
+              expect_last_status_to_be(status_while_outer_step_started)
+              step(:inner_step) do
+                logger.info 'Inner step is running'
+                expect_last_status_to_be(status_while_inner_step_started)
+              end
+              expect_last_status_to_be(status_when_inner_step_executed)
+            end
+            expect_last_status_to_be(status_when_all_executed)
+            @output_artifacts = {}
+          end
+          agent.run
+          log_message('Agent has been run')
+          expect_last_status_to_be(status_when_all_executed)
+        end
+      end
+
+      it 'displays the status of 1 root agent having 1 nested step_agent' do
+        status_while_sub_agent_runs = expected_status_string(
+          [
+            ["#{status_emojis[:started]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:started]} └─ SubAgent", '', '', status_pastel.dim('(TestAgent)')]
+          ]
+        )
+        status_when_sub_agent_executed = expected_status_string(
+          [
+            ["#{status_emojis[:executed]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:executed]} └─ SubAgent", '', '', status_pastel.dim('(TestAgent)')]
+          ]
+        )
+
+        with_tty_status do
+          root_agent = XAeonAgentsTest::Agents::TestAgent.new(name: 'RootAgent')
+          # Instantiate the sub agent through the root agent, so that it is not a root agent itself
+          sub_agent = root_agent.new_agent(XAeonAgentsTest::Agents::TestAgent, name: 'SubAgent')
+          sub_agent.run_proc = lambda do
+            step(:sub_step) do
+              logger.info 'Sub agent step is running'
+              expect_last_status_to_be(status_while_sub_agent_runs)
+            end
+            # The sub agent's step completion refreshes the status, still showing the started step_agent
+            expect_last_status_to_be(status_while_sub_agent_runs)
+            @output_artifacts = {}
+          end
+          root_agent.run_proc = lambda do
+            step_agent(sub_agent)
+            expect_last_status_to_be(status_when_sub_agent_executed)
+            logger.info 'Sub agent has been run'
+            expect_last_status_to_be(status_when_sub_agent_executed)
+            @output_artifacts = {}
+          end
+          root_agent.run
+          log_message('Agent has been run')
+          expect_last_status_to_be(status_when_sub_agent_executed)
+        end
+      end
+
+      it 'displays the status of 1 root agent having several nested steps with various statuses' do
+        status_while_first_step_runs = expected_status_string(
+          [
+            ["#{status_emojis[:started]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:started]} └─ first_step", '', '', '']
+          ]
+        )
+        # The first step is executed while the second one is started
+        status_with_various_statuses = expected_status_string(
+          [
+            ["#{status_emojis[:started]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:executed]} ├─ first_step", '', '', ''],
+            ["#{status_emojis[:started]} └─ parent_step", '', '', '']
+          ]
+        )
+        status_when_error = expected_status_string(
+          [
+            ["#{status_emojis[:error]} RootAgent", '', '', status_pastel.dim('(TestAgent)')],
+            ["#{status_emojis[:executed]} ├─ first_step", '', '', ''],
+            ["#{status_emojis[:error]} └─ parent_step", '', '', ''],
+            ["#{status_emojis[:error]}    └─ failing_step", '', '', '']
+          ]
+        )
+
+        with_tty_status do
+          agent = XAeonAgentsTest::Agents::TestAgent.new(name: 'RootAgent')
+          agent.run_proc = lambda do
+            step(:first_step) do
+              logger.info 'First step is running'
+              expect_last_status_to_be(status_while_first_step_runs)
+            end
+            step(:parent_step) do
+              logger.info 'Parent step is running'
+              expect_last_status_to_be(status_with_various_statuses)
+              step(:failing_step) { raise 'Step has failed' }
+            end
+            @output_artifacts = {}
+          end
+          expect { agent.run }.to raise_error(RuntimeError, 'Step has failed')
+          log_message('Agent has failed')
+          expect_last_status_to_be(status_when_error)
+        end
+      end
+    end
+  end
 end

@@ -266,7 +266,15 @@ module XAeonAgents
       # Extract and normalize the data for logging
       steps_run_map = proc do |step_run_info|
         {
-          step_name: step_run_info[:agent].nil? ? step_run_info[:step_name] : step_run_info[:agent].name,
+          # Virtual root nodes (having no index in a steps hierarchy) keep their dedicated name,
+          # possibly suffixed with the run number. Other nodes display the name of the agent they
+          # run, if any.
+          step_name:
+            if step_run_info[:index].empty?
+              step_run_info[:step_name]
+            else
+              step_run_info[:agent]&.name || step_run_info[:step_name]
+            end,
           # Position of the step in the hierarchy of steps (empty for the virtual root nodes).
           # It is used to display the hierarchy in the status.
           index: step_run_info[:index],
@@ -323,7 +331,7 @@ module XAeonAgents
           usage_display ? usage_display[:cost] : '',
           usage_display ? status_progress_block(usage_display, tokens_width, limit_width) : '',
           # Remove the name part from the full name as it is already in the step name
-          node[:agent].respond_to?(:full_name) ? pastel.dim(node[:agent].full_name.gsub(node[:agent].name, '').strip) : ''
+          node[:agent] ? pastel.dim(status_agent_name_complement(node[:agent])) : ''
         ]
       end
       return '' if rows.empty?
@@ -386,6 +394,18 @@ module XAeonAgents
     # @return [String] Hierarchical name
     def status_hierarchy_name(node)
       "#{status_emoji(node[:status])} #{node[:prefix]}#{node[:step_name]}"
+    end
+
+    # Get the complement of an agent's name in its full name, to be displayed in the status:
+    # the full name without the name part (already displayed as the step name), or the full name
+    # when the agent has no name.
+    #
+    # @param agent [ComposableAgents::Agent] The agent to display
+    # @return [String] The complement of the agent's name in its full name
+    def status_agent_name_complement(agent)
+      full_name = agent.full_name
+      full_name = full_name.gsub(agent.name, '').strip if agent.name
+      full_name
     end
 
     # Get the usage display information of a step's run, if any.

@@ -23,20 +23,37 @@ module XAeonAgentsTest
       # @return [Proc, nil] The Proc stubbing the agent's run, or nil if not set yet
       attr_accessor :run_proc
 
-      # Run the agent by executing the run Proc set by the test case.
-      # This bypasses the real agent's run (which is not implemented by test agents), while still
-      # going through the whole chain of prepended mixins (ie. the steps hierarchy recording of
-      # AgentDefaults).
+      # Run the agent.
+      # The framework-specific run implementations (AiAgents, Cline...) are bypassed, as test agents
+      # only exist to validate the common behavior of all agents, not to invoke real AI providers.
+      # The base agent's run bookkeeping (ie. run information creation) is still executed, so that
+      # the status logging sees the run as a real one.
+      # If a run Proc was set by the test case (see #run_proc), it is executed as the run's body,
+      # and its result is returned. Otherwise, a completion message is logged: test agents have no
+      # real processing to run, and this makes sure something gets logged so that the status can be
+      # displayed in a TTY context.
       #
       # @param input_artifacts [Hash{Symbol => Object}] Input artifacts given to the run
-      # @return The result of the stubbed run
-      # @raise [NotImplementedError] If no run Proc has been set on the agent
+      # @return [Hash{Symbol => Object}] The output artifacts of the run
       def run(**input_artifacts)
+        # Execute only the base agent's run bookkeeping, so that the run is recorded like a real one.
+        ComposableAgents::Agent.instance_method(:run).bind_call(self, **input_artifacts)
         if @run_proc
           instance_exec(**input_artifacts, &@run_proc)
         else
-          super
+          logger.info "Agent #{full_name} has been run"
+          {}
         end
+      end
+
+      # Expect the last status displayed on the test screen to be the given one.
+      # Delegates to the currently running example's group instance, which holds the test screen and
+      # the expectation helpers (this method is called from within the agent's run Proc, where the
+      # agent itself has no access to them).
+      #
+      # @param expected_status [String] The exact expected status
+      def expect_last_status_to_be(expected_status)
+        RSpec.current_example.example_group_instance.expect_last_status_to_be(expected_status)
       end
     end
   end
