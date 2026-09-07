@@ -65,9 +65,14 @@ RSpec.configure do |config|
     XAeonAgents::Helpers.instance_variable_set(:@github, nil)
     # Set debug
     original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
-    ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Debug.debug?
+    ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Log.debug?
+    # Globally capture everything written to stdout and stderr during the example, so that tests
+    # not validating logging don't pollute the test runner's output. In debug mode (TEST_DEBUG=1),
+    # the capture is also dumped to the real stdout/stderr in real time.
     begin
-      example.run
+      with_global_capture do
+        example.run
+      end
     ensure
       ENV['X_AEON_AGENTS_DEBUG'] = original_debug
     end
