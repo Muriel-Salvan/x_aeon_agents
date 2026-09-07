@@ -101,5 +101,98 @@ shared_examples 'an agent using AgentDefaults' do |
         expect(agent_class.new.received_kwargs[tested_configurable_kwarg]).not_to eq 'should-not-apply'
       end
     end
+
+    describe 'validating status logging' do
+      # Suffix displayed in the status after an agent's name, ie. its full name without the name part
+      let(:agent_status_suffix) do
+        # Instantiate a probe agent just to compute its full name, as it is specific to the agent kind
+        # (plain agents display their class, AI agents their model, Cline agents their model...).
+        # This agent is never run, so it does not appear in the displayed statuses.
+        probe_agent = agent_class.new(name: 'status_test_probe')
+        probe_agent.full_name.gsub('status_test_probe', '').strip
+      end
+
+      # Status displayed in front of a root agent having no recorded step: it has no status, so it
+      # is displayed with the unknown status emoji, dimmed.
+      let(:unknown_status) { status_pastel.dim('·') }
+
+      # Make sure agents instantiated by other examples don't pollute the displayed status
+      before { XAeonAgents::AgentDefaults.root_agents = [] }
+
+      it 'displays the full status of 1 root agent' do
+        status_of_single_root_agent = expected_status_string(
+          [
+            ["#{unknown_status} RootAgent", '', '', status_pastel.dim(agent_status_suffix)]
+          ]
+        )
+
+        with_tty_status do
+          agent = agent_class.new(name: 'RootAgent')
+          agent.run
+          expect_last_status_to_be(status_of_single_root_agent)
+        end
+      end
+
+      it 'displays the status of 1 root agent with several runs' do
+        # While there is only 1 run, the root agent is not numbered in the status
+        status_of_first_run = expected_status_string(
+          [
+            ["#{unknown_status} RootAgent", '', '', status_pastel.dim(agent_status_suffix)]
+          ]
+        )
+        status_of_all_runs = expected_status_string(
+          [
+            ["#{unknown_status} RootAgent (run #0)", '', '', status_pastel.dim(agent_status_suffix)],
+            ["#{unknown_status} RootAgent (run #1)", '', '', status_pastel.dim(agent_status_suffix)]
+          ]
+        )
+
+        with_tty_status do
+          agent = agent_class.new(name: 'RootAgent')
+          agent.run
+          expect_last_status_to_be(status_of_first_run)
+          agent.run
+          expect_last_status_to_be(status_of_all_runs)
+        end
+      end
+
+      it 'displays the status of several root agents' do
+        status_of_first_agent = expected_status_string(
+          [
+            ["#{unknown_status} Agent1", '', '', status_pastel.dim(agent_status_suffix)]
+          ]
+        )
+        status_of_all_agents = expected_status_string(
+          [
+            ["#{unknown_status} Agent1", '', '', status_pastel.dim(agent_status_suffix)],
+            ["#{unknown_status} Agent2", '', '', status_pastel.dim(agent_status_suffix)]
+          ]
+        )
+
+        with_tty_status do
+          agent1 = agent_class.new(name: 'Agent1')
+          agent1.run
+          expect_last_status_to_be(status_of_first_agent)
+          agent2 = agent_class.new(name: 'Agent2')
+          agent2.run
+          expect_last_status_to_be(status_of_all_agents)
+        end
+      end
+
+      it 'displays the status of an agent without name' do
+        # The agent's full name is displayed as the name complement, as there is no name to strip
+        status_of_unnamed_agent = expected_status_string(
+          [
+            ["#{unknown_status} ", '', '', status_pastel.dim("Unnamed #{agent_status_suffix}")]
+          ]
+        )
+
+        with_tty_status do
+          agent = agent_class.new
+          agent.run
+          expect_last_status_to_be(status_of_unnamed_agent)
+        end
+      end
+    end
   end
 end

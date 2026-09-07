@@ -19,6 +19,7 @@ module XAeonAgentsTest
     include ReviewContent
     include ReviewResolverAgent
     include Skills
+    include TtyStatus
 
     # Stub a command that can be run through run_cmd.
     #
