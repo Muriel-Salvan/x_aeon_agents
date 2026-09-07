@@ -1,6 +1,7 @@
 require 'logger'
 require 'time'
 require 'human_number'
+require 'pastel'
 require 'tty-cursor'
 require 'tty-screen'
 require 'tty-table'
@@ -27,17 +28,23 @@ module XAeonAgents
   class Logger < ::Logger
     # @!group Public API
 
-    class << self
-      # @return [TTY::Cursor] Cursor instance
-      attr_accessor :cursor
-    end
-    self.cursor = TTY::Cursor
-
     # Maximum size of debug messages printed for progress, in characters
     DEBUG_MESSAGE_MAX_SIZE = 80
 
     # Size of the tokens progress bar displayed in status, in characters
-    STATUS_BAR_SIZE = 20
+    STATUS_BAR_SIZE = 10
+
+    # Emojis displayed in front of each step's name in the status, per status,
+    # with their colors
+    STATUS_EMOJIS = {
+      executed: { symbol: '✓', color: :green },
+      cached: { symbol: '↻', color: :blue },
+      started: { symbol: '◌', color: :yellow },
+      error: { symbol: '✗', color: :red }
+    }
+
+    # Emoji displayed in front of the steps' names having no known status
+    UNKNOWN_STATUS_EMOJI = '·'
 
     # Labels of each severity, used to display the severity in formatted log lines
     SEVERITY_LABELS = {
@@ -204,7 +211,7 @@ module XAeonAgents
         end
       # Go back to where the log line should start.
       nbr_lines_rewind = @last_status_size + (@previous_line_debug ? 1 : 0)
-      print Logger.cursor.up(nbr_lines_rewind) if nbr_lines_rewind.positive?
+      print cursor.up(nbr_lines_rewind) if nbr_lines_rewind.positive?
       # Shift to the bottom as many lines as our log lines have, so that status stays below.
       nbr_lines_to_log = message.count("\n") + (@previous_line_debug ? 0 : 1)
       print "\e[#{nbr_lines_to_log}L" if nbr_lines_to_log.positive?
@@ -216,12 +223,36 @@ module XAeonAgents
     end
 
     # Truncate a line from its end, so that it occupies exactly one row on screen and never wraps.
+    # ANSI escape sequences (colors...) are considered invisible, and never cut in the middle.
     #
     # @param line [String] The line to fit
-    # @param max_size [Integer] Maximum number of characters allowed
+    # @param max_size [Integer] Maximum number of visible characters allowed
     # @return [String] The fitted line
     def fit_line(line, max_size)
-      line.size > max_size ? line[0, max_size] : line
+      return line if visible_size(line) <= max_size
+
+      fitted_line = +''
+      visible_count = 0
+      line.scan(/#{ANSI_ESCAPE_PATTERN}|[\s\S]/) do |token|
+        break unless visible_count < max_size
+
+        fitted_line << token
+        visible_count += 1 unless token.start_with?("\e")
+      end
+      # Never leave a color opened when the truncation cut a colored segment
+      fitted_line << "\e[0m" if fitted_line.include?("\e")
+      fitted_line
+    end
+
+    # Pattern matching ANSI escape sequences (colors...), considered invisible in size measurements
+    ANSI_ESCAPE_PATTERN = /\e\[[0-9;]*[A-Za-z]/
+
+    # Compute the visible size of a line, ignoring ANSI escape sequences.
+    #
+    # @param line [String] The line to measure
+    # @return [Integer] Number of visible characters
+    def visible_size(line)
+      line.gsub(ANSI_ESCAPE_PATTERN, '').size
     end
 
     # Build a nice multi-line String displaying the status of all steps of all runs of all agents.
@@ -258,6 +289,7 @@ module XAeonAgents
             children: []
           }
           if run_info.respond_to?(:steps) && !run_info.steps.empty?
+            # A root node has no status of its own: it displays the status of its last child.
             root_step.merge!(
               status: run_info.steps.last[:status],
               children: run_info.steps
@@ -274,11 +306,11 @@ module XAeonAgents
       #   context_tokens_limit: usages.last&.context_tokens_limit
       # }
       # Create a nice multi-line String logging the status with alignment and hierarchy, like this:
-      # DeveloperAgent           | ...    |
-      # +- setup_requirements    | Cached |
-      # +- PlannerAgent          | OK     | $2.50 | [1.5K |==---------| 1MB] - Cline deepseek/deepseek-v4
-      # |  +- PlanGeneratorAgent | OK     | $2.50 | [ 50K |======-----| 1MB] - Cline deepseek/deepseek-v4
-      # +- CoderAgent            | ...    | $2.50 | [ 50K |======-----| 1MB] - Cline deepseek/deepseek-v4
+      # · DeveloperAgent           $2.50  1.5K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
+      # ✓ setup_requirements
+      # ✓ PlannerAgent             $2.50  1.5K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
+      # │ └─ ✓ PlanGeneratorAgent  $2.50   50K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
+      # └─ ↻ CoderAgent            $2.50   50K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
       nodes = status_nodes(status_info)
       usage_displays = nodes.map { |node| status_usage_display(node) }
       used_displays = usage_displays.compact
@@ -288,10 +320,9 @@ module XAeonAgents
       rows = nodes.zip(usage_displays).map do |node, usage_display|
         [
           status_hierarchy_name(node),
-          node[:status].to_s,
           usage_display ? usage_display[:cost] : '',
           usage_display ? status_progress_block(usage_display, tokens_width, limit_width) : '',
-          node[:agent].respond_to?(:full_name) ? node[:agent].full_name : ''
+          node[:agent].respond_to?(:full_name) ? pastel.dim(node[:agent].full_name) : ''
         ]
       end
       return '' if rows.empty?
@@ -300,23 +331,60 @@ module XAeonAgents
     end
 
     # Flatten the tree of step run information into a list of nodes, in display order.
+    # Compute the tree prefix (├─, └─, │) to be displayed in front of each node's name.
     #
     # @param status_info [Array<Hash>] Tree of step run information
-    # @return [Array<Hash>] Flattened list of nodes
-    def status_nodes(status_info)
-      status_info.flat_map do |step_run_info|
-        [step_run_info] + status_nodes(step_run_info[:children])
+    # @param parent_prefix [String] Tree prefix accumulated from the ancestors
+    # @return [Array<Hash>] Flattened list of nodes, each having an added *prefix* property
+    def status_nodes(status_info, parent_prefix = '')
+      status_info.flat_map.with_index do |step_run_info, idx|
+        is_last_child = idx == status_info.size - 1
+        connector, continuation =
+          if (step_run_info[:index] || []).empty?
+            ['', '']
+          elsif is_last_child
+            ['└─ ', '   ']
+          else
+            ['├─ ', '│   ']
+          end
+        node = step_run_info.merge(prefix: "#{parent_prefix}#{connector}")
+        [node] + status_nodes(step_run_info[:children], "#{parent_prefix}#{continuation}")
       end
     end
 
-    # Get the hierarchical name of a step, with prefixes showing its depth in the hierarchy of steps.
+    # Get the colored emoji representing a step's status.
+    #
+    # @param status [Symbol, String, nil] Status of the step
+    # @return [String] Colored emoji to be displayed in front of the step's name
+    def status_emoji(status)
+      emoji = STATUS_EMOJIS[status.to_sym] if status.respond_to?(:to_sym)
+      return pastel.dim(UNKNOWN_STATUS_EMOJI) unless emoji
+
+      pastel.public_send(emoji[:color], emoji[:symbol])
+    end
+
+    # Get the TTY::Cursor module used to manipulate the cursor for the status-aware output.
+    #
+    # @return [TTY::Cursor]
+    def cursor
+      @cursor ||= TTY::Cursor
+    end
+
+    # Get the Pastel instance used to colorize the status.
+    # Created lazily, so that color support is detected when the status is first displayed.
+    #
+    # @return [Pastel]
+    def pastel
+      @pastel ||= Pastel.new
+    end
+
+    # Get the hierarchical name of a step, with its status emoji and a tree prefix showing its depth
+    # in the hierarchy of steps.
     #
     # @param node [Hash] Step run information node
     # @return [String] Hierarchical name
     def status_hierarchy_name(node)
-      depth = (node[:index] || []).size
-      prefix = depth.zero? ? '' : "#{'|  ' * (depth - 1)}+- "
-      "#{prefix}#{node[:step_name]}"
+      "#{status_emoji(node[:status])} #{node[:prefix]}#{node[:step_name]}"
     end
 
     # Get the usage display information of a step's run, if any.
@@ -339,7 +407,7 @@ module XAeonAgents
         cost: HumanNumber.currency(usage[:cost] || 0.0, currency_code: 'USD'),
         tokens: HumanNumber.human_number(tokens, max_digits: 2),
         limit: HumanNumber.human_number(tokens_limit, max_digits: 2),
-        bar: "#{'=' * filled_size}#{'-' * (STATUS_BAR_SIZE - filled_size)}"
+        bar: "#{'█' * filled_size}#{'░' * (STATUS_BAR_SIZE - filled_size)}"
       }
     end
 
@@ -350,28 +418,25 @@ module XAeonAgents
     # @param limit_width [Integer] Width to align the limit number
     # @return [String] The progress block cell
     def status_progress_block(usage_display, tokens_width, limit_width)
-      "[#{usage_display[:tokens].rjust(tokens_width)} |#{usage_display[:bar]}| #{usage_display[:limit].ljust(limit_width)}]"
+      "#{usage_display[:tokens].rjust(tokens_width)} tok [#{usage_display[:bar]}] #{usage_display[:limit].ljust(limit_width)}"
     end
 
-    # Render the status rows as an aligned table, without borders, just column separators.
+    # Render the status rows as an aligned table, without borders nor column separators.
     #
-    # @param rows [Array<Array<String>>] Rows of 5 cells: hierarchical name, status, cost, progress block, model
+    # @param rows [Array<Array<String>>] Rows of 4 cells: hierarchical name, cost, progress block, model
     # @return [String] Multi-line table
     def render_status_table(rows)
       TTY::Table.new(rows).render do |renderer|
         # Never rotate the table to vertical orientation, whatever the terminal width is
         renderer.width = Float::INFINITY
         renderer.border do
-          center ' | '
+          center '  '
           top ''
           bottom ''
           left ''
           right ''
         end
-      end.split("\n").map do |line|
-        # Remove trailing empty columns, as some rows don't have usage or model information
-        line.rstrip.sub(/(?:\s*\|)+\z/, '').rstrip
-      end.join(LINE_SEPARATOR)
+      end.split("\n").map(&:rstrip).join(LINE_SEPARATOR)
     end
   end
 end
