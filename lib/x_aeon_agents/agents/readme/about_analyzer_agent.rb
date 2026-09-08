@@ -31,7 +31,7 @@ module XAeonAgents
         # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
         def initialize(**agent_params)
           super(
-            name: 'About Analyzer',
+            name: 'About section generator',
             objective: <<~EO_OBJECTIVE,
               Analyze the project's code, features and layout to understand its purpose and interface.
               Provide the following information:

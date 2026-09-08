@@ -24,6 +24,13 @@ module XAeonAgents
         }
       end
 
+      # Constructor
+      #
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(**agent_params)
+        super(name: 'Planner', **agent_params)
+      end
+
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param requirements [String] The initial requirements.
@@ -38,35 +45,39 @@ module XAeonAgents
               'step-by-step implementation plan in Markdown format'
           ]
         }
-        loop do
-          step_agent(plan_generator_agent, user_instructions:)
+        loop.with_index do |plan_idx|
+          task(plan_generator_agent, intent: "Generate an implementation plan (pass ##{plan_idx})", user_instructions:)
           @artifacts[:plan].strip!
-          content, user_prompt = Helpers.review_content(
-            reviews_dir: "#{@session_dir}/reviews",
-            name: 'plan.md',
-            description: 'Implementation plan',
-            editable: true,
-            promptable: true,
-            content: @artifacts[:plan]
-          )
-          diffs =
-            if @artifacts[:plan] == content
-              nil
-            else
-              # Use an unbundled env as Diffy make system calls that can be perturbated by our current environment.
-              Bundler.with_unbundled_env do
-                Diffy::Diff.new("#{@artifacts[:plan].strip}\n", "#{content.strip}\n", context: 3, include_diff_info: true).to_s
+          task(:review_plan, name: 'Review plan', intent: 'Ask the user to review the implementation plan') do
+            content, user_prompt = Helpers.review_content(
+              reviews_dir: "#{@session_dir}/reviews",
+              name: 'plan.md',
+              description: 'Implementation plan',
+              editable: true,
+              promptable: true,
+              content: @artifacts[:plan]
+            )
+            diffs =
+              if @artifacts[:plan] == content
+                nil
+              else
+                # Use an unbundled env as Diffy make system calls that can be perturbated by our current environment.
+                Bundler.with_unbundled_env do
+                  Diffy::Diff.new("#{@artifacts[:plan].strip}\n", "#{content.strip}\n", context: 3, include_diff_info: true).to_s
+                end
               end
-            end
-          @artifacts[:plan] = content
-          break if user_prompt.empty?
+            @artifacts[:plan] = content
+            @artifacts[:user_prompt] = user_prompt
+            @artifacts[:diffs] = diffs
+          end
+          break if @artifacts[:user_prompt].empty?
 
           user_instructions = <<~EO_INSTRUCTIONS
-            #{user_prompt}
+            #{@artifacts[:user_prompt]}
 
             Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
           EO_INSTRUCTIONS
-          user_instructions << <<~EO_INSTRUCTIONS if diffs
+          user_instructions << <<~EO_INSTRUCTIONS if @artifacts[:diffs]
 
             The user performed the following modifications on your implementation plan.
             You have to take them into account while revising the plan.
@@ -74,7 +85,7 @@ module XAeonAgents
             ```
             #{
               # Remove the 2 first lines (headers of temporary file names).
-              diffs.to_s.split("\n")[2..].join("\n").strip
+              @artifacts[:diffs].to_s.split("\n")[2..].join("\n").strip
             }
             ```
           EO_INSTRUCTIONS

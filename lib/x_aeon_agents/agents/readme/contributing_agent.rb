@@ -22,7 +22,7 @@ module XAeonAgents
         # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
         def initialize(**agent_params)
           super(
-            name: 'Contributing',
+            name: 'Contributing section generator',
             objective: <<~EO_OBJECTIVE,
               Analyze the project's CONTRIBUTING guidelines, issue templates, pull request templates, and any community guidelines.
               Generate a "Contributing" section in Markdown format, compatible with Github flavor, explaining how users can contribute to the project.

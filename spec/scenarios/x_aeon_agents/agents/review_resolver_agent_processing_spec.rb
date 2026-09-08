@@ -88,7 +88,7 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
           expect(github_double).to have_received(:create_pull_request_comment_reply).with(
             'owner/repo',
             42,
-            '[X-Aeon Agent ReviewResponder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
+            '[X-Aeon Agent Review feedback responder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
               'Implemented the requested validation method. In response to: ' \
               '/agent Please add a validation method.',
             666
@@ -171,7 +171,7 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
           expect(github_double).to have_received(:create_pull_request_comment_reply).with(
             'owner/repo',
             42,
-            '[X-Aeon Agent ReviewResponder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
+            '[X-Aeon Agent Review feedback responder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
               'I think the naming is fine as is. In response to: ' \
               '/agent What do you think about the naming?.',
             666

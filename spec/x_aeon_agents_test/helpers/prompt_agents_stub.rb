@@ -22,6 +22,9 @@ module XAeonAgentsTest
       #   are stubbed with RSpec mocks scoped to the current example, so that other test cases keep running their
       #   real behavior. This is meant for orchestrator agents directly used by the code under test (eg. CLI commands),
       #   so that their run method does not execute for real but returns the mocked artifacts given by the stub handler.
+      # @param agent_stub_block [#call(agent), nil] Optional block called with each stubbed agent instance from
+      #   +agent_classes+ after its +run+ method has been stubbed. Use it to stub additional methods on the instance
+      #   (e.g. methods returning co-author information) without resorting to +allow_any_instance_of+.
       #
       # @example Default stub (sets @conversation to a default message)
       #   stub_agent_run
@@ -40,7 +43,8 @@ module XAeonAgentsTest
           agent.track_message(message: 'mocked AI response', author: 'assistant') if agent.respond_to?(:track_message)
           {}
         },
-        agent_classes: []
+        agent_classes: [],
+        agent_stub_block: nil
       )
         @agent_run_calls = []
         @agent_new_calls = []
@@ -68,6 +72,7 @@ module XAeonAgentsTest
               filtered_artifacts = Stubs::PromptAgentsStubAgent.record_run_call(agent, run_args, run_kwargs)
               stub_handler.call(agent, *run_args, **filtered_artifacts)
             end
+            agent_stub_block&.call(agent)
             agent
           end
         end

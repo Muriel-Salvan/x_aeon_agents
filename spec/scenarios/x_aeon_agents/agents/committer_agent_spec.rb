@@ -3,21 +3,25 @@ require_relative 'shared_examples/common_behavior'
 
 describe XAeonAgents::Agents::CommitterAgent do
   before do
-    # Stub GitDiffInterpreterAgent to avoid AI calls.
-    # The run method outputs the 2 needed artifacts (one_line_summary, change_intent)
-    # using the content of the input artifacts (the actual git cached diff).
-    agent = instance_double(XAeonAgents::Agents::GitDiffInterpreterAgent)
-    allow(agent).to receive(:run) do |git_ref_base:|
-      {
-        one_line_summary: "1-line summary of diff from #{git_ref_base}",
-        change_intent: "Change intent of the diff from #{git_ref_base}"
+    stub_agent_run(
+      agent_classes: [XAeonAgents::Agents::GitDiffInterpreterAgent],
+      stub_handler: lambda { |agent, **kwargs|
+        case agent
+        when XAeonAgents::Agents::GitDiffInterpreterAgent
+          {
+            one_line_summary: "1-line summary of diff from #{kwargs[:git_ref_base]}",
+            change_intent: "Change intent of the diff from #{kwargs[:git_ref_base]}"
+          }
+        else
+          {}
+        end
+      },
+      agent_stub_block: lambda { |agent|
+        allow(agent).to receive(:diff_interpreter_agent) do
+          instance_double(XAeonAgents::Agents::DiffInterpreterAgent, full_name: 'Test Agent')
+        end
       }
-    end
-    allow(agent).to receive(:diff_interpreter_agent) do
-      instance_double(XAeonAgents::Agents::DiffInterpreterAgent, full_name: 'Test Agent')
-    end
-    allow(XAeonAgents::Agents::GitDiffInterpreterAgent).to receive(:new)
-      .and_return(agent)
+    )
     # Stub Launchy.open and $stdin.gets to avoid interactive prompts during tests
     stub_review_content
   end

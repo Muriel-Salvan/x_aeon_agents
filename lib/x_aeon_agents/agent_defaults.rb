@@ -80,6 +80,52 @@ module XAeonAgents
               **kwargs_from_config.merge(kwargs)
             )
           end
+
+          # Define a task that is resumable and that will log big steps of an agent.
+          # A task can be nested in other tasks.
+          #
+          # @param task_ref [Symbol, ComposableAgents::Agent] Task reference: can be an ID or an Agent to be run.
+          # @param name [String] Task name (used in status and logs).
+          # @param intent [String] Task intent (used in logs).
+          # @param kwargs [Hash{Symbol => Object}] Additional input artifacts to merge before the task executes.
+          # @yield The code called for this task if it is not an Agent.
+          def task(
+            task_ref = :task,
+            name: task_ref.is_a?(ComposableAgents::Agent) ? task_ref.name : task_ref.to_s,
+            intent: 'Execute',
+            **kwargs,
+            &
+          )
+            @step_metadata = {
+              name:,
+              intent:
+            }
+            artifacts_before = @artifacts.clone
+            logger.info "[Task #{name}] - #{intent}"
+            if task_ref.is_a?(Symbol)
+              step(task_ref, **kwargs, &)
+            else
+              step_agent(task_ref, **kwargs)
+            end
+            added_artifacts = @artifacts.keys - artifacts_before.keys
+            logger.info "[Task #{name}] - Created #{added_artifacts.size} new artifacts: #{added_artifacts.join(', ')}"
+          end
+
+          private
+
+          # Override record_step to inject the metadata into the step node.
+          #
+          # @param step_name [Symbol] Name of the step, mirroring the one used by the persisted steps.
+          # @param agent [ComposableAgents::Agent, nil] The agent run by this step, or nil for plain steps.
+          # @param extra_input_artifacts [Hash{Symbol => Object}] Input artifacts given to the step.
+          # @yield The code of the step to be executed
+          def record_step(step_name:, agent:, extra_input_artifacts:, &block)
+            super do
+              @current_step_node[:metadata] = @step_metadata if @step_metadata
+              @step_metadata = nil
+              block&.call
+            end
+          end
         end
       )
     end

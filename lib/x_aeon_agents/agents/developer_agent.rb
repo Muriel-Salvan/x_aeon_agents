@@ -31,7 +31,7 @@ module XAeonAgents
       def run(requirements:)
         super
         # Initial artifacts
-        step(:setup_requirements) do
+        task(:setup_requirements, name: 'Setup requirements', intent: 'Initialize requirements from the current commit') do
           @artifacts.merge!(
             requirements:,
             base_sha: Helpers.git.gcommit('HEAD').sha
@@ -39,40 +39,44 @@ module XAeonAgents
         end
 
         planner_agent = new_agent(PlannerAgent)
-        step_agent(planner_agent)
+        task(planner_agent, intent: 'Devise an implementation plan for the requirements')
 
         coder_agent = new_agent(CoderAgent)
 
-        step_agent(
+        task(
           coder_agent,
+          intent: 'Implement the requirements following the implementation plan',
           user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_agent.artifact_ref(:plan)}`."
         )
         logger.info "Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
-        step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent])) if @commit
+        task(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent]), intent: 'Commit coder changes') if @commit
 
         tester_agent = nil
         tests_cmd = Config.test_project_cmd
         unless tests_cmd.nil?
           tester_agent = new_agent(TesterAgent)
 
-          step(:test) do
+          task(:test, name: 'Verify tests', intent: 'Make sure tests are succeeding') do
             @artifacts[:tests_cmd] = tests_cmd
             idx_test = 0
             loop do
-              logger.info "Run tests ##{idx_test}..."
-              test_result = Helpers.run_cmd(tests_cmd, expected_exit_status: nil)
-              logger.info "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
-              @artifacts[:tests_output] = <<~EO_ARTIFACT
-                ```
-                #{test_result[:stdout]}
-                ```
-              EO_ARTIFACT
-              break if test_result[:exit_status].zero?
+              task(:run_tests, name: "Run tests (pass ##{idx_test})", intent: 'Check for regressions') do
+                test_result = Helpers.run_cmd(tests_cmd, expected_exit_status: nil)
+                logger.info "Tests ##{idx_test} exit status: #{test_result[:exit_status]}"
+                @artifacts[:tests_output] = <<~EO_ARTIFACT
+                  ```
+                  #{test_result[:stdout]}
+                  ```
+                EO_ARTIFACT
+                @artifacts[:tests_exit_status] = test_result[:exit_status]
+              end
+              break if @artifacts[:tests_exit_status]&.zero?
 
               @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
-              step_agent(
+              task(
                 tester_agent,
+                intent: 'Fix failing tests',
                 user_instructions: {
                   ordered_list: [
                     <<~EO_STEP,
@@ -119,19 +123,20 @@ module XAeonAgents
 
                 EO_PLAN
               end
-              step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
+              task(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent]), intent: 'Commit tester changes') if @commit
               idx_test += 1
             end
           end
 
-          step_agent(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent])) if @commit
+          task(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent]), intent: 'Commit final tester changes') if @commit
         end
 
         documenter_agent = new_agent(DocumenterAgent)
         @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
 
-        step_agent(
+        task(
           documenter_agent,
+          intent: 'Document the changes',
           user_instructions: {
             ordered_list: [
               <<~EO_STEP,
@@ -204,18 +209,19 @@ module XAeonAgents
         logger.info "Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
 
         if @commit || @pull_request
-          step_agent(
+          task(
             new_agent(
               CommitterAgent,
               user_review: false,
               stage: :all,
               authors: (@commit ? [] : [coder_agent, tester_agent].compact) + [documenter_agent]
-            )
+            ),
+            intent: 'Commit documenter changes'
           )
         end
 
         if @pull_request
-          step_agent(
+          task(
             new_agent(
               PullRequestCreatorAgent,
               authors: [
@@ -224,7 +230,8 @@ module XAeonAgents
                 tester_agent,
                 documenter_agent
               ].compact
-            )
+            ),
+            intent: 'Push changes and create/update Pull Request'
           )
         end
 

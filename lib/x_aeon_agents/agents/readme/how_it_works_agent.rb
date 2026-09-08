@@ -22,7 +22,7 @@ module XAeonAgents
         # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
         def initialize(**agent_params)
           super(
-            name: 'How it works',
+            name: 'How it works section generator',
             objective: <<~EO_OBJECTIVE,
               Analyze the project's architecture, design patterns, and internal workings.
               Generate a "How it works" section in Markdown format, compatible with Github flavor, explaining the internal architecture and working principles.

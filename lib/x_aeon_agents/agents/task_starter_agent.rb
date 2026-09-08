@@ -24,6 +24,13 @@ module XAeonAgents
         { worktree_dir: 'The directory where the worktree was created' }
       end
 
+      # Constructor
+      #
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(**agent_params)
+        super(name: 'Task starter', **agent_params)
+      end
+
       # Execute the agent to open a new git worktree for a feature branch.
       #
       # @param branch_name [String] Name of the git branch to create worktree for
@@ -33,7 +40,11 @@ module XAeonAgents
         dir = ".worktrees/#{branch_name.tr('/', '_')}"
         logger.info "Setting worktree #{dir} to work on branch #{branch_name}..."
         # Create the branch if it does not exist (without checking it out)
-        Helpers.git.branch(branch_name).create unless Helpers.git.branches.any? { |branch| branch.name == branch_name }
+        unless Helpers.git.branches.any? { |branch| branch.name == branch_name }
+          task(:create_branch, name: 'Create branch', intent: "Create new git branch #{branch_name}") do
+            Helpers.git.branch(branch_name).create
+          end
+        end
         # Create the git worktree only if it does not exist yet (idempotent)
         if File.directory?(dir)
           # The directory already exists: it must be a git worktree for the requested branch.
@@ -54,17 +65,23 @@ module XAeonAgents
             EO_MSG
           end
         else
-          # Call git worktree add on existing branches only
-          Helpers.git.lib.worktree_add(dir, branch_name)
-          # Install the project's dependencies in the fresh worktree, as configured
-          setup_fresh_worktree(dir)
+          task(:create_worktree, name: 'Create worktree', intent: "Create worktree in #{dir} for branch #{branch_name}") do
+            # Call git worktree add on existing branches only
+            Helpers.git.lib.worktree_add(dir, branch_name)
+          end
+          task(:setup_project, name: 'Setup project', intent: "Setup project in worktree #{dir}") do
+            # Install the project's dependencies in the fresh worktree, as configured
+            setup_fresh_worktree(dir)
+          end
         end
-        # Push to remote if branch doesn't exist there yet
-        # TODO: Use ruby-git when the --set-upstream option will be supported by its push method
-        # (ruby-git 4.x validates push options against PUSH_OPTION_MAP, which does not include
-        # set_upstream, so we fall back to a raw git command that both pushes and sets the
-        # upstream tracking in a single atomic operation.)
-        Helpers.run_cmd("git push --set-upstream #{Helpers.github_remote.name} #{branch_name}")
+        task(:push_branch, name: 'Push branch', intent: "Push branch #{branch_name} on repo #{Helpers.github_remote.name}") do
+          # Push to remote if branch doesn't exist there yet
+          # TODO: Use ruby-git when the --set-upstream option will be supported by its push method
+          # (ruby-git 4.x validates push options against PUSH_OPTION_MAP, which does not include
+          # set_upstream, so we fall back to a raw git command that both pushes and sets the
+          # upstream tracking in a single atomic operation.)
+          Helpers.run_cmd("git push --set-upstream #{Helpers.github_remote.name} #{branch_name}")
+        end
         # Execute the configured callback notifying that a new worktree has been opened
         open_worktree(dir)
         { worktree_dir: dir }
@@ -94,7 +111,9 @@ module XAeonAgents
         open_proc = Config.open_worktree_proc
         return if open_proc.nil?
 
-        open_proc.call(dir)
+        task(:open_worktree, name: 'Open worktree', intent: "Open worktree #{dir}") do
+          open_proc.call(dir)
+        end
       end
     end
   end

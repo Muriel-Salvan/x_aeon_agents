@@ -27,7 +27,7 @@ module XAeonAgents
       #
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(**agent_params)
-        super(name: 'Git Diff Interpreter', **agent_params)
+        super(name: 'Git diff interpreter', **agent_params)
       end
 
       # Execute the agent to generate some output artifacts based on some input artifacts.
@@ -36,11 +36,15 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(git_ref_base:)
         super
-        step_agent(
+        task(
           diff_interpreter_agent,
+          intent: "Analyze git diffs from #{git_ref_base}",
           files_diff: Helpers.artifact_files_diffs(git_ref_base == 'cached' ? :cached : git_ref_base)
         )
-        step_agent(new_agent(OneLineCodeDiffSummarizerAgent))
+        task(
+          new_agent(OneLineCodeDiffSummarizerAgent),
+          intent: 'Summarize git diffs in 1 line'
+        )
         {
           change_intent: @artifacts[:change_intent],
           one_line_summary: @artifacts[:one_line_summary]

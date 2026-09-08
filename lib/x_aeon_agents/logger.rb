@@ -283,6 +283,8 @@ module XAeonAgents
           # If the run_info is not given, it means we are dealing with a child (from step or step_agent)
           #   and those will only have 1 run maximum.
           run_info: step_run_info[:run_info] || step_run_info[:agent]&.runs_info&.first,
+          # Name metadata of the step (eg. set by AgentDefaults#task), used by the status display
+          metadata: step_run_info[:metadata],
           children: step_run_info[:children].map(&steps_run_map)
         }
       end
@@ -393,7 +395,7 @@ module XAeonAgents
     # @param node [Hash] Step run information node
     # @return [String] Hierarchical name
     def status_hierarchy_name(node)
-      "#{status_emoji(node[:status])} #{node[:prefix]}#{node[:step_name]}"
+      "#{status_emoji(node[:status])} #{node[:prefix]}#{node.dig(:metadata, :name) || node[:step_name]}"
     end
 
     # Get the complement of an agent's name in its full name, to be displayed in the status:

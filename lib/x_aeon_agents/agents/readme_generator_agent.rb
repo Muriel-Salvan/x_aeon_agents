@@ -29,6 +29,13 @@ module XAeonAgents
         }
       end
 
+      # Constructor
+      #
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(**agent_params)
+        super(name: 'Readme generator', **agent_params)
+      end
+
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
       # @param readme_file_path [String] Path to the README file.
@@ -62,8 +69,9 @@ module XAeonAgents
         # Each section of the README has a dedicated agent who generates its content in an artifact.
         if gen_about
           about_analyzer_agent = new_agent(Readme::AboutAnalyzerAgent)
-          step_agent(
+          task(
             about_analyzer_agent,
+            intent: 'Generate README About section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's code, features and layout.
               Devise the goal of this project, what problem it solves, and using which interface (CLI, library, web app...).
@@ -81,8 +89,9 @@ module XAeonAgents
 
         if gen_quick_start
           quick_start_agent = new_agent(Readme::QuickStartAgent)
-          step_agent(
+          task(
             quick_start_agent,
+            intent: 'Generate README Quick Start section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's installation and usage patterns.
               Create an artifact named `#{quick_start_agent.artifact_ref(:quick_start)}` with quick installation and usage instructions
@@ -94,8 +103,9 @@ module XAeonAgents
 
         if gen_requirements
           requirements_agent = new_agent(Readme::RequirementsAgent)
-          step_agent(
+          task(
             requirements_agent,
+            intent: 'Generate README Requirements section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's dependencies, runtime environment, and prerequisites.
               Create an artifact named `#{requirements_agent.artifact_ref(:requirements)}` listing all prerequisites needed to use or run the project
@@ -108,8 +118,9 @@ module XAeonAgents
 
         if gen_features
           features_agent = new_agent(Readme::FeaturesAgent)
-          step_agent(
+          task(
             features_agent,
+            intent: 'Generate README Features section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's codebase and capabilities to identify all key features.
               Create an artifact named `#{features_agent.artifact_ref(:features)}` listing the main features of the project
@@ -121,8 +132,9 @@ module XAeonAgents
 
         if gen_public_api
           public_api_agent = new_agent(Readme::PublicApiAgent)
-          step_agent(
+          task(
             public_api_agent,
+            intent: 'Generate README Public API section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's codebase to identify all public APIs, classes, methods, and interfaces exposed to users.
               Create an artifact named `#{public_api_agent.artifact_ref(:public_api)}` documenting the public API surface
@@ -141,8 +153,9 @@ module XAeonAgents
 
         if gen_documentation
           documentation_agent = new_agent(Readme::DocumentationAgent)
-          step_agent(
+          task(
             documentation_agent,
+            intent: 'Generate README Documentation section',
             user_instructions: <<~EO_INSTRUCTIONS
               Explore this project's documentation files and resources to identify all available documentation.
               Create an artifact named `#{documentation_agent.artifact_ref(:documentation)}` providing links to documentation resources
@@ -156,8 +169,9 @@ module XAeonAgents
 
         if gen_how_it_works
           how_it_works_agent = new_agent(Readme::HowItWorksAgent)
-          step_agent(
+          task(
             how_it_works_agent,
+            intent: 'Generate README "How does it work" section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's architecture, design patterns, and internal workings.
               Create an artifact named `#{how_it_works_agent.artifact_ref(:how_it_works)}` explaining the internal architecture and working principles
@@ -169,8 +183,9 @@ module XAeonAgents
 
         if gen_development
           development_agent = new_agent(Readme::DevelopmentAgent)
-          step_agent(
+          task(
             development_agent,
+            intent: 'Generate README Development section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's development setup, build system, testing framework, and development workflows.
               Create an artifact named `#{development_agent.artifact_ref(:development)}` explaining how to set up a development environment to code for this project
@@ -181,8 +196,9 @@ module XAeonAgents
 
         if gen_contributing
           contributing_agent = new_agent(Readme::ContributingAgent)
-          step_agent(
+          task(
             contributing_agent,
+            intent: 'Generate README Contributing section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's CONTRIBUTING guidelines, issue templates, pull request templates, and any community guidelines.
               Create an artifact named `#{contributing_agent.artifact_ref(:contributing)}` explaining how users can contribute to the project
@@ -195,8 +211,9 @@ module XAeonAgents
 
         if gen_license
           license_agent = new_agent(Readme::LicenseAgent)
-          step_agent(
+          task(
             license_agent,
+            intent: 'Generate README License section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's LICENSE file to identify the license type and terms.
               Create an artifact named `#{license_agent.artifact_ref(:license)}` describing the project license
@@ -207,7 +224,7 @@ module XAeonAgents
         end
 
         # Assemble README.md from all section artifacts
-        step(:assemble_readme) do
+        task(:assemble_readme, name: 'Assemble README sections', intent: 'Assemble all sections in the README file') do
           sections = File.exist?(readme_file_path) ? parse_sections(File.read(readme_file_path)) : []
           header_content = nil
 
