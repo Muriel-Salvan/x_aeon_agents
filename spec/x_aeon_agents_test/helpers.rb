@@ -6,7 +6,6 @@ require 'time'
 
 module XAeonAgentsTest
   module Helpers
-    include AgentConfigurability
     include Cli
     include DeveloperAgent
     include GenerateReadme
