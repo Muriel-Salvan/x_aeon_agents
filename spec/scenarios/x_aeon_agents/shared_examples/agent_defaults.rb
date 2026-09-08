@@ -116,6 +116,15 @@ shared_examples 'an agent using AgentDefaults' do |
       # is displayed with the unknown status emoji, dimmed.
       let(:unknown_status) { status_pastel.dim('·') }
 
+      # Colored emojis expected in the status, per step status
+      let(:status_emojis) do
+        {
+          executed: status_pastel.green('✓'),
+          started: status_pastel.yellow('◌'),
+          error: status_pastel.red('✗')
+        }
+      end
+
       # Make sure agents instantiated by other examples don't pollute the displayed status
       before { XAeonAgents::AgentDefaults.root_agents = [] }
 
@@ -191,6 +200,67 @@ shared_examples 'an agent using AgentDefaults' do |
           agent = agent_class.new
           agent.run
           expect_last_status_to_be(status_of_unnamed_agent)
+        end
+      end
+
+      it 'truncates the status lines to the screen width' do
+        # The status row (status emoji, space, 130-character agent name and the agent's complement)
+        # exceeds the screen width (120 columns): it is truncated to 119 visible characters, so that
+        # it always fits on exactly 1 row, and the cut colored segment is properly closed.
+        expected_truncated_status = "#{unknown_status} #{'A' * 117}\e[0m"
+
+        with_tty_status do
+          agent = agent_class.new(name: 'A' * 130)
+          agent.run
+          expect_last_status_to_be(expected_truncated_status)
+        end
+      end
+
+      it 'degrades to plain sequential output when the status does not fit on the screen' do
+        status_while_third_step_started = expected_status_string(
+          [
+            ["#{status_emojis[:started]} RootAgent", '', '', status_pastel.dim(agent_status_suffix)],
+            ["#{status_emojis[:executed]} ├─ first_step", '', '', ''],
+            ["#{status_emojis[:executed]} ├─ second_step", '', '', ''],
+            ["#{status_emojis[:started]} └─ third_step", '', '', '']
+          ]
+        )
+        status_when_all_executed = expected_status_string(
+          [
+            ["#{status_emojis[:executed]} RootAgent", '', '', status_pastel.dim(agent_status_suffix)],
+            ["#{status_emojis[:executed]} ├─ first_step", '', '', ''],
+            ["#{status_emojis[:executed]} ├─ second_step", '', '', ''],
+            ["#{status_emojis[:executed]} └─ third_step", '', '', '']
+          ]
+        )
+
+        with_tty_status(screen_height: 5) do
+          agent = agent_class.new(name: 'RootAgent')
+          agent.run_proc = lambda do
+            step(:first_step) { logger.info 'First step is running' }
+            step(:second_step) { logger.info 'Second step is running' }
+            step(:third_step) do
+              logger.info 'Third step is running'
+              # The status (4 rows) cannot fit on the 5-row screen with the log line above it: the
+              # status is still displayed, but in degraded plain sequential output.
+              expect_last_status_to_be(status_while_third_step_started)
+            end
+            expect_last_status_to_be(status_when_all_executed)
+            @output_artifacts = {}
+          end
+          agent.run
+          log_message('Agent has been run')
+          expect_last_status_to_be(status_when_all_executed)
+          # From the first degraded status onward, the output is plain sequential: each log line is
+          # followed by a blank line and the full status, without any cursor manipulation, as the
+          # display bookkeeping has been reset.
+          raw_output = tty_screen_raw_output
+          first_degraded_index = raw_output.index(status_while_third_step_started)
+          degraded_output = raw_output[first_degraded_index..]
+          expect(degraded_output).not_to match(/\e\[\d*[A-L]/)
+          expect(degraded_output).to end_with(
+            "#{XAeonAgents::Logger::LINE_SEPARATOR * 2}#{status_when_all_executed}#{XAeonAgents::Logger::LINE_SEPARATOR}"
+          )
         end
       end
     end
