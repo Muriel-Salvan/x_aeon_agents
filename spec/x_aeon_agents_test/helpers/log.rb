@@ -107,24 +107,37 @@ module XAeonAgentsTest
       # Run a block in a simulated TTY context.
       # Use a fresh logger (so that colors and cursor bookkeeping start fresh), a fixed screen size
       # and forced colors, to make the status display deterministic.
+      # The screen size can be tuned to test the logger's behaviors depending on it (eg. degraded
+      # output when the status does not fit on the screen).
       # The screen capturing what gets displayed is stored in the @tty_screen instance variable, so
       # that it can be polled from anywhere in the example (including from within agents' run stubs),
       # typically right after each logging event, to validate what is being displayed.
       #
+      # @param screen_width [Integer] Width of the simulated screen
+      # @param screen_height [Integer] Height of the simulated screen
       # @yield The code to execute in the simulated TTY context
-      def with_tty_status(&)
+      def with_tty_status(screen_width: 120, screen_height: 40, &)
         # Create the forced-colors Pastel instance before stubbing Pastel.new, as it will be the one
         # returned by the stub to the logger when it creates its own Pastel instance.
         forced_colors_pastel = status_pastel
         screen = Screen.new
         @tty_screen = screen
-        allow(TTY::Screen).to receive_messages(width: 120, height: 40)
+        allow(TTY::Screen).to receive_messages(width: screen_width, height: screen_height)
         allow(Pastel).to receive(:new).and_return(forced_colors_pastel)
         begin
           with_captured_output(screen.io, &)
         ensure
           @tty_screen = nil
         end
+      end
+
+      # Get the raw output written to the simulated TTY screen. Useful to validate the exact content
+      # written (cursor manipulation escape sequences, blank lines around statuses...), in addition
+      # to the parsed statuses given by #expect_last_status_to_be.
+      #
+      # @return [String] The raw output written to the simulated TTY screen
+      def tty_screen_raw_output
+        @tty_screen.io.string
       end
 
       # Validate that the last status displayed on the simulated TTY is the given one.

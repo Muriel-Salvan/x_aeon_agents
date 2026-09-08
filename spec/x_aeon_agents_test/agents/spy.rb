@@ -46,6 +46,18 @@ module XAeonAgentsTest
         end
       end
 
+      # Publish usage information for the current run, like the framework agents (AiAgents, Cline)
+      # do during their real runs, when they track their LLM calls or API requests (see
+      # ComposableAgents::AiAgents::Agent#track_llm_usage and the usage tracking of
+      # ComposableAgents::Cline::Agent). It simulates the realtime usage tracking of a real AI
+      # agent's run, as the test agents bypass the frameworks' run implementations.
+      #
+      # @param usage [Hash{Symbol => Object}] Usage information to publish (see the framework
+      #   agents' usage documentation for the expected properties)
+      def publish_usage(usage:)
+        publish_run_info(usage:)
+      end
+
       # Expect the last status displayed on the test screen to be the given one.
       # Delegates to the currently running example's group instance, which holds the test screen and
       # the expectation helpers (this method is called from within the agent's run Proc, where the
