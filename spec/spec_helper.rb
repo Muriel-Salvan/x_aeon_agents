@@ -3,7 +3,12 @@ SimpleCov.start do
   minimum_coverage 98
 end
 require 'simplecov-cobertura'
-SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+  [
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::CoberturaFormatter
+  ]
+)
 
 require 'fileutils'
 require 'x_aeon_agents'

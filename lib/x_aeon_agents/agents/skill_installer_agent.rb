@@ -30,7 +30,7 @@ module XAeonAgents
         original_no_color = ENV.fetch('NO_COLOR', nil)
         ENV['NO_COLOR'] = '1'
         begin
-          list_lines = `skillkit manifest`.split("\n")
+          list_lines = Helpers.run_cmd('skillkit manifest')[:stdout].split("\n")
         ensure
           ENV['NO_COLOR'] = original_no_color
         end
