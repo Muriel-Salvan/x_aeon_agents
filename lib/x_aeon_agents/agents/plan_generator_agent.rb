@@ -29,8 +29,8 @@ module XAeonAgents
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(**agent_params)
         super(
-          name: 'Planner',
-          role: 'You are a Planner agent',
+          name: 'Plan generator',
+          role: 'You are an implementation plan generator agent',
           objective: 'Produce a full and detailed implementation plan that can be used to implement some requirements.',
           constraints: <<~EO_CONSTRAINTS,
             - You are in read-only mode.

@@ -17,7 +17,7 @@ module XAeonAgents
       # @param pull_request [Boolean] Whether to create a pull request automatically
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(commit: false, pull_request: false, **agent_params)
-        super(name: 'Issue Implementer', **agent_params)
+        super(name: 'Issue implementer', **agent_params)
         @commit = commit
         @pull_request = pull_request
       end
@@ -30,8 +30,26 @@ module XAeonAgents
         super
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
+        # Fetch the issue outside any resumable step: we want to query Github on every run
+        # to detect potential changes in the issue description, even when a session is reused.
         issue = Helpers.github.issue(Helpers.github_repo, github_issue_number)
         issue_comments = Helpers.github.issue_comments(Helpers.github_repo, github_issue_number)
+        task(
+          new_agent(DeveloperAgent, commit: @commit, pull_request: @pull_request),
+          requirements: build_requirements(issue, issue_comments),
+          intent: 'Develop the gathered requirements'
+        )
+        {}
+      end
+
+      private
+
+      # Build the requirements artifact content from a Github issue and its comments.
+      #
+      # @param issue [Octokit::Issue] The Github issue to gather requirements from
+      # @param issue_comments [Array<Octokit::IssueComment>] The comments of the Github issue
+      # @return [String] The requirements content in Markdown format
+      def build_requirements(issue, issue_comments)
         sections = [
           <<~EO_SECTION
             # #{issue.title}
@@ -60,14 +78,8 @@ module XAeonAgents
 
           #{issue_properties.map { |line| "- #{line}" }.join("\n")}
         EO_SECTION
-        step_agent(
-          new_agent(DeveloperAgent, commit: @commit, pull_request: @pull_request),
-          requirements: sections.map(&:strip).join("\n\n")
-        )
-        {}
+        sections.map(&:strip).join("\n\n")
       end
-
-      private
 
       # Format issue comments for use in artifacts.
       #

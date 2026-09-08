@@ -94,7 +94,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
               # Co-authored by X-Aeon AI Agents
 
-              - Planner (Cline cline/anthropic/claude-sonnet-4.6)
+              - Plan generator (Cline cline/anthropic/claude-sonnet-4.6)
               - Coder (Cline cline/anthropic/claude-sonnet-4.6)
               - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
               - Diff interpreter (AiAgent gpt-4o-mini)
@@ -188,7 +188,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
               # Co-authored by X-Aeon AI Agents
 
-              - Planner (Cline cline/anthropic/claude-sonnet-4.6)
+              - Plan generator (Cline cline/anthropic/claude-sonnet-4.6)
               - Coder (Cline cline/anthropic/claude-sonnet-4.6)
               - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
               - Diff interpreter (AiAgent gpt-4o-mini)
@@ -339,7 +339,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
                 # Co-authored by X-Aeon AI Agents
 
-                - Planner (Cline cline/anthropic/claude-sonnet-4.6)
+                - Plan generator (Cline cline/anthropic/claude-sonnet-4.6)
                 - Coder (Cline cline/anthropic/claude-sonnet-4.6)
                 - Documenter (Cline cline/anthropic/claude-sonnet-4.6)
                 - Diff interpreter (AiAgent gpt-4o-mini)

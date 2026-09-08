@@ -22,7 +22,7 @@ module XAeonAgents
       # @param authors [Array<Agent>] List of agents that should be credited as authors of this commit
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(authors: [], **agent_params)
-        super(name: 'Pull Request Creator', **agent_params)
+        super(name: 'Pull Request creator', **agent_params)
         @authors = authors
       end
 
@@ -38,17 +38,26 @@ module XAeonAgents
         repo_name = Helpers.github_repo
         head_branch = Helpers.git.current_branch
 
-        # Push the branch on the git_remote using --force-with-lease as it may have been rebased
-        # TODO: Use force_with_lease when it will be supported by ruby-git
-        Helpers.git.push(Helpers.github_remote, head_branch, force: true)
+        # Store the real branch SHA just in case it has changed: we would need to push again.
+        @artifacts[:branch_sha] = Helpers.git.gcommit(head_branch).sha
+        task(:push_branch, name: 'Push branch', intent: "Push branch #{head_branch} (sha #{@artifacts[:branch_sha]}) on Github repo #{repo_name}") do
+          # Push the branch on the git_remote using --force-with-lease as it may have been rebased
+          # TODO: Use force_with_lease when it will be supported by ruby-git
+          Helpers.git.push(Helpers.github_remote, head_branch, force: true)
+        end
 
-        # Check if PR already exists for the current branch
-        existing_pr = Helpers.github.pull_requests(repo_name, state: 'open').find { |pull_request| pull_request.head.ref == head_branch }
-        if existing_pr.nil?
+        task(:check_pr, name: 'Check Pull Request', intent: "Check if a Pull Request tracking #{head_branch} already exists") do
+          @artifacts[:existing_pr_url] = Helpers
+            .github
+            .pull_requests(repo_name, state: 'open')
+            .find { |pull_request| pull_request.head.ref == head_branch }
+            &.html_url
+        end
+        if @artifacts[:existing_pr_url].nil?
           # Create new PR
           git_diff_interpreter_agent = new_agent(GitDiffInterpreterAgent)
-          step_agent(git_diff_interpreter_agent, git_ref_base: base_sha)
-          step(:create_pr) do
+          task(git_diff_interpreter_agent, intent: 'Analyze changes in the whole branch', git_ref_base: base_sha)
+          task(:create_pr, name: 'Create Pull Request', intent: "Create a Pull Request for the branch #{head_branch} on repo #{repo_name}") do
             sections = [@artifacts[:change_intent].strip]
             sections << <<~EO_SECTION if requirements
               # Initial requirements given
@@ -134,7 +143,7 @@ module XAeonAgents
             logger << "Created new Pull Request for branch #{head_branch}: #{new_pr.html_url}"
           end
         else
-          logger << "A Pull Request for branch #{head_branch} already exists: #{existing_pr.html_url}"
+          logger << "A Pull Request for branch #{head_branch} already exists: #{@artifacts[:existing_pr_url]}"
         end
         {}
       end

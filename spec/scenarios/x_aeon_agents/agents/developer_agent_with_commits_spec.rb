@@ -6,7 +6,9 @@ describe XAeonAgents::Agents::DeveloperAgent do
       before do
         # Stub all ComposableAgents::Cline::Agent and ComposableAgents::AiAgents::Agent subclasses.
         # These handle the actual agent runs (PlanGeneratorAgent, CoderAgent, DocumenterAgent).
+        # Also stub GitDiffInterpreterAgent (inherits from ComposableAgents::Agent directly, not covered by the prepend).
         stub_agent_run(
+          agent_classes: [XAeonAgents::Agents::GitDiffInterpreterAgent],
           stub_handler: lambda { |agent, **kwargs|
             case agent
             when XAeonAgents::Agents::PlanGeneratorAgent
@@ -19,27 +21,23 @@ describe XAeonAgents::Agents::DeveloperAgent do
               # Simulate a README creation done by the documenter
               File.write('README.md', "# Test Project\n\nThis is a test project.\n")
               {}
+            when XAeonAgents::Agents::GitDiffInterpreterAgent
+              {
+                one_line_summary: "1-line summary of diff from #{kwargs[:git_ref_base]}",
+                change_intent: "Change intent of the diff from #{kwargs[:git_ref_base]}"
+              }
             else
               {}
+            end
+          },
+          agent_stub_block: lambda { |agent|
+            allow(agent).to receive(:diff_interpreter_agent) do
+              instance_double(XAeonAgents::Agents::DiffInterpreterAgent, full_name: 'Test Agent')
             end
           }
         )
         # Stub Launchy.open and $stdin.gets to avoid interactive prompts during plan review
         stub_review_content
-        # Stub GitDiffInterpreterAgent to avoid AI calls during commits.
-        # The run method outputs the 2 needed artifacts (one_line_summary, change_intent)
-        # using the content of the input artifacts (the actual git cached diff).
-        agent = instance_double(XAeonAgents::Agents::GitDiffInterpreterAgent)
-        allow(agent).to receive(:run) do |git_ref_base:|
-          {
-            one_line_summary: "1-line summary of diff from #{git_ref_base}",
-            change_intent: "Change intent of the diff from #{git_ref_base}"
-          }
-        end
-        allow(agent).to receive(:diff_interpreter_agent) do
-          instance_double(XAeonAgents::Agents::DiffInterpreterAgent, full_name: 'Test Agent')
-        end
-        allow(XAeonAgents::Agents::GitDiffInterpreterAgent).to receive(:new).and_return(agent)
       end
 
       it 'creates commits for coder and documenter steps' do
@@ -113,7 +111,9 @@ describe XAeonAgents::Agents::DeveloperAgent do
         # A revision counter increments on each call and is embedded in both the
         # file content and the plan_modifications so that each call produces a unique diff.
         tester_revision = 0
+        # Also stub GitDiffInterpreterAgent (inherits from ComposableAgents::Agent directly, not covered by the prepend).
         stub_agent_run(
+          agent_classes: [XAeonAgents::Agents::GitDiffInterpreterAgent],
           stub_handler: lambda { |agent, **kwargs|
             case agent
             when XAeonAgents::Agents::PlanGeneratorAgent
@@ -122,8 +122,18 @@ describe XAeonAgents::Agents::DeveloperAgent do
               tester_revision += 1
               File.write('test.rb', "puts 'Fixed test revision #{tester_revision}'\n")
               { plan_modifications: "Fix the failing tests (revision #{tester_revision})" }
+            when XAeonAgents::Agents::GitDiffInterpreterAgent
+              {
+                one_line_summary: "1-line summary of diff from #{kwargs[:git_ref_base]}",
+                change_intent: "Change intent of the diff from #{kwargs[:git_ref_base]}"
+              }
             else
               {}
+            end
+          },
+          agent_stub_block: lambda { |agent|
+            allow(agent).to receive(:diff_interpreter_agent) do
+              instance_double(XAeonAgents::Agents::DiffInterpreterAgent, full_name: 'Test Agent')
             end
           }
         )
@@ -139,18 +149,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
             call_count <= 2 ? 1 : 0
           end
         )
-        # Stub GitDiffInterpreterAgent to avoid AI calls during commits
-        agent = instance_double(XAeonAgents::Agents::GitDiffInterpreterAgent)
-        allow(agent).to receive(:run) do |git_ref_base:|
-          {
-            one_line_summary: "1-line summary of diff from #{git_ref_base}",
-            change_intent: "Change intent of the diff from #{git_ref_base}"
-          }
-        end
-        allow(agent).to receive(:diff_interpreter_agent) do
-          instance_double(XAeonAgents::Agents::DiffInterpreterAgent, full_name: 'Test Agent')
-        end
-        allow(XAeonAgents::Agents::GitDiffInterpreterAgent).to receive(:new).and_return(agent)
       end
 
       it 'creates a commit for each tester fix revision' do

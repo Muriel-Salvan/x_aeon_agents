@@ -22,7 +22,7 @@ module XAeonAgents
         # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
         def initialize(**agent_params)
           super(
-            name: 'Requirements',
+            name: 'Requirements section generator',
             objective: <<~EO_OBJECTIVE,
               Analyze the project's dependencies, runtime environment, and prerequisites.
               Generate a "Requirements" section in Markdown format, compatible with Github flavor, listing all prerequisites needed to use or run the project.

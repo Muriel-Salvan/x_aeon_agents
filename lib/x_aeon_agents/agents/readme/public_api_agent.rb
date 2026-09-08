@@ -22,7 +22,7 @@ module XAeonAgents
         # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
         def initialize(**agent_params)
           super(
-            name: 'Public API',
+            name: 'Public API section generator',
             objective: <<~EO_OBJECTIVE,
               Analyze the project's codebase to identify all public APIs, classes, methods, and interfaces exposed to users.
               Generate a "Public API" section in Markdown format, compatible with Github flavor, documenting the public API surface.

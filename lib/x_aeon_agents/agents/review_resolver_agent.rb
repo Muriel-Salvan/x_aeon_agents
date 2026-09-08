@@ -15,7 +15,7 @@ module XAeonAgents
       #
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(**agent_params)
-        super(name: 'ReviewResolver', **agent_params)
+        super(name: 'Review resolver', **agent_params)
       end
 
       # Execute the agent to address Pull Request review comments
@@ -27,26 +27,33 @@ module XAeonAgents
         super
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
-        pull_request_number = resolve_pull_request_number(pull_request_number)
+        if pull_request_number
+          @artifacts[:pr_number] = pull_request_number
+        else
+          task(:find_pr, name: 'Find Pull Request', intent: 'Find the Pull Request for the current branch') do
+            @artifacts[:pr_number] = find_pull_request_number
+          end
+        end
 
         # Gather comments is always executed (never cached) so that new comments are detected on
         # every run, even when resuming a session where development/replies are cached.
-        @artifacts[:conversations] = gather_comments(pull_request_number)
+        @artifacts[:conversations] = gather_comments(@artifacts[:pr_number])
 
         if @artifacts[:conversations].empty?
-          logger.debug "No PR reviews conversations found that need X-Aeon Agents input for PR ##{pull_request_number}"
+          logger.info "No PR reviews conversations found that need X-Aeon Agents input for PR ##{@artifacts[:pr_number]}"
         else
-          logger.debug "Found #{@artifacts[:conversations].size} PR reviews conversations that need X-Aeon Agents input for PR ##{pull_request_number}"
+          logger.debug "Found #{@artifacts[:conversations].size} PR reviews conversations that need X-Aeon Agents input for PR ##{@artifacts[:pr_number]}"
           @artifacts[:open_comments_to_agents] = @artifacts[:conversations].map do |conversation|
             conversation.select { |comment| comment['need_ai_reply'] }
           end.flatten(1)
-          logger.debug "Found #{@artifacts[:open_comments_to_agents].size} PR review comments that need X-Aeon Agents to reply for PR ##{pull_request_number}"
+          logger.info "Found #{@artifacts[:open_comments_to_agents].size} PR review comments that need X-Aeon Agents to reply for PR ##{@artifacts[:pr_number]}"
 
-          step(:extract_requirements) do
-            pr = Helpers.github.pull_request(Helpers.github_repo, pull_request_number)
+          task(:extract_requirements, name: 'Devise requirements', intent: 'Devise requirements from the Pull Request review comments') do
+            pr = Helpers.github.pull_request(Helpers.github_repo, @artifacts[:pr_number])
             feedback_analyst_agent = new_agent(FeedbackAnalystAgent)
-            step_agent(
+            task(
               feedback_analyst_agent,
+              intent: 'Get requirements from review comments',
               pr_description: <<~EO_DESCRIPTION.strip,
                 # #{pr.title}
 
@@ -93,56 +100,56 @@ module XAeonAgents
             @artifacts[:plan] = 'No implementation plan'
             @artifacts[:files_diffs] = 'No changes'
           else
-            step_agent(new_agent(DeveloperAgent, commit: true, pull_request: true))
+            task(new_agent(DeveloperAgent, commit: true, pull_request: true), intent: 'Develop new requirements devise from review comments')
           end
 
           @artifacts[:open_comments_to_agents].each.with_index do |comment, comment_idx|
-            step(:"reply_to_comment_#{comment_idx}") do
-              review_responder_agent = new_agent(ReviewResponderAgent)
-              step_agent(
-                review_responder_agent,
-                open_comment_for_reply: comment,
-                user_instructions: {
-                  ordered_list: [
-                    <<~EO_INSTRUCTION,
-                      Read the `#{review_responder_agent.artifact_ref(:conversations)}` artifact to understand the full context of the PR conversations
+            review_responder_agent = new_agent(ReviewResponderAgent)
+            task(
+              review_responder_agent,
+              name: "Reply to comment ##{comment_idx}",
+              intent: "Reply to review comment ##{comment_idx}",
+              open_comment_for_reply: comment,
+              user_instructions: {
+                ordered_list: [
+                  <<~EO_INSTRUCTION,
+                    Read the `#{review_responder_agent.artifact_ref(:conversations)}` artifact to understand the full context of the PR conversations
 
-                      - This gives you context on the discussions around this Pull Request.
-                    EO_INSTRUCTION
-                    <<~EO_INSTRUCTION,
-                      Read the `#{review_responder_agent.artifact_ref(:requirements)}` artifact to understand what was implemented
+                    - This gives you context on the discussions around this Pull Request.
+                  EO_INSTRUCTION
+                  <<~EO_INSTRUCTION,
+                    Read the `#{review_responder_agent.artifact_ref(:requirements)}` artifact to understand what was implemented
 
-                      - This gives you context on what has been implemented by other agents.
-                    EO_INSTRUCTION
-                    <<~EO_INSTRUCTION,
-                      Read the `#{review_responder_agent.artifact_ref(:plan)}` artifact to understand the implementation approach
+                    - This gives you context on what has been implemented by other agents.
+                  EO_INSTRUCTION
+                  <<~EO_INSTRUCTION,
+                    Read the `#{review_responder_agent.artifact_ref(:plan)}` artifact to understand the implementation approach
 
-                      - This gives you context on how other agents implemented the requirements.
-                    EO_INSTRUCTION
-                    <<~EO_INSTRUCTION,
-                      Read the `#{review_responder_agent.artifact_ref(:files_diffs)}` artifact to understand the specific code changes made
+                    - This gives you context on how other agents implemented the requirements.
+                  EO_INSTRUCTION
+                  <<~EO_INSTRUCTION,
+                    Read the `#{review_responder_agent.artifact_ref(:files_diffs)}` artifact to understand the specific code changes made
 
-                      - This gives you context on what files have been modified.
-                    EO_INSTRUCTION
-                    <<~EO_INSTRUCTION,
-                      Read the `#{review_responder_agent.artifact_ref(:open_comment_for_reply)}` artifact to understand the specific comment to respond to
+                    - This gives you context on what files have been modified.
+                  EO_INSTRUCTION
+                  <<~EO_INSTRUCTION,
+                    Read the `#{review_responder_agent.artifact_ref(:open_comment_for_reply)}` artifact to understand the specific comment to respond to
 
-                      - This is the EXACT comment that you should reply to.
-                    EO_INSTRUCTION
-                    <<~EO_INSTRUCTION
-                      Generate a professional, helpful reply that addresses the comment appropriately, in the artifact named `#{review_responder_agent.artifact_ref(:reply)}`
+                    - This is the EXACT comment that you should reply to.
+                  EO_INSTRUCTION
+                  <<~EO_INSTRUCTION
+                    Generate a professional, helpful reply that addresses the comment appropriately, in the artifact named `#{review_responder_agent.artifact_ref(:reply)}`
 
-                      - If requirements were implemented, explain what was done and how it addresses the comment.
-                      - If no requirements existed, provide a helpful response explaining the situation.
-                    EO_INSTRUCTION
-                  ]
-                }
-              )
-              full_reply = "[X-Aeon Agent #{review_responder_agent.full_name}] - #{@artifacts[:reply]}"
-              @artifacts[:replies] ||= []
-              @artifacts[:replies] << { 'comment_id' => comment['comment_id'], 'reply' => full_reply }
-              Helpers.github.create_pull_request_comment_reply(Helpers.github_repo, pull_request_number, full_reply, comment['comment_id'])
-            end
+                    - If requirements were implemented, explain what was done and how it addresses the comment.
+                    - If no requirements existed, provide a helpful response explaining the situation.
+                  EO_INSTRUCTION
+                ]
+              }
+            )
+            full_reply = "[X-Aeon Agent #{review_responder_agent.full_name}] - #{@artifacts[:reply]}"
+            @artifacts[:replies] ||= []
+            @artifacts[:replies] << { 'comment_id' => comment['comment_id'], 'reply' => full_reply }
+            Helpers.github.create_pull_request_comment_reply(Helpers.github_repo, @artifacts[:pr_number], full_reply, comment['comment_id'])
           end
         end
 
@@ -151,14 +158,11 @@ module XAeonAgents
 
       private
 
-      # Resolve the Pull Request number to process.
+      # Find the Pull Request number to process for the current branch.
       # When no number is given, auto-detects the Pull Request matching the current git branch.
       #
-      # @param pull_request_number [Integer, nil] The explicit Pull Request number, or nil to auto-detect
       # @return [Integer] The resolved Pull Request number
-      def resolve_pull_request_number(pull_request_number)
-        return pull_request_number if pull_request_number
-
+      def find_pull_request_number
         current_branch = Helpers.git.current_branch
         # TODO: Move this logic in a helper that is also used by PullRequestCreatorAgent, and remove this method.
         pr = Helpers.github.pull_requests(Helpers.github_repo).find { |candidate| candidate.head.ref == current_branch }
