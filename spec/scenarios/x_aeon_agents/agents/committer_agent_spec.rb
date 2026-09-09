@@ -28,7 +28,6 @@ describe XAeonAgents::Agents::CommitterAgent do
 
   it_behaves_like 'an agent with common behavior', described_class
 
-
   context 'when there are no changes' do
     it 'does not create a commit' do
       with_git_workspace(files: { 'test.txt' => "content\n" }) do
