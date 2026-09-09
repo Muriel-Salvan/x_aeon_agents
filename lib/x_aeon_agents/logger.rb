@@ -1,52 +1,127 @@
+require 'logger'
 require 'time'
+require 'human_number'
+require 'pastel'
+require 'tty-cursor'
+require 'tty-screen'
+require 'tty-table'
+
+# Load the HumanNumber locale files, as it does not do it automatically.
+# TODO: Remove this when human_number will be fixed.
+I18n.load_path += Dir[File.join(Gem::Specification.find_by_name('human_number').gem_dir, 'lib', 'locales', '*.yml')]
 
 module XAeonAgents
-  # Mixin adding logging capabilities
-  module Logger
-    class << self
-      # Global debug switch.
-      attr_accessor :debug
-    end
+  # Logger used by all X-Aeon Agents components.
+  # This is a standard Ruby Logger (inheriting from ::Logger), so that third-party libraries
+  # (RubyLLM, ai-agents, composable_agents...) can share the same singleton instance.
+  #
+  # The messages that are under the level threshold (eg. debug messages when debug mode is off)
+  # are still printed as 1-line activity messages that get rewritten at each new log line, so that
+  # we can still follow some activity without polluting the output. The status (see #build_status_string)
+  # is always displayed below the log lines.
+  # Activity messages and status lines are truncated to the terminal width, so that they always
+  # occupy exactly one row on screen: this guarantees the cursor bookkeeping stays exact even when
+  # full log lines are wider than the terminal.
+  #
+  # User-facing messages that should not be formatted (they can be parsed by automated tasks) can be
+  # output directly with the standard #<< interface.
+  class Logger < ::Logger
+    # @!group Public API
 
     # Maximum size of debug messages printed for progress, in characters
     DEBUG_MESSAGE_MAX_SIZE = 80
 
-    # Log a message
+    # Size of the tokens progress bar displayed in status, in characters
+    STATUS_BAR_SIZE = 10
+
+    # Emojis displayed in front of each step's name in the status, per status,
+    # with their colors
+    STATUS_EMOJIS = {
+      executed: { symbol: '✓', color: :green },
+      cached: { symbol: '↻', color: :blue },
+      started: { symbol: '◌', color: :yellow },
+      error: { symbol: '✗', color: :red }
+    }
+
+    # Emoji displayed in front of the steps' names having no known status
+    UNKNOWN_STATUS_EMOJI = '·'
+
+    # Labels of each severity, used to display the severity in formatted log lines
+    SEVERITY_LABELS = {
+      DEBUG => 'D',
+      INFO => 'I',
+      WARN => 'W',
+      ERROR => 'E',
+      FATAL => 'F',
+      UNKNOWN => 'U'
+    }.freeze
+
+    # Mapping of severity names (Symbols or Strings) to ::Logger severity constants,
+    # to accept severities that are not given as integers
+    SEVERITY_TO_LEVEL = ::Logger::Severity.constants.to_h do |severity_name|
+      [severity_name.to_s.downcase.to_sym, ::Logger::Severity.const_get(severity_name)]
+    end.freeze
+
+    # Constructor.
+    # No actual log device is used: all messages are output through the status-aware output machinery.
+    def initialize
+      super(File::NULL)
+      self.level = INFO
+      # Cursor bookkeeping for the status-aware output (see #output_with_status).
+      @last_status_size = 0
+      @previous_line_debug = false
+    end
+
+    # Log a message with a given severity, and output it according to the rules defined by this logger:
+    # - Messages at or above the level threshold are printed as full formatted lines.
+    # - Messages under the level threshold are printed as truncated 1-line activity messages that get
+    #   rewritten by the next full log line.
     #
-    # @param message [String, nil] Message to be displayed, or nil if the message is given lazily through a code block
-    # @param level [Symbol] Message level
-    # @yield [#call -> String] Optional code returning a [String] for lazy evaluation
-    # @yieldreturn [String] The message to be displayed
-    def log(message, level: :info)
-      message = yield if block_given?
-      log_line = "[#{Time.now.utc.strftime('%F %T')}] - [#{level.to_s[0].upcase}] - #{message}"
-      if level != :debug || Logger.debug
-        say log_line
+    # @param severity [Integer, Symbol, String] Severity of the message (any of ::Logger's severity constants)
+    # @param message [String, Exception, nil] Message to log, or nil if given through a block or progname
+    # @param progname [String, nil] Message to use if the message is nil
+    # @yield The optional code returning the message to log
+    # @yieldreturn [String] The message to log
+    # @return [Boolean] True, as ::Logger#add does
+    def add(severity, message = nil, progname = nil, &) # rubocop:disable Naming/PredicateMethod
+      severity = SEVERITY_TO_LEVEL.fetch(severity) { severity || UNKNOWN }
+      message = yield if message.nil? && block_given?
+      message = progname if message.nil?
+      message = message.message if message.is_a?(Exception)
+      return true if message.nil?
+
+      if severity < level
+        log_output(activity_message(message), new_line: false)
       else
-        # Put debug logs just as the last line, just to show activity without putting too much on screen.
-        log_output(message.strip.gsub("\n", ' ')[0..(DEBUG_MESSAGE_MAX_SIZE - 1)], new_line: false)
+        log_output(full_log_line(severity, message))
       end
+      true
     end
 
-    # Log a debug message
+    # Log a message with the given severity.
+    # Defined because ::Logger defines #log as an alias of #add, and aliases are bound at definition time:
+    #   without redefining it here, #log would not use this class' #add override.
     #
-    # @param message [String] Message to log.
-    def log_debug(message)
-      log(message, level: :debug)
+    # @param severity [Integer, Symbol, String] Severity of the message
+    # @param message [String, Exception, nil] Message to log, or nil if given through a block or progname
+    # @param progname [String, nil] Message to use if the message is nil
+    # @yield The optional code returning the message to log
+    # @yieldreturn [String] The message to log
+    # @return [Boolean] True, as ::Logger#add does
+    def log(severity, message = nil, progname = nil, &)
+      add(severity, message, progname, &)
     end
 
-    # Log a warn message
+    # Output a message to the user without any formatting (no timestamp, no severity prefix),
+    # while still keeping the status displayed below the output. This is the standard ::Logger
+    # interface for dumping raw messages, used here to output messages that can be parsed by
+    # automated tasks.
     #
-    # @param message [String] Message to log.
-    def log_warn(message)
-      log(message, level: :warn)
-    end
-
-    # Say a message to the user (puts on stdout)
-    #
-    # @param message [String] Message to say.
-    def say(message = '')
-      log_output(message)
+    # @param message [String] Message to output
+    # @return [self]
+    def <<(message)
+      log_output(message.to_s)
+      self
     end
 
     private
@@ -55,23 +130,336 @@ module XAeonAgents
     # Commands using WSL can mess this up, so we enforce it.
     LINE_SEPARATOR = Gem.win_platform? ? "\r\n" : "\n"
 
+    # Format a message as a full log line with timestamp and severity prefix.
+    #
+    # @param severity [Integer] The severity level
+    # @param message [String] The message to format
+    # @return [String] The formatted log line
+    def full_log_line(severity, message)
+      "[#{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S')}] - [#{SEVERITY_LABELS[severity]}] - #{message}"
+    end
+
+    # Format a message as a truncated activity line (used for sub-threshold messages).
+    #
+    # @param message [String] The message to truncate
+    # @return [String] The truncated message
+    def activity_message(message)
+      one_line_message = message.gsub("\n", ' ')
+      one_line_message.size > DEBUG_MESSAGE_MAX_SIZE ? "#{one_line_message[0, DEBUG_MESSAGE_MAX_SIZE - 3]}..." : one_line_message
+    end
+
     # Output a given line to stdout.
     # Handle the case when we are in TTY or not.
-    # - If in a TTY: Output the line with padding and display a status if any at the bottom.
+    # - If in a TTY: Output the line with the status displayed below it.
     # - Else: Output the line, unless it shouldn't have a new line at the end (meaning it was a debug line not supposed to stay on screen).
     #
     # @param message [String] The message to output
     # @param new_line [Boolean] Should we insert a new line or get back at the line start after this message?
     def log_output(message, new_line: true)
       if $stdout.tty?
-        # TODO: Integrate this with the status display properly.
-        # Pad potential stdout line with spaces to remove potential debug messages that could have been longer than this message.
-        $stdout.write "#{message}#{' ' * [0, DEBUG_MESSAGE_MAX_SIZE - message.size].max}#{new_line ? LINE_SEPARATOR : "\r"}"
+        status_string = build_status_string.strip
+        if status_string.empty?
+          # No status to display yet: only full log lines are output plainly, and activity messages
+          # are dropped (they will be displayed once the status machinery starts).
+          $stdout.write "#{message}#{LINE_SEPARATOR}" if new_line && !message.empty?
+          @last_status_size = 0
+          @previous_line_debug = false
+        else
+          output_with_status(message, new_line:, status_string:)
+        end
         $stdout.flush
       elsif new_line
         $stdout.write "#{message}#{LINE_SEPARATOR}"
         $stdout.flush
       end
+    end
+
+    # Output a message in the log area, with the status displayed below it.
+    # The message is written on the first free line below the previous log lines (overwriting the
+    # previous activity message if any), and the status is rewritten below it, so that it always
+    # stays at the bottom of the log lines.
+    #
+    # The cursor bookkeeping relies on the status lines and activity messages occupying exactly one
+    # row each on screen (hence they are truncated to the terminal width), and on the status fitting
+    # on the screen along with the log line above it. Full log messages are left untouched: they can
+    # wrap freely, as the rows they occupy are always above the status and don't influence the
+    # cursor positions relative to the status.
+    #
+    # @param message [String] The message to output
+    # @param new_line [Boolean] Should we insert a new line or overwrite the previous activity message?
+    # @param status_string [String] Non-empty status to display below the message
+    def output_with_status(message, new_line:, status_string:)
+      screen_width = TTY::Screen.width
+      status_lines = status_string.split(/\r?\n/).map { |line| fit_line(line, screen_width - 1) }
+      if status_lines.size + 2 > TTY::Screen.height
+        # The status cannot fit on screen with the log line above it: degrade to plain sequential
+        # output, and reset the display bookkeeping.
+        $stdout.write "#{message}#{LINE_SEPARATOR}" if new_line && !message.empty?
+        $stdout.write "#{LINE_SEPARATOR}#{status_string}#{LINE_SEPARATOR}"
+        @last_status_size = 0
+        @previous_line_debug = false
+        return
+      end
+      # Truncate activity messages to the screen width, so that they always occupy exactly 1 row.
+      message = fit_line(message, [DEBUG_MESSAGE_MAX_SIZE, screen_width - 1].min) unless new_line
+      # When overwriting a previous activity message, pad the message with spaces to erase leftovers.
+      padding =
+        if @previous_line_debug
+          ' ' * [0, [DEBUG_MESSAGE_MAX_SIZE, screen_width - 1].min - message.size].max
+        else
+          ''
+        end
+      # Go back to where the log line should start.
+      nbr_lines_rewind = @last_status_size + (@previous_line_debug ? 1 : 0)
+      print cursor.up(nbr_lines_rewind) if nbr_lines_rewind.positive?
+      # Shift to the bottom as many lines as our log lines have, so that status stays below.
+      nbr_lines_to_log = message.count("\n") + (@previous_line_debug ? 0 : 1)
+      print "\e[#{nbr_lines_to_log}L" if nbr_lines_to_log.positive?
+      $stdout.write "#{message}#{padding}#{LINE_SEPARATOR}"
+      # Keep an extra line between the real logs and the status
+      $stdout.write "#{LINE_SEPARATOR}#{status_lines.join(LINE_SEPARATOR)}#{LINE_SEPARATOR}"
+      @last_status_size = status_lines.size + 1
+      @previous_line_debug = !new_line
+    end
+
+    # Truncate a line from its end, so that it occupies exactly one row on screen and never wraps.
+    # ANSI escape sequences (colors...) are considered invisible, and never cut in the middle.
+    #
+    # @param line [String] The line to fit
+    # @param max_size [Integer] Maximum number of visible characters allowed
+    # @return [String] The fitted line
+    def fit_line(line, max_size)
+      return line if visible_size(line) <= max_size
+
+      fitted_line = +''
+      visible_count = 0
+      line.scan(/#{ANSI_ESCAPE_PATTERN}|[\s\S]/) do |token|
+        break unless visible_count < max_size
+
+        fitted_line << token
+        visible_count += 1 unless token.start_with?("\e")
+      end
+      # Never leave a color opened when the truncation cut a colored segment
+      fitted_line << "\e[0m" if fitted_line.include?("\e")
+      fitted_line
+    end
+
+    # Pattern matching ANSI escape sequences (colors...), considered invisible in size measurements
+    ANSI_ESCAPE_PATTERN = /\e\[[0-9;]*[A-Za-z]/
+
+    # Compute the visible size of a line, ignoring ANSI escape sequences.
+    #
+    # @param line [String] The line to measure
+    # @return [Integer] Number of visible characters
+    def visible_size(line)
+      line.gsub(ANSI_ESCAPE_PATTERN, '').size
+    end
+
+    # Build a nice multi-line String displaying the status of all steps of all runs of all agents.
+    # Display the hierarchy of steps with their status, and for the ones having usage information:
+    # cost, context tokens usage progress bar and the agent's full name.
+    #
+    # @return [String] Multi-line status string, or empty String if there is no status to display
+    def build_status_string
+      # Get all runs from all agents, and sort the root ones per created_at property of their first step.
+      # Make them as if they were called in 1 run of a virtual root agent that used step_agent for each one of those runs.
+      # Extract and normalize the data for logging
+      steps_run_map = proc do |step_run_info|
+        {
+          # Virtual root nodes (having no index in a steps hierarchy) keep their dedicated name,
+          # possibly suffixed with the run number. Other nodes display the name of the agent they
+          # run, if any.
+          step_name:
+            if step_run_info[:index].empty?
+              step_run_info[:step_name]
+            else
+              step_run_info[:agent]&.name || step_run_info[:step_name]
+            end,
+          # Position of the step in the hierarchy of steps (empty for the virtual root nodes).
+          # It is used to display the hierarchy in the status.
+          index: step_run_info[:index],
+          status: step_run_info[:status],
+          agent: step_run_info[:agent],
+          # If the run_info is not given, it means we are dealing with a child (from step or step_agent)
+          #   and those will only have 1 run maximum.
+          run_info: step_run_info[:run_info] || step_run_info[:agent]&.runs_info&.first,
+          # Name metadata of the step (eg. set by AgentDefaults#task), used by the status display
+          metadata: step_run_info[:metadata],
+          children: step_run_info[:children].map(&steps_run_map)
+        }
+      end
+      status_info = AgentDefaults.root_agents.map do |root_agent|
+        root_agent.runs_info.map.with_index do |run_info, idx_run|
+          root_step = {
+            step_name: :"#{root_agent.name}#{" (run ##{idx_run})" if root_agent.runs_info.size > 1}",
+            index: [],
+            created_at: run_info.started_at,
+            agent: root_agent,
+            run_info:,
+            children: []
+          }
+          if run_info.respond_to?(:steps) && !run_info.steps.empty?
+            # A root node has no status of its own: it displays the status of its last child.
+            root_step.merge!(
+              status: run_info.steps.last[:status],
+              children: run_info.steps
+            )
+          end
+          root_step
+        end
+      end.flatten(1).sort_by { |step_run_info| step_run_info[:created_at] }.map(&steps_run_map)
+
+      # run_info can have a usage property containing the following Hash:
+      # {
+      #   cost: usages.sum { |usage| usage.cost || 0.0 },
+      #   context_tokens: usages.last&.context_tokens,
+      #   context_tokens_limit: usages.last&.context_tokens_limit
+      # }
+      # Create a nice multi-line String logging the status with alignment and hierarchy, like this:
+      # · DeveloperAgent           $2.50  1.5K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
+      # ✓ setup_requirements
+      # ✓ PlannerAgent             $2.50  1.5K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
+      # │ └─ ✓ PlanGeneratorAgent  $2.50   50K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
+      # └─ ↻ CoderAgent            $2.50   50K tok [██░░░░░░░░] 1MB Cline deepseek/deepseek-v4
+      nodes = status_nodes(status_info)
+      usage_displays = nodes.map { |node| status_usage_display(node) }
+      used_displays = usage_displays.compact
+      # Compute the width of the tokens and limit numbers, to align them within the progress blocks
+      tokens_width = used_displays.map { |used_display| used_display[:tokens].size }.max || 0
+      limit_width = used_displays.map { |used_display| used_display[:limit].size }.max || 0
+      rows = nodes.zip(usage_displays).map do |node, usage_display|
+        [
+          status_hierarchy_name(node),
+          usage_display ? usage_display[:cost] : '',
+          usage_display ? status_progress_block(usage_display, tokens_width, limit_width) : '',
+          # Remove the name part from the full name as it is already in the step name
+          node[:agent] ? pastel.dim(status_agent_name_complement(node[:agent])) : ''
+        ]
+      end
+      return '' if rows.empty?
+
+      render_status_table(rows)
+    end
+
+    # Flatten the tree of step run information into a list of nodes, in display order.
+    # Compute the tree prefix (├─, └─, │) to be displayed in front of each node's name.
+    #
+    # @param status_info [Array<Hash>] Tree of step run information
+    # @param parent_prefix [String] Tree prefix accumulated from the ancestors
+    # @return [Array<Hash>] Flattened list of nodes, each having an added *prefix* property
+    def status_nodes(status_info, parent_prefix = '')
+      status_info.flat_map.with_index do |step_run_info, idx|
+        is_last_child = idx == status_info.size - 1
+        connector, continuation =
+          if (step_run_info[:index] || []).empty?
+            ['', '']
+          elsif is_last_child
+            ['└─ ', '   ']
+          else
+            ['├─ ', '│   ']
+          end
+        node = step_run_info.merge(prefix: "#{parent_prefix}#{connector}")
+        [node] + status_nodes(step_run_info[:children], "#{parent_prefix}#{continuation}")
+      end
+    end
+
+    # Get the colored emoji representing a step's status.
+    #
+    # @param status [Symbol, String, nil] Status of the step
+    # @return [String] Colored emoji to be displayed in front of the step's name
+    def status_emoji(status)
+      emoji = STATUS_EMOJIS[status.to_sym] if status.respond_to?(:to_sym)
+      return pastel.dim(UNKNOWN_STATUS_EMOJI) unless emoji
+
+      pastel.public_send(emoji[:color], emoji[:symbol])
+    end
+
+    # Get the TTY::Cursor module used to manipulate the cursor for the status-aware output.
+    #
+    # @return [TTY::Cursor]
+    def cursor
+      @cursor ||= TTY::Cursor
+    end
+
+    # Get the Pastel instance used to colorize the status.
+    # Created lazily, so that color support is detected when the status is first displayed.
+    #
+    # @return [Pastel]
+    def pastel
+      @pastel ||= Pastel.new
+    end
+
+    # Get the hierarchical name of a step, with its status emoji and a tree prefix showing its depth
+    # in the hierarchy of steps.
+    #
+    # @param node [Hash] Step run information node
+    # @return [String] Hierarchical name
+    def status_hierarchy_name(node)
+      "#{status_emoji(node[:status])} #{node[:prefix]}#{node.dig(:metadata, :name) || node[:step_name]}"
+    end
+
+    # Get the complement of an agent's name in its full name, to be displayed in the status:
+    # the full name without the name part (already displayed as the step name), or the full name
+    # when the agent has no name.
+    #
+    # @param agent [ComposableAgents::Agent] The agent to display
+    # @return [String] The complement of the agent's name in its full name
+    def status_agent_name_complement(agent)
+      full_name = agent.full_name
+      full_name = full_name.gsub(agent.name, '').strip if agent.name
+      full_name
+    end
+
+    # Get the usage display information of a step's run, if any.
+    #
+    # @param node [Hash] Step run information node
+    # @return [Hash, nil] The usage display information, or nil if there is no usage information:
+    #   * *cost* (String): Formatted monetary cost of the run
+    #   * *tokens* (String): Formatted number of context tokens
+    #   * *limit* (String): Formatted number of context tokens limit
+    #   * *bar* (String): Progress bar of the context tokens usage, sized to STATUS_BAR_SIZE
+    def status_usage_display(node)
+      run_info = node[:run_info]
+      usage = run_info.respond_to?(:usage) ? run_info.usage : nil
+      return nil unless usage
+
+      tokens = usage[:context_tokens] || 0
+      tokens_limit = usage[:context_tokens_limit] || 0
+      filled_size = tokens_limit.positive? ? (tokens * STATUS_BAR_SIZE / tokens_limit).clamp(0, STATUS_BAR_SIZE) : 0
+      {
+        cost: HumanNumber.currency(usage[:cost] || 0.0, currency_code: 'USD'),
+        tokens: HumanNumber.human_number(tokens, max_digits: 2),
+        limit: HumanNumber.human_number(tokens_limit, max_digits: 2),
+        bar: "#{'█' * filled_size}#{'░' * (STATUS_BAR_SIZE - filled_size)}"
+      }
+    end
+
+    # Get the progress block cell displaying the context tokens usage, with aligned numbers.
+    #
+    # @param usage_display [Hash] Usage display information (see #status_usage_display)
+    # @param tokens_width [Integer] Width to align the tokens number
+    # @param limit_width [Integer] Width to align the limit number
+    # @return [String] The progress block cell
+    def status_progress_block(usage_display, tokens_width, limit_width)
+      "#{usage_display[:tokens].rjust(tokens_width)} tok [#{usage_display[:bar]}] #{usage_display[:limit].ljust(limit_width)}"
+    end
+
+    # Render the status rows as an aligned table, without borders nor column separators.
+    #
+    # @param rows [Array<Array<String>>] Rows of 4 cells: hierarchical name, cost, progress block, model
+    # @return [String] Multi-line table
+    def render_status_table(rows)
+      TTY::Table.new(rows).render do |renderer|
+        # Never rotate the table to vertical orientation, whatever the terminal width is
+        renderer.width = Float::INFINITY
+        renderer.border do
+          center '  '
+          top ''
+          bottom ''
+          left ''
+          right ''
+        end
+      end.split("\n").map(&:rstrip).join(LINE_SEPARATOR)
     end
   end
 end

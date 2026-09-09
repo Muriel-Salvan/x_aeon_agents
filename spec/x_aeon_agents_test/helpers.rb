@@ -6,15 +6,14 @@ require 'time'
 
 module XAeonAgentsTest
   module Helpers
-    include AgentConfigurability
     include Cli
-    include Debug
     include DeveloperAgent
     include GenerateReadme
     include Git
     include Github
     include InterpretDiffs
     include InterpretGitDiffs
+    include Log
     include PromptAgentsStub
     include ReviewContent
     include ReviewResolverAgent

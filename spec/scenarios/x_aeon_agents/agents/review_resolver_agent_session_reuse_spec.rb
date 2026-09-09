@@ -76,7 +76,7 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
           expect(github_double).to have_received(:create_pull_request_comment_reply).with(
             'owner/repo',
             42,
-            '[X-Aeon Agent ReviewResponder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
+            '[X-Aeon Agent Review feedback responder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
               'Implemented the requested validation method. In response to: ' \
               '/agent Please add a validation method.',
             666
@@ -86,7 +86,7 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
           comment_reply = {
             databaseId: 667,
             createdAt: '2024-01-02T10:01:00Z',
-            body: '[X-Aeon Agent ReviewResponder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
+            body: '[X-Aeon Agent Review feedback responder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
               'Implemented the requested validation method. In response to: ' \
               '/agent Please add a validation method.',
             author: { login: 'assistant' },
@@ -159,7 +159,7 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
               },
               {
                 'author' => 'assistant',
-                'body' => '[X-Aeon Agent ReviewResponder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
+                'body' => '[X-Aeon Agent Review feedback responder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
                   'Implemented the requested validation method. In response to: ' \
                   '/agent Please add a validation method.',
                 'comment_id' => 667,
@@ -198,7 +198,7 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
           expect(github_double).to have_received(:create_pull_request_comment_reply).with(
             'owner/repo',
             42,
-            '[X-Aeon Agent ReviewResponder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
+            '[X-Aeon Agent Review feedback responder (Cline cline/anthropic/claude-sonnet-4.6)] - ' \
               'Implemented the requested validation method. In response to: ' \
               '/agent Please add another method.',
             668

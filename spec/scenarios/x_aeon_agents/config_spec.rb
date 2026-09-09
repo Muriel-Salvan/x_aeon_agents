@@ -7,7 +7,7 @@ describe XAeonAgents::Config do
     described_class.instance_variable_set(:@data_dir, nil)
     described_class.instance_variable_set(:@default_cline_cli_args, nil)
     described_class.instance_variable_set(:@debug, nil)
-    XAeonAgents::Logger.debug = false
+    described_class.instance_variable_set(:@logger, nil)
     ENV.delete('X_AEON_AGENTS_DEBUG')
     # Run the CLI through its public interface with stubbed AI agents: the lightweight
     # prompt command triggers the CLI initialization, which is what loads the config
@@ -224,7 +224,7 @@ describe XAeonAgents::Config do
 
       it 'propagates the debug value to the Logger' do
         described_class.debug = true
-        expect(XAeonAgents::Logger.debug).to be true
+        expect(described_class.logger.debug?).to be true
       end
     end
 
@@ -268,7 +268,7 @@ describe XAeonAgents::Config do
 
       it 'propagates the debug value to the Logger' do
         described_class.configure(debug: true)
-        expect(XAeonAgents::Logger.debug).to be true
+        expect(described_class.logger.debug?).to be true
       end
     end
 

@@ -3,18 +3,6 @@ require_relative 'shared_examples/common_behavior'
 describe XAeonAgents::Agents::SkillGeneratorAgent do
   it_behaves_like 'an agent with common behavior', described_class
 
-  def with_captured_stdout
-    orig = $stdout
-    buf = StringIO.new
-    $stdout = buf
-    begin
-      yield
-    ensure
-      $stdout = orig
-    end
-    buf.string
-  end
-
   context 'with empty skills.src directory' do
     it 'creates an empty skills directory' do
       with_skills_src do
@@ -88,16 +76,13 @@ describe XAeonAgents::Agents::SkillGeneratorAgent do
         good_skill: { 'SKILL.md' => '# Good Skill', 'good.txt' => 'good content' },
         bad_skill: { 'error.erb' => '<%= undefined_method %>' }
       ) do
-        result = nil
-        output = with_captured_stdout do
-          result = described_class.new(session_id: nil).run(output_dir: 'skills')
-        end
+        result = described_class.new(session_id: nil).run(output_dir: 'skills')
         expect(result[:success]).to be false
         expect(File.exist?('skills/good_skill/SKILL.md')).to be true
         expect(File.exist?('skills/good_skill/good.txt')).to be true
         expect(File.read('skills/good_skill/good.txt')).to eq('good content')
         expect(File.exist?('skills/bad_skill/error')).to be false
-        expect(output).to include('Error - undefined local variable or method \'undefined_method\'')
+        expect(captured_stdout).to include('Error - undefined local variable or method \'undefined_method\'')
       end
     end
   end

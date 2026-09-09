@@ -19,13 +19,14 @@ module XAeonAgentsTest
       # @param args [Array<String>] CLI arguments
       # @param expect_failure [Boolean] Expect the command to fail?
       def run_cli(*args, expect_failure: false)
-        # TODO: Find a better way in debug mode to still redirect stdout and stderr while outputing them in real time for debug
-        unless Debug.debug?
-          stdout_io = StringIO.new
-          stderr_io = StringIO.new
-          $stdout = stdout_io
-          $stderr = stderr_io
-        end
+        original_stdout = $stdout
+        original_stderr = $stderr
+        # In debug mode, TeeIO captures and forwards to the real stdout/stderr in real time,
+        # so that what the CLI outputs can be followed live and still be asserted upon.
+        stdout_io = Log.debug? ? Log::TeeIO.new(original_stdout) : StringIO.new
+        stderr_io = Log.debug? ? Log::TeeIO.new(original_stderr) : StringIO.new
+        $stdout = stdout_io
+        $stderr = stderr_io
         begin
           begin
             XAeonAgents::Cli.start(args + (respond_to?(:default_cli_args) ? default_cli_args : []))
@@ -39,13 +40,11 @@ module XAeonAgentsTest
             @exit_status = 1
           end
         ensure
-          $stdout = STDOUT
-          $stderr = STDERR
+          $stdout = original_stdout
+          $stderr = original_stderr
         end
-        unless Debug.debug?
-          @stdout = stdout_io.string
-          @stderr = stderr_io.string
-        end
+        @stdout = stdout_io.string
+        @stderr = stderr_io.string
         if expect_failure
           expect(exit_status).not_to eq 0
         else

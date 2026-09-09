@@ -40,7 +40,7 @@ module XAeonAgents
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(**agent_params)
         super(
-          name: 'FeedbackAnalyst',
+          name: 'Feedback analyst',
           role: 'You are a feedback analyst agent, analyzing feedback from a Pull Request and devising new requirements to address this feedback.',
           objective: 'Extract requirements from Pull Request comments',
           constraints: <<~EO_CONSTRAINTS,

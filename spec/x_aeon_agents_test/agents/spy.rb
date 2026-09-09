@@ -14,6 +14,59 @@ module XAeonAgentsTest
 
       # @return [String, nil] The run ID given to the agent (see ComposableAgents::Mixins::Resumable)
       attr_reader :run_id
+
+      # The Proc stubbing the agent's run, to be set by test cases before running the agent.
+      # It is evaluated in the context of the agent (using instance_exec), so it can define steps
+      # and step_agent calls, and instantiate additional sub agents (setting their own run Proc
+      # if they are also run through step_agent).
+      #
+      # @return [Proc, nil] The Proc stubbing the agent's run, or nil if not set yet
+      attr_accessor :run_proc
+
+      # Run the agent.
+      # The framework-specific run implementations (AiAgents, Cline...) are bypassed, as test agents
+      # only exist to validate the common behavior of all agents, not to invoke real AI providers.
+      # The base agent's run bookkeeping (ie. run information creation) is still executed, so that
+      # the status logging sees the run as a real one.
+      # If a run Proc was set by the test case (see #run_proc), it is executed as the run's body,
+      # and its result is returned. Otherwise, a completion message is logged: test agents have no
+      # real processing to run, and this makes sure something gets logged so that the status can be
+      # displayed in a TTY context.
+      #
+      # @param input_artifacts [Hash{Symbol => Object}] Input artifacts given to the run
+      # @return [Hash{Symbol => Object}] The output artifacts of the run
+      def run(**input_artifacts)
+        # Execute only the base agent's run bookkeeping, so that the run is recorded like a real one.
+        ComposableAgents::Agent.instance_method(:run).bind_call(self, **input_artifacts)
+        if @run_proc
+          instance_exec(**input_artifacts, &@run_proc)
+        else
+          logger.info "Agent #{full_name} has been run"
+          {}
+        end
+      end
+
+      # Publish usage information for the current run, like the framework agents (AiAgents, Cline)
+      # do during their real runs, when they track their LLM calls or API requests (see
+      # ComposableAgents::AiAgents::Agent#track_llm_usage and the usage tracking of
+      # ComposableAgents::Cline::Agent). It simulates the realtime usage tracking of a real AI
+      # agent's run, as the test agents bypass the frameworks' run implementations.
+      #
+      # @param usage [Hash{Symbol => Object}] Usage information to publish (see the framework
+      #   agents' usage documentation for the expected properties)
+      def publish_usage(usage:)
+        publish_run_info(usage:)
+      end
+
+      # Expect the last status displayed on the test screen to be the given one.
+      # Delegates to the currently running example's group instance, which holds the test screen and
+      # the expectation helpers (this method is called from within the agent's run Proc, where the
+      # agent itself has no access to them).
+      #
+      # @param expected_status [String] The exact expected status
+      def expect_last_status_to_be(expected_status)
+        RSpec.current_example.example_group_instance.expect_last_status_to_be(expected_status)
+      end
     end
   end
 end

@@ -22,7 +22,7 @@ module XAeonAgents
         # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
         def initialize(**agent_params)
           super(
-            name: 'Quick Start',
+            name: 'Quick Start section generator',
             objective: <<~EO_OBJECTIVE,
               Analyze the project's installation and usage patterns to provide quick installation and usage instructions.
               Generate a "Quick start" section in Markdown format, compatible with Github flavor.
