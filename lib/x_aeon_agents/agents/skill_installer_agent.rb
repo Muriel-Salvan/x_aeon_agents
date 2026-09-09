@@ -13,16 +13,24 @@ module XAeonAgents
         { agent: 'Agent name to be used to install skills' }
       end
 
+      # Constructor
+      #
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(**agent_params)
+        super(name: 'Skills installer', **agent_params)
+      end
+
       # Execute the agent to install skills from the .skills manifest.
       #
       # @param agent [String] Agent name to be used to install skills
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(agent: 'cline')
+        super
         agent_name = agent.to_sym
         original_no_color = ENV.fetch('NO_COLOR', nil)
         ENV['NO_COLOR'] = '1'
         begin
-          list_lines = `skillkit manifest`.split("\n")
+          list_lines = Helpers.run_cmd('skillkit manifest')[:stdout].split("\n")
         ensure
           ENV['NO_COLOR'] = original_no_color
         end
@@ -35,7 +43,7 @@ module XAeonAgents
           )
         end
 
-        say 'Skills identified in the skillkit manifest and their dependencies have been installed successfully'
+        logger << 'Skills identified in the skillkit manifest and their dependencies have been installed successfully'
         { installed: true }
       end
 
@@ -54,27 +62,28 @@ module XAeonAgents
         }
         skills_dir = agents_config[agent][:skills_dir]
 
-        log "Install skills #{repo} / #{skills.join(',')}..."
-        Helpers.run_cmd("skillkit install #{repo} --yes --skills=#{skills.join(',')} --agent=#{agent}")
-        fix_skills_metadata(skills, agent)
+        task(:install_skills, name: 'Install skills', intent: "Install skills #{repo} / #{skills.join(',')}") do
+          Helpers.run_cmd("skillkit install #{repo} --yes --skills=#{skills.join(',')} --agent=#{agent}")
+          fix_skills_metadata(skills, agent)
 
-        # Resolve dependencies
-        deps_per_repo = {}
-        skills.each do |skill|
-          deps = FrontMatterParser::Parser.parse_file("#{skills_dir}/#{skill}/SKILL.md").front_matter.dig('metadata', 'dependencies')
-          next if deps.nil?
+          # Resolve dependencies
+          deps_per_repo = {}
+          skills.each do |skill|
+            deps = FrontMatterParser::Parser.parse_file("#{skills_dir}/#{skill}/SKILL.md").front_matter.dig('metadata', 'dependencies')
+            next if deps.nil?
 
-          deps.each do |skill_dep|
-            skill_dep = "#{repo}:#{skill_dep}" unless skill_dep.include?(':')
-            skill_dep_repo, skill_dep_name = skill_dep.split(':')
-            unless File.exist?("#{skills_dir}/#{skill_dep_name}/SKILL.md")
-              deps_per_repo[skill_dep_repo] ||= []
-              deps_per_repo[skill_dep_repo] << skill_dep_name unless deps_per_repo[skill_dep_repo].include?(skill_dep_name)
+            deps.each do |skill_dep|
+              skill_dep = "#{repo}:#{skill_dep}" unless skill_dep.include?(':')
+              skill_dep_repo, skill_dep_name = skill_dep.split(':')
+              unless File.exist?("#{skills_dir}/#{skill_dep_name}/SKILL.md")
+                deps_per_repo[skill_dep_repo] ||= []
+                deps_per_repo[skill_dep_repo] << skill_dep_name unless deps_per_repo[skill_dep_repo].include?(skill_dep_name)
+              end
             end
           end
-        end
 
-        deps_per_repo.each { |dep_repo, dep_skills| install_skills_recursive(dep_repo, dep_skills, agent) }
+          deps_per_repo.each { |dep_repo, dep_skills| install_skills_recursive(dep_repo, dep_skills, agent) }
+        end
       end
 
       # Fix the .skillkit.json subpath property after skillkit install.
@@ -93,7 +102,7 @@ module XAeonAgents
           next if json['subpath'].start_with?('skills/')
 
           json['subpath'] = "skills/#{json['subpath']}"
-          log_debug "Fix subpath of #{json_file}"
+          logger.debug "Fix subpath of #{json_file}"
           File.write(json_file, JSON.pretty_generate(json))
         end
       end

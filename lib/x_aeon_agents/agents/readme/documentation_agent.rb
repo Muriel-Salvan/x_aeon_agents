@@ -22,7 +22,7 @@ module XAeonAgents
         # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
         def initialize(**agent_params)
           super(
-            name: 'Documentation',
+            name: 'Documentation section generator',
             objective: <<~EO_OBJECTIVE,
               Explore the project's documentation files and resources to identify all available documentation.
               Generate a "Documentation" section in Markdown format, compatible with Github flavor, providing links to documentation resources.

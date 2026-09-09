@@ -16,8 +16,6 @@ module XAeonAgents
     ]
 
     class << self
-      include Logger
-
       # @!group Public API
 
       # Automatically generate accessors for secrets taken from the ENV or the config DSL.
@@ -84,10 +82,15 @@ module XAeonAgents
       # @return [String, nil] Command line running the project's tests suite, used by the implement command, or nil if none
       attr_accessor :test_project_cmd
 
+      # @return [Logger] The shared logger instance used by X-Aeon Agents and the libraries it integrates
+      def logger
+        @logger ||= Logger.new
+      end
+
       # @return [Boolean] The debug mode
       def debug=(value)
         @debug = value
-        Logger.debug = debug
+        logger.level = debug ? Logger::DEBUG : Logger::INFO
       end
 
       # @return [Boolean] The debug mode
@@ -119,7 +122,7 @@ module XAeonAgents
         kwargs.each do |property, value|
           send(:"#{property}=", value)
         end
-        Logger.debug = debug
+        self.debug = debug
       end
 
       # @!group Internal
@@ -191,13 +194,18 @@ module XAeonAgents
 
       # Setup ai-agents in a lazy and memoized way
       def setup_ai_agents
-        ENV['RUBYLLM_DEBUG'] = '1' if debug
         ::Agents.configure do |ai_agents_config|
           ai_agents_config.debug = debug
         end
+        # Route ai-agents' own warnings through the shared logger
+        ::Agents.logger = logger
         RubyLLM.configure do |ruby_llm_config|
           ruby_llm_config.openrouter_api_key = openrouter_api_key
+          # Route RubyLLM's logging through the shared logger
+          ruby_llm_config.logger = logger
         end
+        # Evict RubyLLM's memoized default logger in case it was resolved before we plugged our own
+        RubyLLM.instance_variable_set(:@logger, nil)
         # Discover all the models
         RubyLLM::Models.refresh!
       end

@@ -24,25 +24,32 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run
+        super
         case @stage
         when :all
-          Helpers.git.add(all: true)
+          task(:git_add, name: 'Git add', intent: 'Stage all modifications') do
+            Helpers.git.add(all: true)
+          end
         when :if_empty
-          Helpers.git.add(all: true) if Helpers.git_diff_cached.empty?
+          if Helpers.git_diff_cached.empty?
+            task(:git_add, name: 'Git add', intent: 'Stage all modifications as nothing was staged previously') do
+              Helpers.git.add(all: true)
+            end
+          end
         when :none
           # Do nothing
         else
           raise "Unknown staging strategy: #{@stage}"
         end
         if Helpers.git_diff_cached.empty?
-          log_debug 'Nothing to commit'
+          logger.info 'Nothing to commit'
         else
           git_diff_interpreter_agent = GitDiffInterpreterAgent.new
-          git_diff_interpreter_agent_output = git_diff_interpreter_agent.run(git_ref_base: 'cached')
+          task(git_diff_interpreter_agent, intent: 'Analyze staged git diffs', git_ref_base: 'cached')
           content = <<~EO_COMMIT
-            #{git_diff_interpreter_agent_output[:one_line_summary].strip}
+            #{@artifacts[:one_line_summary].strip}
 
-            #{git_diff_interpreter_agent_output[:change_intent].strip}
+            #{@artifacts[:change_intent].strip}
 
             Co-authored by X-Aeon AI Agents:
             #{
@@ -52,16 +59,19 @@ module XAeonAgents
             }
           EO_COMMIT
           if @user_review
-            content, _user_prompt = Helpers.review_content(
-              name: 'commit.md',
-              description: 'Git commit comment',
-              editable: true,
-              content:
-            )
+            task(:user_review, name: 'Commit comment user review', intent: 'Ask user to review the commit comment') do
+              content, _user_prompt = Helpers.review_content(
+                name: 'commit.md',
+                description: 'Git commit comment',
+                editable: true,
+                content:
+              )
+            end
           end
-          Helpers.git.commit(content)
-
-          say 'Commit created successfully.'
+          task(:git_commit, name: 'Git commit', intent: 'Create a commit') do
+            Helpers.git.commit(content)
+          end
+          logger << 'Commit created successfully.'
         end
         {}
       end

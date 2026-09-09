@@ -8,7 +8,6 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
 
   it_behaves_like 'an agent with common behavior', described_class
 
-
   describe 'without any option' do
     it 'pushes the branch on Github and creates a PR with the right description and branches' do
       with_git_workspace(

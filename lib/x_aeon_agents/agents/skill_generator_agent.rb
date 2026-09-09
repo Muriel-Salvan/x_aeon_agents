@@ -27,6 +27,13 @@ module XAeonAgents
         { success: 'Whether the skill generation was successful' }
       end
 
+      # Constructor
+      #
+      # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
+      def initialize(**agent_params)
+        super(name: 'Skills generator', **agent_params)
+      end
+
       # Execute the agent to generate skill files from ERB templates.
       #
       # @param output_dir [String] Output directory for generated skills
@@ -34,6 +41,7 @@ module XAeonAgents
       #   Supports comma-separated values within each element. If nil or empty, all skills are generated.
       # @return [Hash{Symbol => Object}] Output artifacts content
       def run(output_dir: 'skills', skill_names: nil)
+        super
         transformations = {
           '.erb' => proc { |src_file| GenHelpers::ErbEvaluator.new(src_file).result }
         }.freeze
@@ -52,41 +60,38 @@ module XAeonAgents
           .uniq
 
         failed = false
-        Dir.glob(File.join(src_dir, '**', '*'), File::FNM_DOTMATCH)
-          .select { |f| File.file?(f) && File.basename(f) != '.skill_config.yml' }
-          .each do |src_file|
-            relative_path = Pathname.new(src_file).relative_path_from(src_pathname).to_s
-            # Determine the top-level skill directory for this file.
-            # Skip files whose top-level skill directory is not in the requested list
-            next if !normalized_skill_names.empty? && !normalized_skill_names.include?(relative_path.split('/').first)
+        task(:generate_skills, name: 'Generate skills', intent: "Generate skills from #{src_dir} to #{dest_dir}") do
+          Dir.glob(File.join(src_dir, '**', '*'), File::FNM_DOTMATCH)
+            .select { |f| File.file?(f) && File.basename(f) != '.skill_config.yml' }
+            .each do |src_file|
+              relative_path = Pathname.new(src_file).relative_path_from(src_pathname).to_s
+              # Determine the top-level skill directory for this file.
+              # Skip files whose top-level skill directory is not in the requested list
+              next if !normalized_skill_names.empty? && !normalized_skill_names.include?(relative_path.split('/').first)
 
-            file_ext = File.extname(relative_path)
-            dst_file = File.join(
-              dest_dir,
-              transformations.key?(file_ext) ? relative_path.sub(/#{Regexp.escape(file_ext)}$/, '') : relative_path
-            )
-            say "Processing: #{relative_path}"
-            say "    Output: #{dst_file}"
-            begin
-              FileUtils.mkdir_p(File.dirname(dst_file))
-              if transformations.key?(file_ext)
-                File.write(dst_file, transformations[file_ext].call(src_file))
-              else
-                FileUtils.cp(src_file, dst_file)
+              file_ext = File.extname(relative_path)
+              dst_file = File.join(
+                dest_dir,
+                transformations.key?(file_ext) ? relative_path.sub(/#{Regexp.escape(file_ext)}$/, '') : relative_path
+              )
+              logger << "Processing: #{relative_path}"
+              logger << "    Output: #{dst_file}"
+              begin
+                FileUtils.mkdir_p(File.dirname(dst_file))
+                if transformations.key?(file_ext)
+                  File.write(dst_file, transformations[file_ext].call(src_file))
+                else
+                  FileUtils.cp(src_file, dst_file)
+                end
+                logger << '    Status: ✓ Processed successfully'
+              rescue StandardError => e
+                logger << "    Status: ✗ Error - #{e.message}\n    #{e.backtrace.first}"
+                failed = true
               end
-              say '    Status: ✓ Processed successfully'
-            rescue StandardError => e
-              say "    Status: ✗ Error - #{e.message}\n    #{e.backtrace.first}"
-              failed = true
+              logger << ''
             end
-            say
-          end
-
-        if failed
-          say 'Skills generated with some errors (see above).'
-        else
-          say 'Skills generated successfully.'
         end
+        logger << (failed ? 'Skills generated with some errors (see above).' : 'Skills generated successfully.')
         { success: !failed }
       end
     end

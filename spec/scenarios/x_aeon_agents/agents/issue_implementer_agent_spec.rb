@@ -7,7 +7,6 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
 
   it_behaves_like 'an agent with common behavior', described_class
 
-
   it 'implements the issue by delegating to DeveloperAgent with the right parameters and input artifacts' do
     with_git_workspace(
       files: { 'test.txt' => "original\n" },

@@ -29,7 +29,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
   it_behaves_like 'an agent with common behavior', described_class
 
-
   it 'implements the requirements successfully' do
     with_git_workspace(files: { 'test.txt' => "original\n" }) do
       described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
