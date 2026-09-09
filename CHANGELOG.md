@@ -1,3 +1,31 @@
+# [v1.0.30](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.29...v1.0.30) (2026-09-09 13:21:12)
+
+### Patches
+
+* [Status logging](https://github.com/Muriel-Salvan/x_aeon_agents/commit/aac424c29176810f081cd5ba4435c4f19b7a27f7)
+* [fix(config): pass through SecretString returned by config DSL](https://github.com/Muriel-Salvan/x_aeon_agents/commit/16baaf8161384f6d206e60f606af48cd6cb6118a)
+* [test: stub AI model discovery in unit tests](https://github.com/Muriel-Salvan/x_aeon_agents/commit/10416fce4bbbd65c2539b7f386812bf5f5bc643b)
+* [feat: make test command configurable and skip tests when unset](https://github.com/Muriel-Salvan/x_aeon_agents/commit/1e238bde0e24bf2443a3f4acad3cc2c43cbad144)
+* [test: update git diff interpreter agent specs for artifact-based assertions](https://github.com/Muriel-Salvan/x_aeon_agents/commit/5637a822714c889f08d609e7202b8a124ed2b582)
+* [ci: relax rubocop rules and clean up test helper](https://github.com/Muriel-Salvan/x_aeon_agents/commit/87147dfe7918147b92f2dc9353b65394fc9f24a9)
+* [test: add CLI scenario specs for all commands](https://github.com/Muriel-Salvan/x_aeon_agents/commit/8faddbb3595a61187325753e7476c6be3bcca1d5)
+* [test: replace inline strings with heredocs in scenario specs](https://github.com/Muriel-Salvan/x_aeon_agents/commit/c4b4a326b375279208ad756e7d5f3be96899cc5d)
+* [test(agents): add integration specs for git workflow agents](https://github.com/Muriel-Salvan/x_aeon_agents/commit/182c66f3abadca3c8d4a396efb473b3c0cd7a786)
+* [Prepare for logging work](https://github.com/Muriel-Salvan/x_aeon_agents/commit/fad1d84e8e18a3934cdaf6ad62d22c40e35ad303)
+* [test: add common behavior specs for all XAeonAgents agents](https://github.com/Muriel-Salvan/x_aeon_agents/commit/4cb6944489d5e67c6d614f4b764cae4313decec2)
+* [test: cover config DSL behaviors in agent defaults examples](https://github.com/Muriel-Salvan/x_aeon_agents/commit/687edc40286b8c4f7e069df2b4cbd5334ad87976)
+* [test: extract AgentDefaults specs into shared examples](https://github.com/Muriel-Salvan/x_aeon_agents/commit/42c9f3bf9c0e64a3ce9d1f6d7223ec6751723dc4)
+* [refactor: replace puts calls with Logger helpers in agents](https://github.com/Muriel-Salvan/x_aeon_agents/commit/cf2245c702dae65fa2dd86d2f800304aa4b5c3f6)
+* [refactor: replace AgentOptions with default kwargs in AgentDefaults](https://github.com/Muriel-Salvan/x_aeon_agents/commit/9926870315499417fa6c8a43b2853b7a4fc2aa47)
+* [feat: add configure_agent DSL for per-class agent defaults](https://github.com/Muriel-Salvan/x_aeon_agents/commit/5c900d9234a4ff96eeef148651dc24308c3675db)
+* [feat(config): add on_open_worktree callback for worktree opening](https://github.com/Muriel-Salvan/x_aeon_agents/commit/c7ae1daa85859e1a789f2af9b80cf704fb9b664f)
+* [feat: add setup_project config DSL for fresh worktree setup](https://github.com/Muriel-Salvan/x_aeon_agents/commit/23f7e3c8468724f1b153e0950aef1eaf552c7009)
+* [feat(config): support X_AEON_AGENTS_CONFIG env var for config path](https://github.com/Muriel-Salvan/x_aeon_agents/commit/c6e33adf35dc35d717eb08469fa59a8bc7e8a542)
+* [fix(planner): run Diffy in unbundled env for system calls](https://github.com/Muriel-Salvan/x_aeon_agents/commit/14dca12662241b1291e697f3fdd59584dafa18ff)
+* [feat(config): support custom secret providers in config file](https://github.com/Muriel-Salvan/x_aeon_agents/commit/c48952f42f48f8f7fc52846ff13c1b954846c606)
+* [feat(skills): add addressing-pull-request-comments skill config](https://github.com/Muriel-Salvan/x_aeon_agents/commit/d720fe13ea8dd07cda4ed6eb0c683ba43fa1442c)
+* [Merge branch 'config-file'](https://github.com/Muriel-Salvan/x_aeon_agents/commit/116b67eb92193572b8373ebc3b4749e524b6044c)
+
 # [v1.0.29](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.28...v1.0.29) (2026-08-21 14:06:00)
 
 ### Patches
