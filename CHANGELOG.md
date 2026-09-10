@@ -1,3 +1,9 @@
+# [v1.0.32](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.31...v1.0.32) (2026-09-10 16:56:38)
+
+### Patches
+
+* [docs: restructure README and ship example config template](https://github.com/Muriel-Salvan/x_aeon_agents/commit/681d705042f160b1504b222570467775aeed188a)
+
 # [v1.0.31](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.30...v1.0.31) (2026-09-10 15:11:18)
 
 ### Patches
