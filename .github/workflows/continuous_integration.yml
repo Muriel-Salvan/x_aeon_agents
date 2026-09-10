@@ -33,6 +33,11 @@ jobs:
   package:
     needs: test
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
     steps:
 
       - name: Check-out code
@@ -63,8 +68,10 @@ jobs:
       - name: Stage added skills
         run: git add :/skills
 
+      - name: Configure RubyGems credentials
+        uses: rubygems/configure-rubygems-credentials@main
+
       - name: Semantic releasing
         run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{secrets.SEMANTIC_RELEASE_GH_TOKEN}}
-          GEM_HOST_API_KEY: ${{secrets.GEM_HOST_API_KEY}}
