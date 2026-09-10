@@ -1,3 +1,9 @@
+# [v1.0.33](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.32...v1.0.33) (2026-09-10 17:01:53)
+
+### Patches
+
+* [Potential fix for code scanning alert no. 1: Workflow does not contain permissions](https://github.com/Muriel-Salvan/x_aeon_agents/commit/9297c75659a735cc38225ac902fe0ac0fd59d6c6)
+
 # [v1.0.32](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.31...v1.0.32) (2026-09-10 16:56:38)
 
 ### Patches
