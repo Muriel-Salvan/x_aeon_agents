@@ -76,7 +76,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
           # Verify the branch was pushed
           expect(git_pushes).to eq [
-            ['--force', 'origin', 'feature-branch']
+            ['--force', '--', 'origin', 'feature-branch']
           ]
 
           # Verify a PR was created
@@ -170,7 +170,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
           # Verify the branch was pushed
           expect(git_pushes).to eq [
-            ['--force', 'origin', 'feature-branch']
+            ['--force', '--', 'origin', 'feature-branch']
           ]
 
           # Verify a PR was created (same as without the --commit option)
@@ -296,7 +296,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
           # Verify the branch was pushed
           expect(git_pushes).to eq [
-            ['--force', 'origin', 'feature-branch']
+            ['--force', '--', 'origin', 'feature-branch']
           ]
 
           # Verify a PR was created with the final revised plan.
