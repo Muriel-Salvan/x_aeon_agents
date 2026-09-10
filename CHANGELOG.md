@@ -1,3 +1,9 @@
+# [v1.0.31](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.30...v1.0.31) (2026-09-10 15:11:18)
+
+### Patches
+
+* [chore: switch to cleanroom-next and RubyGems trusted publishing](https://github.com/Muriel-Salvan/x_aeon_agents/commit/26c07f2ba1b42500032d1f7d6055b3351ff5b95d)
+
 # [v1.0.30](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.29...v1.0.30) (2026-09-09 13:21:12)
 
 ### Patches
