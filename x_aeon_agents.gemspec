@@ -3,7 +3,9 @@ require_relative 'lib/x_aeon_agents/version'
 Gem::Specification.new do |spec|
   spec.name          = 'x_aeon_agents'
   spec.version       = XAeonAgents::VERSION
-  spec.summary       = 'AI agents skills to be used for X-Aeon projects'
+  spec.summary       = 'Executable software-engineering workflows for coding agents. ' \
+    'x_aeon_agents turns coding agents into participants in explicit, ' \
+    'repeatable software-engineering processes rather than leaving the agent to invent the process itself.'
   spec.homepage      = 'https://github.com/Muriel-Salvan/x_aeon_agents'
   spec.license       = 'BSD-3-Clause'
 
