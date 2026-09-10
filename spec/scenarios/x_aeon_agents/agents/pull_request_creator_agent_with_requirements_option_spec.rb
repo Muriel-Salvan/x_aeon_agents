@@ -20,7 +20,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
 
         # Verify the branch was pushed to the remote with --force (for force-with-lease)
         expect(git_pushes).to eq [
-          ['--force', 'origin', 'feature-branch']
+          ['--force', '--', 'origin', 'feature-branch']
         ]
 
         # Verify existing PRs were checked
@@ -69,7 +69,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
 
         # Verify the branch was pushed to the remote with --force (for force-with-lease)
         expect(git_pushes).to eq [
-          ['--force', 'origin', 'feature-branch']
+          ['--force', '--', 'origin', 'feature-branch']
         ]
 
         # Verify existing PRs were checked
@@ -124,7 +124,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
 
         # Verify the branch was pushed to the remote with --force (for force-with-lease)
         expect(git_pushes).to eq [
-          ['--force', 'origin', 'feature-branch']
+          ['--force', '--', 'origin', 'feature-branch']
         ]
 
         # Verify existing PRs were checked
