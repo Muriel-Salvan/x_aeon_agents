@@ -2,7 +2,7 @@
 
 # x_aeon_agents
 
-**x_aeon_agents** is a Ruby gem and CLI that arms AI assistants with ready-to-use skills to automate everyday development workflows for X-Aeon projects.
+**Executable software-engineering workflows for coding agents** — a Ruby gem that packages composable AI agents behind an `xaa` CLI and a reusable library to automate everyday development workflows.
 
 [![Build](https://github.com/Muriel-Salvan/x_aeon_agents/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/Muriel-Salvan/x_aeon_agents/actions/workflows/continuous_integration.yml)
 [![Test Coverage](https://img.shields.io/codecov/c/gh/Muriel-Salvan/x_aeon_agents)](https://codecov.io/gh/Muriel-Salvan/x_aeon_agents)
@@ -13,16 +13,16 @@
 
 </div>
 
-**x_aeon_agents** is a 💎 Ruby gem that gives AI assistants a **ready-to-use skill set** so they can automate everyday development workflows for X-Aeon projects. 🤖
+**x_aeon_agents** turns coding agents into participants in *explicit, repeatable and quality software-engineering processes* — instead of letting the agent invent its own workflow on the fly.
 
-Powered by the `xaa` command-line interface (and usable as a library too), it takes care of:
+Powered by the `xaa` command-line interface (and usable as a **Ruby library** too), it packages a suite of composable AI agents that automate everyday development tasks:
 
 - 📬 **Pull Request reviews** — automatically read, address and reply to GitHub review comments
 - 📝 **Commit messages** — generate meaningful descriptions for your staged changes
+- 🚀 **Issue implementation** — turn GitHub issues into working code and open Pull Requests
 - 📚 **README generation** — build documentation sections straight from your codebase
 - 🔍 **Git diff interpretation** — summarize what changed and why
-- 🚀 **Issue implementation** — turn GitHub issues into working code
-- 🛠️ **Task bootstrapping** — create git worktrees and feature branches in seconds
+- 🌿 **Task bootstrapping** — create git worktrees and feature branches in seconds
 - 🔧 **Skill templating** — generate reusable agent workflows from ERB templates
 
 Use it as a **⚡ CLI** in your terminal or as a **📦 library** inside your Ruby projects.
@@ -33,16 +33,16 @@ Use it as a **⚡ CLI** in your terminal or as a **📦 library** inside your Ru
   - [Prerequisites](#prerequisites)
   - [Install](#install)
   - [Configure](#configure)
-    - [Optional configuration file](#optional-configuration-file)
   - [Use the CLI](#use-the-cli)
   - [Use as a library](#use-as-a-library)
 - [Requirements](#requirements)
 - [Features](#features)
 - [Public API](#public-api)
   - [Executable: `xaa`](#executable-xaa)
+  - [Config DSL file (`.x_aeon_agents.rb`)](#config-dsl-file-x_aeon_agentsrb)
   - [`XAeonAgents::Config`](#xaeonagentsconfig)
-  - [`XAeonAgents::AgentOptions`](#xaeonagentsagentoptions)
   - [`XAeonAgents::GenHelpers`](#xaeonagentsgenhelpers)
+  - [`XAeonAgents::Logger`](#xaeonagentslogger)
 - [Documentation](#documentation)
   - [Library public API](#library-public-api)
 - [How it works](#how-it-works)
@@ -78,10 +78,12 @@ Use it as a **⚡ CLI** in your terminal or as a **📦 library** inside your Ru
 
 ### Prerequisites
 
-- Ruby `>= 3.1`
-- An OpenRouter API key (`OPENROUTER_API_KEY`) so the built-in agents can call an LLM
-- A GitHub token (`GITHUB_TOKEN`) for features that talk to GitHub (Pull Requests, issues, comments)
-- Optionally a Cline API key (`CLINE_API_KEY`) when driving the Cline agent
+- **Ruby** `>= 3.1` (RubyGems/Bundler required to install the gem)
+- **Git** command-line client available in `PATH`
+- **GitHub CLI (`gh`)** installed and authenticated for Pull Request / issue features
+- An **OpenRouter API key** (`OPENROUTER_API_KEY`) to power the AI agents
+- A **GitHub token** (`GITHUB_TOKEN`) for features that talk to GitHub
+- Optionally a **Cline API key** (`CLINE_API_KEY`) when driving the Cline agent
 
 ### Install
 
@@ -103,78 +105,23 @@ bundle install
 
 ### Configure
 
-Export the required credentials as environment variables (the CLI reads them automatically):
+Export the required credentials as environment variables (the CLI and library read them automatically):
 
 ```bash
 export OPENROUTER_API_KEY="sk-or-..."
 export GITHUB_TOKEN="ghp_..."
 ```
 
-### Optional configuration file
-
-You can fine-tune behaviour with an optional `.x_aeon_agents.rb` configuration file, read at the start of every `xaa` command:
-
-- `~/.x_aeon_agents.rb` — in your **home directory**, for *global / user-level* settings;
-- `.x_aeon_agents.rb` — in the **current project directory**, for *project-level* settings;
-- any path stored in the **`X_AEON_AGENTS_CONFIG`** environment variable, for *explicitly designated* settings.
-
-When several exist, they are evaluated in that order and the last one wins: the project file overrides the global one, and the `X_AEON_AGENTS_CONFIG` file overrides them both. Exposed directives:
-
-- `debug true` / `debug false` — enable or disable debug logging. An explicit `--debug` / `--no-debug` command-line flag always overrides it, and when neither the file nor a flag sets a value, the `X_AEON_AGENTS_DEBUG` environment variable is still honoured.
-- `cline_api_key`, `openrouter_api_key` and `github_token` — declare, using a block, custom Ruby code to retrieve the corresponding secret when it is needed, instead of relying on the `CLINE_API_KEY` / `OPENROUTER_API_KEY` / `GITHUB_TOKEN` environment variables:
+For fine-tuning, you can create an optional `.x_aeon_agents.rb` configuration file in your home directory (`~/.x_aeon_agents.rb` for global settings) or in the current project directory (for project-level settings). It is evaluated at the start of every `xaa` command. See the [Config DSL file](#config-dsl-file-x_aeon_agentsrb) section for the full DSL reference. For example, to enable debug logging and declare a secret retrieval block:
 
 ```ruby
-cline_api_key do
+debug true
+
+openrouter_api_key do
   # Any Ruby code that returns the key
   File.read('/path/to/my/key').strip
 end
 ```
-
-The block is evaluated lazily, only the first time the secret is actually needed, and its result is then cached for the whole session.
-- `setup_project` — declare, using a block, the steps to execute in a freshly created git worktree to install the project's dependencies (used by the `start-task` command):
-
-```ruby
-setup_project do
-  system 'bundle install'
-end
-```
-
-The block is evaluated right after the worktree has been created, with the current directory set to the worktree. If it is not defined, no setup step is executed.
-- `test_project_cmd` — declare the command line used to run the project's tests suite, executed by the `implement` command after each code change and after each fix made by the Tester agent:
-
-```ruby
-test_project_cmd 'bundle exec rspec'
-```
-
-If it is not defined, the `implement` command does not run any tests.
-- `on_open_worktree` — declare, using a block, a callback to execute every time the `start-task` command opens a worktree (freshly created or already existing), after the branch has been pushed to the remote. The block is given the worktree's directory as parameter:
-
-```ruby
-on_open_worktree do |dir|
-  system "VSCodium.exe \"#{dir}\""
-end
-```
-
-If it is not defined, nothing is executed when a worktree is opened.
-
-- `configure_agent` — declare, using a block, the default kwargs to be used when initializing agents of a given class. The block is evaluated every time an agent of this class is instantiated: it is given the currently merged configuration of the agent (a Hash of kwargs, that can be modified in place), and can return a Hash of additional kwargs to be merged into this configuration:
-
-```ruby
-configure_agent(:PlanGeneratorAgent) do
-  {
-    model: 'deepseek/deepseek-v4-flash',
-    cli_options: { plan: true }
-  }
-end
-
-configure_agent(:PlanGeneratorAgent) do |agent_config|
-  agent_config[:skills].push('applying-ruby-conventions')
-  agent_config
-end
-```
-
-This method is re-entrant: it can be called several times for the same agent class, from the same config file or from different ones (global, project, env-var designated): each call sees the configuration accumulated by the previous ones, in the order the config files are evaluated. This lets a global config define base settings, and a project config read and adapt them.
-For example, to always run in debug mode inside a given project, create a `.x_aeon_agents.rb` file in that project directory containing `debug true`.
 
 ### Use the CLI
 
@@ -204,16 +151,10 @@ Generate or update the project README from the codebase:
 xaa generate-readme
 ```
 
-Ask a quick one-off question to the agent:
+Ask a quick one-off question to the AI agent:
 
 ```bash
 xaa prompt "What is the capital of France?"
-```
-
-Bootstrap a new task in a git worktree:
-
-```bash
-xaa start-task --branch feature/my-task
 ```
 
 ### Use as a library
@@ -234,53 +175,160 @@ XAeonAgents::Agents::CommitterAgent.new.run
 
 ## Requirements
 
-- **Ruby** `>= 3.1` — the `xaa` CLI and library are Ruby-based (RubyGems/Bundler needed to install the gem)
+- **Operating system** — any platform supported by Ruby (Linux, macOS, Windows)
+- **Ruby** `>= 3.1` (with RubyGems/Bundler) — the `xaa` CLI and the library are Ruby-based
 - **Git** command-line client in `PATH` — the agents operate on repositories, branches, worktrees and commits
 - **GitHub CLI (`gh`)** installed and authenticated — used by the Pull Request and comment skills to query and reply via `gh api`
+- **A Git repository** — the `xaa` commands must be run from inside a Git repository
+- **Network access** — to reach the OpenRouter and GitHub APIs
 - **`GITHUB_TOKEN`** environment variable — a GitHub personal access token used by Octokit for API access
 - **`OPENROUTER_API_KEY`** environment variable — an OpenRouter API key that powers the AI agents through RubyLLM
 - **`CLINE_API_KEY`** environment variable (optional) — only required when driving the Cline agent integration
 
-Each of these secrets can alternatively be retrieved by custom code declared in the [optional configuration file](#optional-configuration-file).
+Each of these secrets can alternatively be retrieved by custom code declared in the [Config DSL file](#config-dsl-file-x_aeon_agentsrb).
 
 ## Features
 
-**x_aeon_agents** provides a *`xaa`* command-line interface and a reusable Ruby library that package a suite of AI agents to automate everyday development workflows.
+**x_aeon_agents** provides a *`xaa`* command-line interface and a reusable Ruby library that package a suite of composable AI agents to automate everyday development workflows.
 
 - 📬 **Pull Request review handling** — auto-detect the PR for the current branch, read agent-addressed comments, fix the code and reply to each thread
 - 📝 **AI commit messages** — analyze staged changes and generate a meaningful message, with flexible staging strategies (`all`, `if_empty`, `none`)
 - 🚀 **Automated Pull Request creation** — push the branch to GitHub and open a PR against a configurable base ref with an AI-written description
-- 📚 **README generation** — build a full README from the codebase with toggleable sections (about, quick start, requirements, features, public API, documentation, how-it-works, development, contributing, license)
 - 🐛 **GitHub issue implementation** — turn an issue (and its comments) into working code, committing changes and opening a PR automatically
-- 🛠️ **Arbitrary requirement implementation** — pass free-form requirements to a Developer agent that edits the codebase, optionally committing and opening a PR
-- 🔍 **Git diff interpretation** — summarize the working tree changes and the intent behind them relative to any base ref
+- 🛠️ **Arbitrary requirement implementation** — pass free-form requirements to a Developer agent that plans, codes and tests the changes, optionally committing and opening a PR
+- 📚 **README generation** — build a full README from the codebase with 10 toggleable sections (about, quick start, requirements, features, public API, documentation, how-it-works, development, contributing, license)
+- 🔍 **Git diff interpretation** — summarize the working-tree changes and the intent behind them relative to any base ref
 - 💬 **One-shot prompts** — send a single prompt to the AI agent and print the response
-- 🔧 **Skill templating** — generate skill files from ERB templates, evaluating templates and copying assets to the output directory
+- 🔧 **Skill templating** — generate skill files from ERB templates in `skills.src/`, evaluating templates and copying assets to the output directory
 - 📥 **Skill installation** — install skills and their recursively-resolved dependencies from a manifest for a chosen agent
-- 🌿 **Task bootstrapping** — create a feature branch, set up a git worktree, push it upstream and open it in the editor
+- 🌿 **Task bootstrapping** — create a feature branch, set up a git worktree, push it upstream and open it in the editor, with `setup_project` and `on_open_worktree` hooks
+- 🧩 **Composable agent framework** — orchestrating agents (planner ➜ coder ➜ tester ➜ committer ➜ documenter ➜ PR creator) built on `ai-agents`/`composable_agents`, backed by a Cline/OpenRouter provider via RubyLLM
+- ⚙️ **Extensible config DSL** — optional `.x_aeon_agents.rb` file with secrets handling, per-agent model tuning (`configure_agent`) and a project test command
+- 💾 **Session persistence & debugging** — global `--session-id` to resume AI conversations and a `--debug` flag for verbose logging
 - 📦 **Reusable Ruby library** — require the gem and trigger agents programmatically (e.g. `Agents::CommitterAgent.new.run`)
-- 🧩 **Agent framework & provider integration** — composable agents built on `ai-agents`/`composable_agents`, a Cline/OpenRouter provider, central `Config`, helpers and `GenHelpers`
-- 💾 **Session persistence & debugging** — global `--session-id` for conversation persistence and a `--debug` flag for verbose logging
 
 ## Public API
 
-x_aeon_agents exposes a command-line executable and a set of Ruby library entry points. Only the components below are part of the public API (methods tagged in the `Public API` YARD group).
+`x_aeon_agents` exposes one command-line executable (`xaa`) and a small Ruby library surface. Only the entry points below are part of the public API (the executable in `bin/` and the Ruby methods tagged with YARD's `Public API` group).
 
 ### Executable: `xaa`
 
-The `bin/xaa` script is the entry point of the CLI. It boots the gem and dispatches `ARGV` to `XAeonAgents::Cli`.
+The `bin/xaa` script is the CLI entry point: it boots the gem and dispatches the arguments to `XAeonAgents::Cli`. Run it from inside any Git repository.
 
-**Usecase** — commit staged changes with an AI-generated message:
+**Usecase** — commit your staged changes with an AI-generated message:
 
 ```bash
 xaa commit
 ```
 
-More details: [GitHub — bin/xaa](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa)
+Available commands:
+
+| Command | Description |
+| --- | --- |
+| `xaa review-comments [PR_NUMBER]` | Read, address and reply to GitHub Pull Request review comments |
+| `xaa commit` | Commit staged changes with an AI-generated message |
+| `xaa create-pr` | Push the branch and create a GitHub Pull Request |
+| `xaa implement-issue ISSUE_NUMBER` | Implement a GitHub issue with AI |
+| `xaa implement REQUIREMENTS` | Implement free-form requirements with AI |
+| `xaa interpret-diffs [BASE]` | Summarize git diffs relative to a base ref |
+| `xaa generate-readme` | Generate or update the project README from the codebase |
+| `xaa generate-skills` | Generate skill files from ERB templates in `skills.src/` |
+| `xaa install-skills` | Install skills from the `.skills` manifest |
+| `xaa start-task` | Create a feature branch, git worktree, and push it upstream |
+| `xaa prompt PROMPT` | Send a one-shot prompt to the AI agent |
+
+More details: [GitHub — bin/xaa](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa) · [RubyDoc — XAeonAgents::Cli](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Cli)
+
+### Config DSL file (`.x_aeon_agents.rb`)
+
+The optional `.x_aeon_agents.rb` configuration file exposes a small Ruby DSL used to fine-tune X-Aeon Agents: retrieve secrets from custom sources, define project setup and testing commands, hook into the worktree lifecycle and tune the default settings of any agent class. It is evaluated at the start of every `xaa` command (and can be loaded manually with `XAeonAgents::Config.load`).
+
+**Usecase** — retrieve a secret from a custom source, define the test suite command and tune the coding agent:
+
+```ruby
+openrouter_api_key { File.read('/path/to/my/key').strip }
+
+test_project_cmd 'bundle exec rspec --format=documentation'
+
+configure_agent(:CoderAgent) do
+  { model: 'deepseek/deepseek-v4-flash' }
+end
+```
+
+More details: [GitHub — .x_aeon_agents.example.rb](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/.x_aeon_agents.example.rb)
+
+#### Where the file is loaded from
+
+Files are looked up in the following locations and evaluated from the lowest priority (first) to the highest one — so higher-priority settings override lower-priority ones:
+
+1. `~/.x_aeon_agents.rb` — global, per-user settings
+2. `./.x_aeon_agents.rb` — project-level settings (current directory)
+3. The path given by the `X_AEON_AGENTS_CONFIG` environment variable, if set — overrides both
+
+> [!NOTE]
+> All existing files are evaluated in this order (not just the first one found), and explicit CLI flags (`--debug`) still override everything. The file is evaluated in a cleanroom: only the DSL methods below are exposed at its top level, but regular Ruby code works inside the blocks given to those methods.
+
+#### Possible methods
+
+| Method | Description |
+| --- | --- |
+| `debug(value)` | Enable debug logging |
+| `cline_api_key { ... }` / `openrouter_api_key { ... }` / `github_token { ... }` | Define the code retrieving a secret |
+| `setup_project { ... }` | Steps to install the project's dependencies in a fresh worktree |
+| `test_project_cmd 'cmd'` | Command line running the project's test suite |
+| `on_open_worktree { \|dir\| ... }` | Callback executed when a worktree is opened |
+| `configure_agent(:AgentClass) { \|cfg\| ... }` | Default kwargs for agents of a given class |
+
+- **`debug(value)`** — set the debug mode:
+
+  ```ruby
+  debug true
+  ```
+
+- **Secret retrieval blocks** — `cline_api_key`, `openrouter_api_key` and `github_token` take a block returning the secret value. Each block is evaluated lazily, only when the secret is needed, and its result is memoized. Secrets are resolved with the precedence *explicit setter ➜ `ENV` variable ➜ config DSL block* (see [`XAeonAgents::Config`](#xaeonagentsconfig)):
+
+  ```ruby
+  github_token { File.read("#{Dir.home}/.github_token").strip }
+  ```
+
+- **`setup_project { ... }`** — define the steps to execute in a fresh git worktree to install the project's dependencies (used by `xaa start-task`). The block is evaluated only when a fresh worktree is created, with the current directory set to the worktree:
+
+  ```ruby
+  setup_project { system 'bundle install' }
+  ```
+
+- **`test_project_cmd(command_line)`** — define the command line running the project's test suite, used by `xaa implement` to validate code changes. If not set, no tests are run by the implement command:
+
+  ```ruby
+  test_project_cmd 'bundle exec rspec --format=documentation'
+  ```
+
+- **`on_open_worktree { |dir| ... }`** — define a callback executed every time a worktree is opened by `xaa start-task` (freshly created or already existing), after the branch has been pushed to the remote. It is given the worktree's directory as parameter:
+
+  ```ruby
+  on_open_worktree { |dir| system "code \"#{dir}\"" }
+  ```
+
+- **`configure_agent(agent_class_name) { |agent_config| ... }`** — define the default kwargs to be merged when initializing agents of a given class (e.g. `:CoderAgent`). The block is evaluated every time an agent of this class is instantiated: it is given the currently merged configuration (a Hash of kwargs, that can be modified in place), and returns a Hash of additional kwargs merged on top. It is re-entrant: it can be called several times for the same class, from the same file or from different ones (global, project, env-var designated), each call seeing the configuration accumulated by the previous ones. Typical kwargs keys (as used by the agent frameworks):
+  - `skills` — Array of skill names the agent should follow
+  - `model` — LLM model to use (e.g. `'deepseek/deepseek-v4-flash'`)
+  - `cli_options` — Hash of options merged into the Cline CLI invocation (e.g. `plan: true`)
+  - `configure_global` — Proc given the Cline global settings to tweak
+
+  ```ruby
+  configure_agent(:PlanGeneratorAgent) do |agent_config|
+    {
+      skills: %w[applying-ruby-conventions enforcing-project-rules],
+      model: 'deepseek/deepseek-v4-flash',
+      cli_options: (agent_config[:cli_options] || {}).merge(plan: true),
+      configure_global: proc { |global_settings| global_settings.disabled_tools = %w[editor run_commands] }
+    }
+  end
+  ```
 
 ### `XAeonAgents::Config`
 
-Singleton holding all configuration of X-Aeon Agents (secrets, data directory, CLI defaults, debug flag). All methods below are part of the public API.
+Singleton module holding all X-Aeon Agents configuration (secrets, data directory, default Cline CLI arguments, debug flag). All methods listed below are part of the `Public API` YARD group.
 
 **Usecase** — configure credentials and options at once:
 
@@ -298,11 +346,12 @@ More details: [RubyDoc — XAeonAgents::Config](https://www.rubydoc.info/gems/x-
 
 Public methods:
 - `configure(**kwargs)` — set any configuration property. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#configure-class_method)
-- `cline_api_key` / `cline_api_key=` — Cline API key (also `openrouter_api_key`, `github_token`). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config)
-- `data_dir` / `data_dir=` — X-Aeon Agents data directory. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#data_dir-class_method)
+- `cline_api_key` / `cline_api_key=`, `openrouter_api_key` / `openrouter_api_key=`, `github_token` / `github_token=` — lazily-resolved secrets (ENV or config DSL). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#cline_api_key-class_method)
+- `data_dir` / `data_dir=` — data directory (`.x_aeon_agents` by default). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#data_dir-class_method)
 - `default_cline_cli_args` / `default_cline_cli_args=` — default Cline CLI arguments. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#default_cline_cli_args-class_method)
-- `debug` / `debug=` — debug mode. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#debug-class_method)
-- `config_paths` — locate the optional `.x_aeon_agents.rb` config file(s) (home dir, then project dir). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config)
+- `debug` / `debug=` — enable debug logging. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#debug-class_method)
+- `config_paths` — candidate paths of the optional `.x_aeon_agents.rb` config file. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#config_paths-class_method)
+- `logger` — the shared logger instance. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#logger-class_method)
 
 ### `XAeonAgents::GenHelpers`
 
@@ -320,80 +369,99 @@ Public methods:
 - `skill(description:, dependencies:, plan:, metadata:)` — define skill metadata / YAML frontmatter. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#skill-instance_method)
 - `goal(goal_desc = nil)` — define or get the skill goal. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#goal-instance_method)
 - `goal_sentence` — the skill goal as a sentence. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#goal_sentence-instance_method)
-- `announce` — prompt announcing the agent is working on the skill. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#announce-instance_method)
+- `announce` — the prompt announcing the agent is working on the skill. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#announce-instance_method)
 - `tmp_path` — default temporary folder for agents. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#tmp_path-instance_method)
-- `rule(title, description:, type:, bad:, good:, rationale:)` — generate a documented rule block. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#rule-instance_method)
+- `rule(title, ...)` — generate a documented rule block. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#rule-instance_method)
 - `ordered_todo_list(&erb_block)` — generate a numbered todo list section. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#ordered_todo_list-instance_method)
-- `when_to_use(&erb_block)` — generate the "When to use it" section. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#when_to_use-instance_method)
+- `when_to_use(&erb_block)` — generate the “When to use it” section. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#when_to_use-instance_method)
 - `name` — the skill name being generated. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#name-instance_method)
 - `self.config(skill_name)` — read a skill's `.skill_config.yml`. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#config-class_method)
 
-It also exposes `XAeonAgents::GenHelpers::ErbEvaluator`, a small public helper class that evaluates ERB skill templates with this DSL (`ErbEvaluator#new(erb_file)` and `ErbEvaluator#result`). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers/ErbEvaluator)
+### `XAeonAgents::Logger`
+
+The shared status-aware logger used by all X-Aeon Agents components (accessible through `XAeonAgents::Config.logger`). It inherits from the standard Ruby `Logger`; the methods below are part of the public API, on top of the standard `::Logger` interface.
+
+**Usecase** — write a log line, then dump a raw message:
+
+```ruby
+XAeonAgents::Config.logger.info 'Fetching repository metadata'
+XAeonAgents::Config.logger << 'machine-readable output'
+```
+
+More details: [RubyDoc — XAeonAgents::Logger](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger)
+
+Public methods:
+- `add(severity, message = nil, progname = nil, &block)` — log a message with a given severity. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger#add-instance_method)
+- `log(severity, message = nil, progname = nil, &block)` — alias of `add`. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger#log-instance_method)
+- `<<(message)` — output a raw, unformatted message. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger#%3C%3C-instance_method)
 
 ## Documentation
 
-- **GitHub repository** — main project page with source code, issues and CI: [github.com/Muriel-Salvan/x_aeon_agents](https://github.com/Muriel-Salvan/x_aeon_agents)
-- **Project README** — overview, CLI usage and skill-authoring guidelines: [github.com/Muriel-Salvan/x_aeon_agents/blob/main/README.md](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/README.md)
-- **RubyDoc.info** — full API reference generated from the source (YARD): [rubydoc.info/gems/x_aeon_agents](https://www.rubydoc.info/gems/x_aeon_agents)
-- **RubyGems** — published gem page and release history: [rubygems.org/gems/x_aeon_agents](https://rubygems.org/gems/x_aeon_agents)
+- **GitHub repository** — main project page with source code, issues and CI: [github.com/Muriel-Salvan/x\_aeon\_agents](https://github.com/Muriel-Salvan/x_aeon_agents)
+- **Project README** — overview, CLI usage and skill-authoring guidelines: [github.com/Muriel-Salvan/x\_aeon\_agents/blob/main/README.md](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/README.md)
+- **RubyDoc.info** — full API reference generated from the source (YARD): [rubydoc.info/gems/x\_aeon\_agents](https://www.rubydoc.info/gems/x_aeon_agents)
+- **RubyGems** — published gem page and release history: [rubygems.org/gems/x\_aeon\_agents](https://rubygems.org/gems/x_aeon_agents)
 
 ### Library public API
 
 The documented public methods (browseable on RubyDoc.info):
 
 - `XAeonAgents` module:
-  - `agent_name` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents#agent_name-class_method)
-  - `agent_signature` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents#agent_signature-class_method)
-  - `VERSION` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents#VERSION-constant)
+  - `agent_name` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents#agent_name-class_method)
+  - `agent_signature` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents#agent_signature-class_method)
+  - `VERSION` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents#VERSION-constant)
 - `XAeonAgents::GenHelpers` — DSL helpers for generating skill content from ERB templates:
-  - `skill` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#skill-instance_method)
-  - `goal` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#goal-instance_method)
-  - `goal_sentence` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#goal_sentence-instance_method)
-  - `announce` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#announce-instance_method)
-  - `tmp_path` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#tmp_path-instance_method)
-  - `rule` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#rule-instance_method)
-  - `ordered_todo_list` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#ordered_todo_list-instance_method)
-  - `when_to_use` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#when_to_use-instance_method)
-  - `name` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#name-instance_method)
-  - `config` (class method) — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers#config-class_method)
+  - `skill` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#skill-instance_method)
+  - `goal` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#goal-instance_method)
+  - `goal_sentence` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#goal_sentence-instance_method)
+  - `announce` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#announce-instance_method)
+  - `tmp_path` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#tmp_path-instance_method)
+  - `rule` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#rule-instance_method)
+  - `ordered_todo_list` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#ordered_todo_list-instance_method)
+  - `when_to_use` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#when_to_use-instance_method)
+  - `name` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#name-instance_method)
+  - `config` (class method) — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers#config-class_method)
 - `XAeonAgents::GenHelpers::ErbEvaluator` — helper class to evaluate ERB skill templates:
-  - `new` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers/ErbEvaluator#new-instance_method)
-  - `result` — [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers/ErbEvaluator#result-instance_method)
+  - `new` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers/ErbEvaluator#new-instance_method)
+  - `result` — [doc](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/GenHelpers/ErbEvaluator#result-instance_method)
 
 ## How it works
 
-`x_aeon_agents` is a 💎 Ruby gem organized around three layers: a **CLI**, a set of **orchestrating agents**, and a shared **configuration / helper** core.
+`x_aeon_agents` is a 💎 **Ruby gem** organized into three layers: a **CLI**, a set of **orchestrating agents**, and a shared **configuration / helper** core that glues them together.
 
 ### Entry point 🚪
 
-The `xaa` executable ([`bin/xaa`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa)) boots Zeitwerk auto-loading and calls `XAeonAgents::Cli.start(ARGV)`. The CLI ([`lib/x_aeon_agents/cli.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/cli.rb)) is a [Thor](https://github.com/rails/thor) application: each sub-command maps **1:1** to an agent and forwards global options (`--session-id`, `--debug`). On startup, it also reads the optional `.x_aeon_agents.rb` configuration file (home directory, then project directory) so project-level settings can override global ones, and explicit command-line flags override both.
+- The [`xaa`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa) executable boots [Zeitwerk](https://github.com/fxn/zeitwerk) auto-loading and calls `XAeonAgents::Cli.start(ARGV)`.
+- The CLI ([`lib/x_aeon_agents/cli.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/cli.rb)) is a [Thor](https://github.com/rails/thor) application: every sub-command (`commit`, `create-pr`, `review-comments`, `implement-issue`, `generate-readme`…) maps **1:1** to an agent class.
+- On startup it loads the optional `.x_aeon_agents.rb` config (home directory, then project directory) so project-level settings override global ones, and explicit CLI flags (`--session-id`, `--debug`) override both.
 
 ### Agents as composable workflows 🧩
 
-Every capability (`commit`, `create-pr`, `review-comments`, `implement-issue`, `generate-readme`…) is implemented by an `Agents::*Agent` class. They inherit from `composable_agents` base classes:
+Each capability is implemented by an `Agents::*Agent` class built on `composable_agents`:
 
-- `ComposableAgents::Agent` — pure orchestrators that run shell commands and coordinate children.
-- `ComposableAgents::AiAgents::Agent` / `ComposableAgents::Cline::Agent` — LLM-driven agents that execute prompts.
+- `ComposableAgents::Agent` — pure orchestrators that run shell commands and coordinate child agents.
+- `ComposableAgents::AiAgents::Agent` / `ComposableAgents::Cline::Agent` — LLM-driven agents that execute prompts against an AI backend.
 
-Each agent is enriched by the `AgentDefaults` mixin ([`lib/x_aeon_agents/agent_defaults.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/agent_defaults.rb)), which:
+Every agent is enriched by the [`AgentDefaults`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/agent_defaults.rb) mixin, which:
 
-- injects `new_agent(...)`, `step(...)` and `step_agent(...)` to build multi-step pipelines;
-- auto-configures the underlying frameworks (`setup_composable_agents`, `setup_ai_agents`, `setup_cline`);
-- sets default constructor kwargs for the underlying AI framework (`strategy` for AI agents, `api_key` + `cli_options` for Cline agents), which can be overwritten per agent class with the `configure_agent` config DSL;
-- manages a per-session directory under `Config.data_dir/sessions/<id>`;
-- prepends `ArtifactContract` + `Resumable` mixins for input/output validation and pause/resume.
+- injects `new_agent`, `task`, `step` and `step_agent` to build multi-step pipelines;
+- auto-configures the frameworks (`setup_composable_agents`, `setup_ai_agents`, `setup_cline`) and injects per-class defaults (overridable with the `configure_agent` config DSL);
+- enforces **input/output artifact contracts** and adds **resume** support (via the `ArtifactContract` + `Resumable` mixins);
+- gives each agent a per-session directory under `Config.data_dir/sessions/<id>`.
 
 ### Orchestration 🔗
 
-A top-level agent decomposes its task into **steps** that delegate to child agents, passing state through a shared `@artifacts` hash referenced via `artifact_ref`. For example, `DeveloperAgent` chains `PlannerAgent` ➜ `CoderAgent` ➜ `TesterAgent` ➜ (optional) `CommitterAgent` / `DocumenterAgent` ➜ (optional) `PullRequestCreatorAgent`.
+A top-level agent decomposes its job into **steps**, delegating each one to child agents. State flows through a shared `@artifacts` hash referenced via `artifact_ref` — e.g. `DeveloperAgent` chains `PlannerAgent` ➜ `CoderAgent` ➜ `TesterAgent` ➜ `CommitterAgent` / `DocumenterAgent` ➜ `PullRequestCreatorAgent`:
 
 ```mermaid
 flowchart TD
   CLI[XAeonAgents::Cli / xaa] -->|instantiates + run| A[Top-level Agent]
-  A -->|step_agent| P[PlannerAgent]
-  A -->|step_agent| C[CoderAgent]
-  A -->|step_agent| T[TesterAgent]
-  A -->|step_agent| K[CommitterAgent]
+  A -->|task / step_agent| P[PlannerAgent]
+  A -->|task / step_agent| C[CoderAgent]
+  A -->|task / step_agent| T[TesterAgent]
+  A -->|task / step_agent| K[CommitterAgent]
+  A -->|task / step_agent| D[DocumenterAgent]
+  A -->|task / step_agent| PR[PullRequestCreatorAgent]
   C -.->|artifacts hash| T
   T -.->|artifacts hash| K
   subgraph LLM[AI backends]
@@ -405,23 +473,30 @@ flowchart TD
 
 ### Configuration & providers 🔐
 
-[`XAeonAgents::Config`](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config) is a singleton holding secrets (`cline_api_key`, `openrouter_api_key`, `github_token`), the data directory and debug flag. Agents' options (model, strategy, ...) can be customized per agent class with the `configure_agent` config DSL. LLM access flows through `Providers::Cline` ([`lib/x_aeon_agents/providers/cline.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/providers/cline.rb)), an OpenAI-compatible [RubyLLM](https://github.com/crmne/ruby_llm) provider targeting the Cline API.
+- [`XAeonAgents::Config`](https://www.rubydoc.info/gems/x_aeon_agents/XAeonAgents/Config) is a singleton holding secrets (`cline_api_key`, `openrouter_api_key`, `github_token`), the data directory and the debug flag. Secrets are resolved with the precedence *explicit setter ➜ `ENV` variable ➜ lazy Proc from the config DSL*.
+- LLM calls flow through [`Providers::Cline`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/providers/cline.rb), an OpenAI-compatible [RubyLLM](https://github.com/crmne/ruby_llm) provider targeting the Cline API (`https://api.cline.bot/api/v1`) and parsing responses including thinking blocks, tool calls and token usage.
 
 ### Skills & ERB templating 📚
 
-Reusable agent instructions live as Markdown **skills** under `skills/`. Some are generated from ERB templates in `skills.src/` via the `generate-skills` command, evaluated by `XAeonAgents::GenHelpers` ([`lib/x_aeon_agents/gen_helpers.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/gen_helpers.rb)) — a DSL that emits YAML front-matter, goals, rules and checklists.
+- Reusable agent instructions live as Markdown **skills** in `skills/`, some generated from ERB templates in `skills.src/`.
+- `xaa generate-skills` evaluates those templates with the [`GenHelpers`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/gen_helpers.rb) DSL (via `GenHelpers::ErbEvaluator`) to emit YAML front-matter, goals, rules and checklists.
+- `xaa install-skills` reads the `.skills` manifest and installs each skill together with its recursively-resolved dependencies.
 
 ### Helpers 🛠️
 
-`XAeonAgents::Helpers` ([`lib/x_aeon_agents/helpers.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/helpers.rb)) centralizes **Git**, **GitHub (Octokit)**, real-time command execution, diff extraction and interactive content review used across all agents.
+[`XAeonAgents::Helpers`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/helpers.rb) centralizes the plumbing used by every agent:
+
+- real-time command execution (`run_cmd`) with expected exit status;
+- cached Git / GitHub (Octokit) clients and diff extraction (`git_diff_cached`, `artifact_files_diffs`);
+- interactive content review (opens a temp file via Launchy for human approval).
 
 ## Development
 
-This section explains how to set up a local environment to develop **x_aeon_agents**, run its test suite, lint the code and build the gem.
+This section explains how to set up a local environment to develop **x_aeon_agents**, run its test suite, lint the code, build the gem and regenerate the packaged skills.
 
 ### Prerequisites
 
-- **Ruby** `>= 3.1` (the CI runs on Ruby `3.4`) and a matching **Bundler**.
+- **Ruby** `>= 3.1` (the CI pipeline runs on Ruby `3.4`) and a matching **Bundler**.
 - **Git** command-line client.
 - *(Maintainer only)* **Node.js** and **npm**, required for `skillkit` and `semantic-release` used during packaging and release.
 
@@ -440,12 +515,12 @@ bundle install
 
 ### Project layout
 
-```
+```text
 lib/                    # Library source, auto-loaded with Zeitwerk (entry: lib/x_aeon_agents.rb)
   x_aeon_agents/
     cli.rb              # The `xaa` Thor CLI definition
     config.rb           # Global configuration
-    agents/             # AI agents (commit, PR, README generation, …)
+    agents/             # AI agents (commit, PR, README generation, ...)
     providers/          # LLM provider integrations
     gen_helpers.rb      # ERB skill template helpers
     version.rb          # Gem version (bumped automatically on release)
@@ -462,7 +537,7 @@ spec/                   # RSpec test suite
 
 ### Running the test suite
 
-Tests use **RSpec 3** with **SimpleCov** coverage (minimum 97%).
+Tests use **RSpec 3** with **SimpleCov** coverage (minimum 98%).
 
 ```bash
 # Run the whole suite, exactly like the CI does
@@ -475,7 +550,7 @@ bundle exec rspec spec/scenarios/code_quality_spec.rb
 TEST_DEBUG=1 bundle exec rspec
 ```
 
-The coverage report is written to `coverage/` (Cobertura format for Codecov). Each example runs with a cleaned, temporary `.x_aeon_agents_test/` data directory (git-ignored), and the application configuration is populated with dummy API keys by `spec_helper.rb`.
+The coverage report is written to `coverage/` (HTML plus Cobertura format for Codecov). Each example runs with a cleaned, temporary `.x_aeon_agents_test/` data directory (git-ignored), and the application configuration is populated with dummy API keys by `spec_helper.rb`.
 
 ### Linting
 
@@ -508,6 +583,8 @@ bundle exec ruby bin/xaa --help
 bundle exec ruby bin/xaa <command> [options]
 ```
 
+Common commands while developing: `xaa start-task --branch feature/my-change` opens a git worktree for a feature branch, `xaa generate-readme` regenerates this README, and `xaa commit` / `xaa create-pr` drive the commit and Pull Request workflow.
+
 Build the gem package locally:
 
 ```bash
@@ -534,34 +611,55 @@ Contributors do not need to run these release steps locally — just make sure t
 
 ## Contributing
 
-Contributions to **x_aeon_agents** are welcome! This 💎 Ruby gem lives on [GitHub](https://github.com/Muriel-Salvan/x_aeon_agents) and is released automatically via `semantic-release`, so a clean, linear history and passing CI keep the project healthy. 🌱
+Contributions to **x_aeon_agents** are welcome! 🌱 This 💎 Ruby gem lives on [GitHub](https://github.com/Muriel-Salvan/x_aeon_agents) and is released automatically via `semantic-release`, so a clean, linear history and passing CI keep the project healthy.
 
 ### 🐛 Reporting issues
+
 - Open a new issue on the [issue tracker](https://github.com/Muriel-Salvan/x_aeon_agents/issues) and describe the *expected* vs *actual* behavior, your Ruby version, and clear steps to reproduce.
 - For a bug in a specific skill, mention the skill name (e.g. `addressing-pull-request-comments`) and the command you ran.
 
 ### 🍴 Forking & branching
+
 - 📌 *Fork* the repo and add upstream as a remote named `github`: `git remote add github https://github.com/Muriel-Salvan/x_aeon_agents.git`.
 - Create a *feature branch* from `main`; the project favors git worktrees, so you can run `xaa start-task --branch feature/my-change`.
 - Keep your branch current by *rebasing* on `github/main` (`git fetch --all && git rebase github/main`) — never merge.
 
 ### 🧪 Running the tests
-To run the suite locally, install the test dependencies with `bundle install` (the `Gemfile` pulls in RSpec 3, RuboCop, SimpleCov and its Cobertura formatter), then launch the full suite exactly like CI via `bundle exec rspec --format documentation`, or scope it to a single file such as `bundle exec rspec spec/scenarios/code_quality_spec.rb`; each example runs against a temporary, auto-cleaned `.x_aeon_agents_test/` directory with dummy API keys injected by `spec/spec_helper.rb`, and SimpleCov enforces a *minimum 97% coverage* before the run is considered green.
+
+To run the suite locally, first install the test dependencies with `bundle install` (the `Gemfile` pulls in RSpec 3, RuboCop, SimpleCov and its Cobertura formatter), then launch the full suite exactly like CI with `bundle exec rspec --format documentation`, or scope it to a single file such as `bundle exec rspec spec/scenarios/code_quality_spec.rb`; each example runs against a temporary, auto-cleaned `.x_aeon_agents_test/` directory with dummy API keys injected by `spec/spec_helper.rb`, and SimpleCov enforces a *minimum 97% coverage* before the run is considered green.
+
+```bash
+# Install test dependencies
+bundle install
+
+# Run the whole suite, exactly like the CI does
+bundle exec rspec --format documentation
+
+# Run a single file or directory
+bundle exec rspec spec/scenarios/code_quality_spec.rb
+
+# Enable verbose test logging
+TEST_DEBUG=1 bundle exec rspec
+```
 
 ### 🔀 Opening a Pull Request
+
 - Push your branch to your fork and open a PR *against* `main` on the upstream repo.
 - Describe *what* changed and *why*, and link the related issue when relevant.
 - Rebase on the latest `github/main` and push with `git push github --force-with-lease` if you rebased.
 
 ### 🤖 CI & coverage
+
 - Every push triggers the [continuous integration workflow](https://github.com/Muriel-Salvan/x_aeon_agents/actions/workflows/continuous_integration.yml), which runs on Ruby `3.4`, installs `skillkit`, executes the tests and uploads coverage to Codecov.
 - The `package` job regenerates skills (`bundle exec ruby bin/xaa generate-skills`) and runs `npx semantic-release` — you don't need to run these locally, but your changes must not break them.
 
 ### 🧹 Code style
+
 - Lint with `bundle exec rubocop` (config in `.rubocop.yml`, using `rubocop`, `rubocop-rspec` and `rubocop-yard`); auto-fix with `bundle exec rubocop -A`.
 - If you edit a skill written as an ERB template under `skills.src/`, *always* regenerate the committed `skills/` files with `bundle exec ruby bin/xaa generate-skills` before committing.
 
 ### ✅ Before you submit
+
 - 🟢 All RSpec examples pass and coverage stays ≥ 97%.
 - 🪄 `rubocop` reports no offenses.
 - 📝 Generated skills are in sync (`skills/` matches `skills.src/`).
@@ -569,7 +667,7 @@ To run the suite locally, install the test dependencies with `bundle install` (t
 
 ## License
 
-This project is licensed under the BSD License (modified). See the [LICENSE](LICENSE) file for the full text and terms.
+This project is distributed under a modified BSD License (modified July 1999). See the [LICENSE](LICENSE) file for the full license terms and copyright information.
 
 ## Ways skills are written
 
