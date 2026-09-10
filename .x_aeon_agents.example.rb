@@ -1,3 +1,5 @@
+require 'bundler'
+
 @safe_secrets = {
   cline_api_key: 'Muriel Salvan/AI/Cline/API Keys/VSCode and CLI',
   github_token: 'Muriel Salvan/Github/Tokens/Pushing my changes',
