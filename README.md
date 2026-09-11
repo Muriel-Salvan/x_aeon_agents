@@ -273,6 +273,7 @@ Files are looked up in the following locations and evaluated from the lowest pri
 | Method | Description |
 | --- | --- |
 | `debug(value)` | Enable debug logging |
+| `data_dir 'dir'` | Data directory where X-Aeon Agents stores its data |
 | `cline_api_key { ... }` / `openrouter_api_key { ... }` / `github_token { ... }` | Define the code retrieving a secret |
 | `setup_project { ... }` | Steps to install the project's dependencies in a fresh worktree |
 | `test_project_cmd 'cmd'` | Command line running the project's test suite |
@@ -283,6 +284,12 @@ Files are looked up in the following locations and evaluated from the lowest pri
 
   ```ruby
   debug true
+  ```
+
+- **`data_dir(path)`** — set the data directory where X-Aeon Agents stores its data (sessions, etc.). Defaults to `.x_aeon_agents`:
+
+  ```ruby
+  data_dir '/var/lib/x_aeon_agents'
   ```
 
 - **Secret retrieval blocks** — `cline_api_key`, `openrouter_api_key` and `github_token` take a block returning the secret value. Each block is evaluated lazily, only when the secret is needed, and its result is memoized. Secrets are resolved with the precedence *explicit setter ➜ `ENV` variable ➜ config DSL block* (see [`XAeonAgents::Config`](#xaeonagentsconfig)):

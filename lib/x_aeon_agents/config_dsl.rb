@@ -15,6 +15,16 @@ module XAeonAgents
 
     expose :debug
 
+    # Set the data directory used by X-Aeon Agents to store its data.
+    #
+    # Parameters::
+    # * *path* (String): The data directory to set
+    def data_dir(path)
+      Config.data_dir = path
+    end
+
+    expose :data_dir
+
     # Define the steps to execute in a fresh worktree to install the project's dependencies.
     # The given block is stored and evaluated only when a fresh worktree is created by the
     # start-task command, with the current directory set to the worktree. If this method is
