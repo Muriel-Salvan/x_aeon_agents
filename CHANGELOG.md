@@ -1,3 +1,15 @@
+# [v1.1.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.34...v1.1.0) (2026-09-11 15:35:31)
+
+## Global changes
+### Patches
+
+* [feat(config): add data_dir option to the config DSL](https://github.com/Muriel-Salvan/x_aeon_agents/commit/7f01344f96ea904d6e32d3f1d2f0c2aec79ce6b5)
+
+## Changes for config
+### Features
+
+* [feat(config): add data_dir option to the config DSL](https://github.com/Muriel-Salvan/x_aeon_agents/commit/7f01344f96ea904d6e32d3f1d2f0c2aec79ce6b5)
+
 # [v1.0.34](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.33...v1.0.34) (2026-09-11 14:24:42)
 
 ### Patches
