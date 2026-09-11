@@ -1,3 +1,9 @@
+# [v1.1.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.1.0...v1.1.1) (2026-09-11 17:27:09)
+
+### Patches
+
+* [refactor: update git status calls to use status_info](https://github.com/Muriel-Salvan/x_aeon_agents/commit/d3c7017c01efc34bd619bbd2ef55d9e63e63bcb3)
+
 # [v1.1.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.34...v1.1.0) (2026-09-11 15:35:31)
 
 ## Global changes
