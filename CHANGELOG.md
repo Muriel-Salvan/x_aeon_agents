@@ -1,3 +1,9 @@
+# [v1.2.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.1.1...v1.2.0) (2026-09-11 17:57:31)
+
+### Features
+
+* [feat: add X-Aeon agents configuration](https://github.com/Muriel-Salvan/x_aeon_agents/commit/3cda1ea69075828d9ebc94d7fb2fdf0e08794efe)
+
 # [v1.1.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.1.0...v1.1.1) (2026-09-11 17:27:09)
 
 ### Patches
