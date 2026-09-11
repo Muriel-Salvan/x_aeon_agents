@@ -300,6 +300,26 @@ describe XAeonAgents::Config do
     end
   end
 
+  describe '#data_dir' do
+    it 'returns the default data directory when no config file defines it' do
+      with_config_files do
+        run_cli 'prompt', 'test'
+        expect(described_class.data_dir).to eq '.x_aeon_agents'
+      end
+    end
+
+    it 'returns the data directory defined in the config DSL' do
+      with_config_files(
+        project_content: <<~CONFIG
+          data_dir 'my_data_dir'
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.data_dir).to eq 'my_data_dir'
+      end
+    end
+  end
+
   describe 'with only a global DSL config file' do
     let(:create_global_config) { true }
 
