@@ -1,3 +1,9 @@
+# [v1.0.34](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.33...v1.0.34) (2026-09-11 14:24:42)
+
+### Patches
+
+* [chore: reword LICENSE as modified BSD-3-Clause license](https://github.com/Muriel-Salvan/x_aeon_agents/commit/dbf8ef308d4d0f9f5eacf3112aab3459e627731e)
+
 # [v1.0.33](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.0.32...v1.0.33) (2026-09-10 17:01:53)
 
 ### Patches
