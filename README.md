@@ -667,7 +667,7 @@ TEST_DEBUG=1 bundle exec rspec
 
 ## License
 
-This project is distributed under a modified BSD License (modified July 1999). See the [LICENSE](LICENSE) file for the full license terms and copyright information.
+This project is distributed under a modified BSD-3-Clause License. See the [LICENSE](LICENSE) file for the full license terms and copyright information.
 
 ## Ways skills are written
 
