@@ -85,7 +85,7 @@ module XAeonAgents
           <<~EO_ARTIFACT
             ### New untracked files
 
-            #{git.status.untracked.keys.map do |file|
+            #{git.status_info.untracked.keys.map do |file|
               <<~EO_UNTRACKED_FILE
                 #### #{file}
                 ```
