@@ -48,7 +48,7 @@ module XAeonAgents
           intent: 'Implement the requirements following the implementation plan',
           user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_agent.artifact_ref(:plan)}`."
         )
-        logger.info "Coder changes: #{Helpers.git.status.changed.keys.join(', ')}"
+        logger.info "Coder changes: #{Helpers.git.status_info.changed.keys.join(', ')}"
 
         task(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [coder_agent]), intent: 'Commit coder changes') if @commit
 
@@ -110,7 +110,7 @@ module XAeonAgents
                   ]
                 }
               )
-              logger.info "Tester changes: #{Helpers.git.status.changed.keys.join(', ')}"
+              logger.info "Tester changes: #{Helpers.git.status_info.changed.keys.join(', ')}"
               # Integrate potential implementation plan modifications
               unless @artifacts[:plan_modifications].strip.empty?
                 plan_modifications = @artifacts.delete(:plan_modifications)
@@ -206,7 +206,7 @@ module XAeonAgents
             ]
           }
         )
-        logger.info "Documenter changes: #{Helpers.git.status.changed.keys.join(', ')}"
+        logger.info "Documenter changes: #{Helpers.git.status_info.changed.keys.join(', ')}"
 
         if @commit || @pull_request
           task(
