@@ -204,7 +204,7 @@ Each of these secrets can alternatively be retrieved by custom code declared in 
 - 🌿 **Task bootstrapping** — create a feature branch, set up a git worktree, push it upstream and open it in the editor, with `setup_project` and `on_open_worktree` hooks
 - 🧩 **Composable agent framework** — orchestrating agents (planner ➜ coder ➜ tester ➜ committer ➜ documenter ➜ PR creator) built on `ai-agents`/`composable_agents`, backed by a Cline/OpenRouter provider via RubyLLM
 - ⚙️ **Extensible config DSL** — optional `.x_aeon_agents.rb` file with secrets handling, per-agent model tuning (`configure_agent`) and a project test command
-- 💾 **Session persistence & debugging** — global `--session-id` to resume AI conversations and a `--debug` flag for verbose logging
+- 💾 **Session persistence & debugging** — global `--session-id` to resume AI conversations, a `--debug` flag for verbose logging and a `--no-interactive` flag to skip interactive review prompts
 - 📦 **Reusable Ruby library** — require the gem and trigger agents programmatically (e.g. `Agents::CommitterAgent.new.run`)
 
 ## Public API
@@ -266,13 +266,14 @@ Files are looked up in the following locations and evaluated from the lowest pri
 3. The path given by the `X_AEON_AGENTS_CONFIG` environment variable, if set — overrides both
 
 > [!NOTE]
-> All existing files are evaluated in this order (not just the first one found), and explicit CLI flags (`--debug`) still override everything. The file is evaluated in a cleanroom: only the DSL methods below are exposed at its top level, but regular Ruby code works inside the blocks given to those methods.
+> All existing files are evaluated in this order (not just the first one found), and explicit CLI flags (`--debug`, `--interactive`) still override everything. The file is evaluated in a cleanroom: only the DSL methods below are exposed at its top level, but regular Ruby code works inside the blocks given to those methods.
 
 #### Possible methods
 
 | Method | Description |
 | --- | --- |
 | `debug(value)` | Enable debug logging |
+| `interactive(value)` | Enable interactive content reviews (defaults to `true`) |
 | `data_dir 'dir'` | Data directory where X-Aeon Agents stores its data |
 | `cline_api_key { ... }` / `openrouter_api_key { ... }` / `github_token { ... }` | Define the code retrieving a secret |
 | `setup_project { ... }` | Steps to install the project's dependencies in a fresh worktree |
@@ -284,6 +285,12 @@ Files are looked up in the following locations and evaluated from the lowest pri
 
   ```ruby
   debug true
+  ```
+
+- **`interactive(value)`** — set the interactive mode: when disabled, content reviews (commit comments, implementation plans…) are accepted as-is, without opening any file nor prompting the user. Defaults to `true`:
+
+  ```ruby
+  interactive false
   ```
 
 - **`data_dir(path)`** — set the data directory where X-Aeon Agents stores its data (sessions, etc.). Defaults to `.x_aeon_agents`:
@@ -357,6 +364,7 @@ Public methods:
 - `data_dir` / `data_dir=` — data directory (`.x_aeon_agents` by default). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#data_dir-class_method)
 - `default_cline_cli_args` / `default_cline_cli_args=` — default Cline CLI arguments. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#default_cline_cli_args-class_method)
 - `debug` / `debug=` — enable debug logging. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#debug-class_method)
+- `interactive` / `interactive=` — enable interactive content reviews (defaults to true). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#interactive-class_method)
 - `config_paths` — candidate paths of the optional `.x_aeon_agents.rb` config file. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#config_paths-class_method)
 - `logger` — the shared logger instance. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#logger-class_method)
 
@@ -440,7 +448,7 @@ The documented public methods (browseable on RubyDoc.info):
 
 - The [`xaa`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/bin/xaa) executable boots [Zeitwerk](https://github.com/fxn/zeitwerk) auto-loading and calls `XAeonAgents::Cli.start(ARGV)`.
 - The CLI ([`lib/x_aeon_agents/cli.rb`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/cli.rb)) is a [Thor](https://github.com/rails/thor) application: every sub-command (`commit`, `create-pr`, `review-comments`, `implement-issue`, `generate-readme`…) maps **1:1** to an agent class.
-- On startup it loads the optional `.x_aeon_agents.rb` config (home directory, then project directory) so project-level settings override global ones, and explicit CLI flags (`--session-id`, `--debug`) override both.
+- On startup it loads the optional `.x_aeon_agents.rb` config (home directory, then project directory) so project-level settings override global ones, and explicit CLI flags (`--session-id`, `--debug`, `--interactive`) override both.
 
 ### Agents as composable workflows 🧩
 
