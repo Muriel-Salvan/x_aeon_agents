@@ -1,3 +1,9 @@
+# [v1.3.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.2.0...v1.3.0) (2026-10-13 14:54:19)
+
+### Features
+
+* [feat: add --no-interactive flag and interactive config option](https://github.com/Muriel-Salvan/x_aeon_agents/commit/51db8e5a1723e5c89311131ac73ed7ede23a9d21)
+
 # [v1.2.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.1.1...v1.2.0) (2026-09-11 17:57:31)
 
 ### Features
