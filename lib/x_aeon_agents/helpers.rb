@@ -140,6 +140,10 @@ module XAeonAgents
 
       # Allow user to review and edit content before using it
       #
+      # When the interactive mode is disabled (Config.interactive), no review file
+      # is written, nothing is opened and no user input is asked: the given content
+      # is accepted as-is and an empty user prompt is returned.
+      #
       # @param reviews_dir [String] Directory that can be used to store files to be reviewed
       # @param name [String] Name used for the temporary file
       # @param description [String] Description shown to the user
@@ -147,8 +151,8 @@ module XAeonAgents
       # @param promptable [Boolean] Indicates if user can issue a prompt as an answer
       # @param content [String] Initial content to present
       # @return [Array<String>] 2 values are returned:
-      #   - [String] Content after user review (same as content if editable is false)
-      #   - [String] User prompt
+      #   - [String] Content after user review (same as content if editable is false or the interactive mode is disabled)
+      #   - [String] User prompt (empty when the interactive mode is disabled)
       def review_content(
         reviews_dir: "#{Config.data_dir}/reviews",
         name: 'content.txt',
@@ -157,6 +161,10 @@ module XAeonAgents
         promptable: false,
         content: ''
       )
+        # When the interactive mode is disabled, accept the content as-is without
+        # writing any review file nor asking anything to the user.
+        return [content, ''] unless Config.interactive
+
         content_file = "#{reviews_dir}/#{Time.now.utc.strftime('%F-%H-%M-%S')}-#{name}"
         FileUtils.mkdir_p File.dirname(content_file)
         File.write(content_file, content)

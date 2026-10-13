@@ -7,6 +7,7 @@ describe XAeonAgents::Config do
     described_class.instance_variable_set(:@data_dir, nil)
     described_class.instance_variable_set(:@default_cline_cli_args, nil)
     described_class.instance_variable_set(:@debug, nil)
+    described_class.instance_variable_set(:@interactive, nil)
     described_class.instance_variable_set(:@logger, nil)
     ENV.delete('X_AEON_AGENTS_DEBUG')
     # Run the CLI through its public interface with stubbed AI agents: the lightweight
@@ -173,6 +174,28 @@ describe XAeonAgents::Config do
     end
   end
 
+  shared_examples 'applying the interactive CLI options' do
+    it 'lets --interactive override a config file that set interactive false' do
+      with_config_files(
+        global_content: create_global_config ? "interactive false\n" : nil,
+        project_content: create_project_config ? "interactive false\n" : nil
+      ) do
+        run_cli 'prompt', 'test', '--interactive'
+        expect(described_class.interactive).to be true
+      end
+    end
+
+    it 'lets --no-interactive override a config file that set interactive true' do
+      with_config_files(
+        global_content: create_global_config ? "interactive true\n" : nil,
+        project_content: create_project_config ? "interactive true\n" : nil
+      ) do
+        run_cli 'prompt', 'test', '--no-interactive'
+        expect(described_class.interactive).to be false
+      end
+    end
+  end
+
   describe 'with a config DSL declaring secret retrieval' do
     XAeonAgents::Config::KNOWN_SECRETS.each do |secret_name|
       describe "##{secret_name}" do
@@ -225,6 +248,22 @@ describe XAeonAgents::Config do
       it 'propagates the debug value to the Logger' do
         described_class.debug = true
         expect(described_class.logger.debug?).to be true
+      end
+    end
+
+    describe '#interactive' do
+      it 'returns true by default' do
+        expect(described_class.interactive).to be true
+      end
+
+      it 'returns true when explicitly enabled' do
+        described_class.interactive = true
+        expect(described_class.interactive).to be true
+      end
+
+      it 'returns false when explicitly disabled' do
+        described_class.interactive = false
+        expect(described_class.interactive).to be false
       end
     end
 
@@ -300,6 +339,33 @@ describe XAeonAgents::Config do
     end
   end
 
+  describe '#interactive' do
+    it 'returns true when no config file defines the interactive mode' do
+      with_config_files do
+        run_cli 'prompt', 'test'
+        expect(described_class.interactive).to be true
+      end
+    end
+
+    it 'returns the interactive mode defined in the config DSL' do
+      with_config_files(
+        project_content: <<~CONFIG
+          interactive false
+        CONFIG
+      ) do
+        run_cli 'prompt', 'test'
+        expect(described_class.interactive).to be false
+      end
+    end
+
+    it 'lets the project DSL file override the global DSL file' do
+      with_config_files(global_content: "interactive true\n", project_content: "interactive false\n") do
+        run_cli 'prompt', 'test'
+        expect(described_class.interactive).to be false
+      end
+    end
+  end
+
   describe '#data_dir' do
     it 'returns the default data directory when no config file defines it' do
       with_config_files do
@@ -325,6 +391,7 @@ describe XAeonAgents::Config do
 
     it_behaves_like 'loading a config DSL file'
     it_behaves_like 'applying the debug CLI options'
+    it_behaves_like 'applying the interactive CLI options'
   end
 
   describe 'with only a project DSL config file' do
@@ -332,6 +399,7 @@ describe XAeonAgents::Config do
 
     it_behaves_like 'loading a config DSL file'
     it_behaves_like 'applying the debug CLI options'
+    it_behaves_like 'applying the interactive CLI options'
 
     it 'uses the real config paths from the current directory' do
       with_config_files(project_content: "debug true\n") do
@@ -347,6 +415,7 @@ describe XAeonAgents::Config do
     let(:create_project_config) { true }
 
     it_behaves_like 'applying the debug CLI options'
+    it_behaves_like 'applying the interactive CLI options'
 
     it 'lets the project DSL file override the global DSL file' do
       with_config_files(global_content: "debug true\n", project_content: "debug false\n") do
