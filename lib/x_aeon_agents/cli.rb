@@ -8,6 +8,9 @@ module XAeonAgents
     # Defaults to nil so the absence of the flag can be told apart from an
     # explicit --no-debug (which lets the config file or ENV take precedence).
     class_option :debug, type: :boolean, default: nil, desc: 'Enable debug mode'
+    # Defaults to nil so the absence of the flag can be told apart from an
+    # explicit --no-interactive (which lets the config file take precedence).
+    class_option :interactive, type: :boolean, default: nil, desc: 'Enable interactive prompts with the user'
 
     # --------------------------------------------------------------------------- #
     # review-comments: Address Pull Request review comments
@@ -390,6 +393,7 @@ module XAeonAgents
         super
         Config.load
         Config.debug = options[:debug] unless options[:debug].nil?
+        Config.interactive = options[:interactive] unless options[:interactive].nil?
       end
     end
   end

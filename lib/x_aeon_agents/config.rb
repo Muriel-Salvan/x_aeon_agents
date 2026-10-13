@@ -98,6 +98,19 @@ module XAeonAgents
         @debug ||= ENV['X_AEON_AGENTS_DEBUG'] == '1'
       end
 
+      # @return [Boolean] The interactive mode, controlling whether content reviews prompt the user
+      attr_writer :interactive
+
+      # Get the interactive mode.
+      # Defaults to true when never explicitly set, and honors an explicit false.
+      #
+      # @return [Boolean] The interactive mode
+      def interactive
+        return true if @interactive.nil?
+
+        @interactive
+      end
+
       # Candidate absolute paths of the configuration file, ordered by increasing
       # priority (lowest first): user home directory, current directory, then the
       # path given by the X_AEON_AGENTS_CONFIG environment variable if set.

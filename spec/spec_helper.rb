@@ -65,23 +65,31 @@ RSpec.configure do |config|
     XAeonAgents::Config.instance_variable_set(:@open_worktree_proc, nil)
     XAeonAgents::Config.instance_variable_set(:@test_project_cmd, nil)
     XAeonAgents::Config.instance_variable_set(:@agent_config_procs, nil)
+    XAeonAgents::Config.instance_variable_set(:@interactive, nil)
     XAeonAgents::AgentDefaults.instance_variable_set(:@singleton_session_id, nil)
     XAeonAgents::Helpers.instance_variable_set(:@git, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github_remote, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github_repo, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github, nil)
-    # Set debug
-    original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
-    ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Log.debug?
-    # Globally capture everything written to stdout and stderr during the example, so that tests
-    # not validating logging don't pollute the test runner's output. In debug mode (TEST_DEBUG=1),
-    # the capture is also dumped to the real stdout/stderr in real time.
+    # Make sure tests are not impacted by local configuration
+    original_config = ENV.fetch('X_AEON_AGENTS_CONFIG', nil)
+    ENV.delete('X_AEON_AGENTS_CONFIG')
     begin
-      with_global_capture do
-        example.run
+      # Set debug
+      original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
+      ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Log.debug?
+      # Globally capture everything written to stdout and stderr during the example, so that tests
+      # not validating logging don't pollute the test runner's output. In debug mode (TEST_DEBUG=1),
+      # the capture is also dumped to the real stdout/stderr in real time.
+      begin
+        with_global_capture do
+          example.run
+        end
+      ensure
+        ENV['X_AEON_AGENTS_DEBUG'] = original_debug
       end
     ensure
-      ENV['X_AEON_AGENTS_DEBUG'] = original_debug
+      ENV['X_AEON_AGENTS_CONFIG'] = original_config
     end
   end
 
