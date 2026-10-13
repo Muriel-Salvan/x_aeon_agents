@@ -15,6 +15,16 @@ module XAeonAgents
 
     expose :debug
 
+    # Set the interactive mode, controlling whether content reviews prompt the user.
+    #
+    # Parameters::
+    # * *value* (Boolean): The interactive mode to set
+    def interactive(value)
+      Config.interactive = value
+    end
+
+    expose :interactive
+
     # Set the data directory used by X-Aeon Agents to store its data.
     #
     # Parameters::

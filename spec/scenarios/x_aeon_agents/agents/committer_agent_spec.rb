@@ -28,6 +28,40 @@ describe XAeonAgents::Agents::CommitterAgent do
 
   it_behaves_like 'an agent with common behavior', described_class
 
+  context 'when the interactive mode is disabled' do
+    it 'accepts the generated commit comment without reviewing it' do
+      XAeonAgents::Config.interactive = false
+      with_git_workspace(files: { 'test.txt' => "original\n" }) do
+        File.write('test.txt', "modified\n")
+        `git add test.txt`
+        described_class.new(session_id: nil, stage: :if_empty).run
+        git_log = Git.open(Dir.pwd).log.execute
+        expect(git_log.count).to eq(2)
+        expect_commit(
+          git_log.first,
+          <<~EO_COMMIT,
+            1-line summary of diff from cached
+
+            Change intent of the diff from cached
+
+            Co-authored by X-Aeon AI Agents:
+            * Test Agent
+          EO_COMMIT
+          <<~EO_PATCH
+            diff --git a/test.txt b/test.txt
+            index git_short_hash..git_short_hash git_file_mode
+            --- a/test.txt
+            +++ b/test.txt
+            @@ -1 +1 @@
+            -original
+            +modified
+          EO_PATCH
+        )
+        expect(opened_review_files).to be_empty
+      end
+    end
+  end
+
   context 'when there are no changes' do
     it 'does not create a commit' do
       with_git_workspace(files: { 'test.txt' => "content\n" }) do

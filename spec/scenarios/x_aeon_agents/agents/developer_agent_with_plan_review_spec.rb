@@ -217,5 +217,34 @@ describe XAeonAgents::Agents::DeveloperAgent do
         EO_PLAN
       end
     end
+
+    it 'accepts the generated plan without review when the interactive mode is disabled' do
+      XAeonAgents::Config.interactive = false
+      stub_review_content
+      with_git_workspace(files: { 'test.txt' => "original\n" }) do
+        with_test_project_cmd
+        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+
+        # PlanGeneratorAgent should have been called exactly 1 time (no review feedback loop)
+        plan_calls = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent, all: true)
+        expect(plan_calls.size).to eq 1
+
+        # No review file was opened for the plan
+        expect(opened_review_files).to be_empty
+
+        # Downstream agents receive the generated plan unchanged
+        final_plan = 'Detailed step-by-step plan (v1) for requirements "Add a new feature"'
+        expect(find_run_calls_for(XAeonAgents::Agents::CoderAgent)[:kwargs][:plan]).to eq final_plan
+        expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)[:kwargs][:plan]).to eq final_plan
+        expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq <<~EO_PLAN
+          #{final_plan}
+
+          # Revision #0 to the implementation plan
+
+          Fix the failing tests
+
+        EO_PLAN
+      end
+    end
   end
 end

@@ -24,6 +24,24 @@ describe XAeonAgents::Cli, '#prompt' do
     expect(find_new_calls_for(XAeonAgents::Agents::ExecutorAgent)[:kwargs][:composable_agents_dir]).to include 'my-session'
   end
 
+  context 'with global options' do
+    it 'disables the interactive mode when passed as --no-interactive' do
+      run_cli 'prompt', 'test', '--no-interactive'
+      expect(XAeonAgents::Config.interactive).to be false
+    end
+
+    it 'enables the interactive mode when passed as --interactive' do
+      XAeonAgents::Config.interactive = false
+      run_cli 'prompt', 'test', '--interactive'
+      expect(XAeonAgents::Config.interactive).to be true
+    end
+
+    it 'leaves the interactive mode to its default when the flag is absent' do
+      run_cli 'prompt', 'test'
+      expect(XAeonAgents::Config.interactive).to be true
+    end
+  end
+
   context 'with a multi-message conversation' do
     let(:mocked_conversation) do
       lambda { |agent, **_kwargs|
