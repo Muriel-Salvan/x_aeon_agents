@@ -42,7 +42,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
       it 'creates commits for coder and documenter steps' do
         with_git_workspace(files: { 'test.txt' => "original\n" }) do
-          described_class.new(session_id: nil, commit: true, pull_request: false).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: true).run(requirements: 'Add a new feature')
 
           git_log = Git.open(Dir.pwd).log.execute
           expect(git_log.count).to eq(3)
@@ -160,7 +160,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
         ) do
           # Load the config file, like the CLI does before running the agent
           XAeonAgents::Config.load
-          described_class.new(session_id: nil, commit: true, pull_request: false).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: true).run(requirements: 'Add a new feature')
 
           git_log = Git.open(Dir.pwd).log.execute
           # Initial commit + 2 tester commits (each revision produces a unique diff)

@@ -33,11 +33,10 @@ describe XAeonAgents::Agents::DeveloperAgent do
           branch: 'feature-branch',
           remotes: { 'origin' => 'git@github.com:owner/repo.git' }
         ) do
-          base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
-          described_class.new(session_id: nil, commit: false, pull_request: true).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: false, pr_base_ref: 'main').run(requirements: 'Add a new feature')
 
-          # Verify commits made (Documenter commits when @pull_request is true)
+          # Verify commits made (Documenter commits when @pr_base_ref is set)
           git_log = Git.open(Dir.pwd).log.execute
           expect(git_log.count).to eq(2) # Initial + Total commit
 
@@ -82,11 +81,11 @@ describe XAeonAgents::Agents::DeveloperAgent do
           # Verify a PR was created
           expect(github_double).to have_received(:create_pull_request).with(
             'owner/repo',
-            base_sha,
+            'main',
             'feature-branch',
-            "Mocked 1-line summary of changes from base #{base_sha}",
+            'Mocked 1-line summary of changes from base main',
             <<~EO_DESCRIPTION.chomp
-              Mocked change intent from base git ref #{base_sha}
+              Mocked change intent from base git ref main
 
               # Initial requirements given
 
@@ -103,17 +102,35 @@ describe XAeonAgents::Agents::DeveloperAgent do
         end
       end
 
+      it 'does not push nor create a pull request when no pr_base_ref is given' do
+        with_git_workspace(
+          files: { 'test.txt' => "original\n" },
+          branch: 'feature-branch',
+          remotes: { 'origin' => 'git@github.com:owner/repo.git' }
+        ) do
+          mock_git_push
+          described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
+
+          # Only the initial commit exists: without pr_base_ref, no Pull Request commit is made
+          git_log = Git.open(Dir.pwd).log.execute
+          expect(git_log.count).to eq(1)
+
+          # The branch was never pushed and no Pull Request was created
+          expect(git_pushes).to be_empty
+          expect(github_double).not_to have_received(:create_pull_request)
+        end
+      end
+
       it 'creates a pull request with commits option' do
         with_git_workspace(
           files: { 'test.txt' => "original\n" },
           branch: 'feature-branch',
           remotes: { 'origin' => 'git@github.com:owner/repo.git' }
         ) do
-          base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
-          described_class.new(session_id: nil, commit: true, pull_request: true).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: true, pr_base_ref: 'main').run(requirements: 'Add a new feature')
 
-          # Verify commits made (Coder commits when @commit is true, Documenter commits when @pull_request or @commit is true)
+          # Verify commits made (Coder commits when @commit is true, Documenter commits when @pr_base_ref or @commit is true)
           git_log = Git.open(Dir.pwd).log.execute
           expect(git_log.count).to eq(3) # Initial + Coder commit + Documenter commit
 
@@ -176,11 +193,11 @@ describe XAeonAgents::Agents::DeveloperAgent do
           # Verify a PR was created (same as without the --commit option)
           expect(github_double).to have_received(:create_pull_request).with(
             'owner/repo',
-            base_sha,
+            'main',
             'feature-branch',
-            "Mocked 1-line summary of changes from base #{base_sha}",
+            'Mocked 1-line summary of changes from base main',
             <<~EO_DESCRIPTION.chomp
-              Mocked change intent from base git ref #{base_sha}
+              Mocked change intent from base git ref main
 
               # Initial requirements given
 
@@ -238,9 +255,8 @@ describe XAeonAgents::Agents::DeveloperAgent do
           branch: 'feature-branch',
           remotes: { 'origin' => 'git@github.com:owner/repo.git' }
         ) do
-          base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           mock_git_push
-          described_class.new(session_id: nil, commit: false, pull_request: true).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: false, pr_base_ref: 'main').run(requirements: 'Add a new feature')
 
           # PlanGeneratorAgent should have run 3 times: initial plan + 2 user revisions.
           plan_calls = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent, all: true)
@@ -257,7 +273,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
           expect(find_run_calls_for(XAeonAgents::Agents::CoderAgent)[:kwargs][:plan]).to eq final_plan
           expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq final_plan
 
-          # Verify commits made (Documenter commits when @pull_request is true)
+          # Verify commits made (Documenter commits when @pr_base_ref is set)
           git_log = Git.open(Dir.pwd).log.execute
           expect(git_log.count).to eq(2) # Initial + Total commit
 
@@ -302,14 +318,14 @@ describe XAeonAgents::Agents::DeveloperAgent do
           # Verify a PR was created with the final revised plan.
           expect(github_double).to have_received(:create_pull_request).with(
             'owner/repo',
-            base_sha,
+            'main',
             'feature-branch',
-            "Mocked 1-line summary of changes from base #{base_sha}",
+            'Mocked 1-line summary of changes from base main',
             an_object_satisfying { |actual|
               # The description embeds run-time timestamps (<sub>...</sub>) that vary, so
               # normalize them to <sub>timestamp</sub> before comparing.
               actual.gsub(%r{<sub>.+</sub>}, '<sub>timestamp</sub>') == <<~EO_DESCRIPTION.chomp
-                Mocked change intent from base git ref #{base_sha}
+                Mocked change intent from base git ref main
 
                 # Initial requirements given
 
@@ -361,13 +377,12 @@ describe XAeonAgents::Agents::DeveloperAgent do
           branch: 'feature-branch',
           remotes: { 'origin' => 'git@github.com:owner/repo.git' }
         ) do
-          base_sha = Git.open(Dir.pwd).gcommit('HEAD').sha
           # Isolate the configuration loading from any real user configuration file
           allow(Dir).to receive(:home).and_return(temp_dir('home'))
           # Load the config file, like the CLI does before running the agent
           XAeonAgents::Config.load
           mock_git_push
-          described_class.new(session_id: nil, commit: false, pull_request: true).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: false, pr_base_ref: 'main').run(requirements: 'Add a new feature')
 
           # The tests passed on the first run, so TesterAgent has never been called
           expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)).to be_nil
@@ -411,9 +426,9 @@ describe XAeonAgents::Agents::DeveloperAgent do
           # The Tester is also credited in the PR description
           expect(github_double).to have_received(:create_pull_request).with(
             'owner/repo',
-            base_sha,
+            'main',
             'feature-branch',
-            "Mocked 1-line summary of changes from base #{base_sha}",
+            'Mocked 1-line summary of changes from base main',
             an_object_satisfying { |actual| actual.include?('- Tester (Cline cline/anthropic/claude-sonnet-4.6)') }
           )
         end

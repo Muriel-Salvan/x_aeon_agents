@@ -54,7 +54,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
       ) do
         with_test_project_cmd
         stub_failing_tests_command(2)
-        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+        described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
         # TesterAgent should have been called exactly 2 times
         tester_run_calls = find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true)
@@ -190,7 +190,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
       ) do
         with_test_project_cmd
         stub_failing_tests_command(0)
-        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+        described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
         # No test failed, so TesterAgent has never been called
         expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)).to be_nil
@@ -228,7 +228,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
         ) do
           with_test_project_cmd
           stub_failing_tests_command(1)
-          described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
           # TesterAgent has been called once, after the single test failure
           expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true).size).to eq 1
@@ -251,7 +251,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
               ''
             end
           )
-          described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
           # No tests have been run, and TesterAgent has never been called
           expect(test_runs).to be_empty
@@ -308,7 +308,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
           }
         ) do
           with_test_project_cmd
-          described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+          described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
           # The 2nd TesterAgent receives the plan with Revision #0, where headers were aligned to level 2
           expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true)[1][:kwargs][:plan]).to eq <<~EO_PLAN
             Detailed step-by-step plan for requirements "Add a new feature"

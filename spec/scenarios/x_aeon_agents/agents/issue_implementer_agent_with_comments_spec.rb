@@ -33,7 +33,7 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
             }
           ]
         )
-        described_class.new(session_id: nil, commit: true, pull_request: true).run(github_issue_number: 15)
+        described_class.new(session_id: nil, commit: true, pr_base_ref: 'main').run(github_issue_number: 15)
 
         expect(developer_agent_run_calls.size).to eq 1
         expect(developer_agent_run_calls.last[:kwargs]).to eq(
@@ -110,7 +110,7 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
             }
           ]
         )
-        described_class.new(session_id: nil, commit: true, pull_request: true).run(github_issue_number: 15)
+        described_class.new(session_id: nil, commit: true, pr_base_ref: 'main').run(github_issue_number: 15)
 
         expect(developer_agent_run_calls.size).to eq 1
         expect(developer_agent_run_calls.last[:kwargs]).to eq(

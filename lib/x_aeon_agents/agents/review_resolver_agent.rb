@@ -100,7 +100,14 @@ module XAeonAgents
             @artifacts[:plan] = 'No implementation plan'
             @artifacts[:files_diffs] = 'No changes'
           else
-            task(new_agent(DeveloperAgent, commit: true, pull_request: true), intent: 'Develop new requirements devise from review comments')
+            task(
+              new_agent(
+                DeveloperAgent,
+                commit: true,
+                pr_base_ref: Helpers.github.pull_request(Helpers.github_repo, @artifacts[:pr_number]).base.ref
+              ),
+              intent: 'Develop new requirements devise from review comments'
+            )
           end
 
           @artifacts[:open_comments_to_agents].each.with_index do |comment, comment_idx|

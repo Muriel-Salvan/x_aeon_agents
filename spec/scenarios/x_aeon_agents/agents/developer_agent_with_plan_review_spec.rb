@@ -44,7 +44,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
       stub_review_content(stdin_response: ['Please add more details to the plan', ''])
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
         with_test_project_cmd
-        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+        described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
         # PlanGeneratorAgent should have been called exactly 2 times (initial + after user feedback)
         plan_calls = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent, all: true)
@@ -107,7 +107,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
       end
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
         with_test_project_cmd
-        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+        described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
         # PlanGeneratorAgent should have been called exactly 1 time (only initial generation)
         plan_calls = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent, all: true)
@@ -152,7 +152,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
       end
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
         with_test_project_cmd
-        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+        described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
         # PlanGeneratorAgent should have been called exactly 2 times (initial + after feedback with diffs)
         plan_calls = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent, all: true)
@@ -223,7 +223,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
       stub_review_content
       with_git_workspace(files: { 'test.txt' => "original\n" }) do
         with_test_project_cmd
-        described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+        described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
         # PlanGeneratorAgent should have been called exactly 1 time (no review feedback loop)
         plan_calls = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent, all: true)
