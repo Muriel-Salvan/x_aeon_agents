@@ -31,7 +31,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
   it 'implements the requirements successfully' do
     with_git_workspace(files: { 'test.txt' => "original\n" }) do
-      described_class.new(session_id: nil, commit: false, pull_request: false).run(requirements: 'Add a new feature')
+      described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
 
       plan_generator_run_call = find_run_calls_for(XAeonAgents::Agents::PlanGeneratorAgent)
       expect(plan_generator_run_call).not_to be_nil

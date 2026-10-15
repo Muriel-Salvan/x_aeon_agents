@@ -12,7 +12,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
         remotes: { 'origin' => 'git@github.com:owner/repo.git' }
       ) do
         mock_git_push
-        described_class.new(session_id: 'test-session').run(base_sha: 'main')
+        described_class.new(session_id: 'test-session').run(pr_base_ref: 'main')
 
         # Verify PR was created with the first description
         expect(github_double).to have_received(:create_pull_request).with(
@@ -29,7 +29,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
 
         # Second call with the SAME session ID
         # The Resumable mixin caches the entire agent run, so the agent is not re-executed
-        described_class.new(session_id: 'test-session').run(base_sha: 'main')
+        described_class.new(session_id: 'test-session').run(pr_base_ref: 'main')
 
         # Verify PR was still only created once (the second call was cached and did not re-run)
         expect(github_double).to have_received(:create_pull_request).with(
@@ -41,7 +41,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
         ).once
 
         # Third call with a DIFFERENT session ID
-        described_class.new(session_id: 'test-session-2').run(base_sha: 'main')
+        described_class.new(session_id: 'test-session-2').run(pr_base_ref: 'main')
 
         # Verify PR was created with the new description (re-run with new session)
         expect(github_double).to have_received(:create_pull_request).with(

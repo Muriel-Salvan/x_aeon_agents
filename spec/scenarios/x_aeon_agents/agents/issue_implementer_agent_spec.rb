@@ -24,13 +24,13 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
           }
         ]
       )
-      described_class.new(session_id: nil, commit: true, pull_request: true).run(github_issue_number: 15)
+      described_class.new(session_id: nil, commit: true, pr_base_ref: 'develop').run(github_issue_number: 15)
 
       # DeveloperAgent was called correctly
       expect(developer_agent_new_calls.size).to eq 1
       expect(developer_agent_new_calls.last[:kwargs]).to include(
         commit: true,
-        pull_request: true
+        pr_base_ref: 'develop'
       )
       expect(developer_agent_run_calls.size).to eq 1
       expect(developer_agent_run_calls.last[:kwargs]).to eq(
@@ -58,7 +58,7 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
       # Make Octokit raise a NotFound error when the issue is fetched, simulating a missing issue.
       allow(github_double).to receive(:issue).and_raise(Octokit::NotFound)
       allow(github_double).to receive(:issue_comments).and_raise(Octokit::NotFound)
-      expect { described_class.new(session_id: nil, commit: true, pull_request: true).run(github_issue_number: 999) }.to raise_error(Octokit::NotFound)
+      expect { described_class.new(session_id: nil, commit: true, pr_base_ref: 'develop').run(github_issue_number: 999) }.to raise_error(Octokit::NotFound)
       expect(developer_agent_new_calls).to be_empty
       expect(developer_agent_run_calls).to be_empty
     end

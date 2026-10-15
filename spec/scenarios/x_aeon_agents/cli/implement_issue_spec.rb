@@ -7,7 +7,7 @@ describe XAeonAgents::Cli, '#implement_issue' do
     run_cli 'implement-issue', '15'
     expect(find_new_calls_for(XAeonAgents::Agents::IssueImplementerAgent)[:kwargs]).to eq(
       commit: true,
-      pull_request: true,
+      pr_base_ref: 'main',
       session_id: nil
     )
     expect(find_run_calls_for(XAeonAgents::Agents::IssueImplementerAgent)[:kwargs]).to eq(github_issue_number: 15)
@@ -17,7 +17,7 @@ describe XAeonAgents::Cli, '#implement_issue' do
     run_cli 'implement-issue', '15', '--session-id', 'my-session'
     expect(find_new_calls_for(XAeonAgents::Agents::IssueImplementerAgent)[:kwargs]).to eq(
       commit: true,
-      pull_request: true,
+      pr_base_ref: 'main',
       session_id: 'my-session'
     )
   end
