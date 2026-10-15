@@ -14,12 +14,13 @@ module XAeonAgents
       # Constructor
       #
       # @param commit [Boolean] Whether to commit changes automatically
-      # @param pull_request [Boolean] Whether to create a pull request automatically
+      # @param pr_base_ref [String, nil] The git ref (branch name) of the base of the Pull Request to create,
+      #   or nil to not create any Pull Request
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
-      def initialize(commit: false, pull_request: false, **agent_params)
+      def initialize(commit: false, pr_base_ref: nil, **agent_params)
         super(name: 'Issue implementer', **agent_params)
         @commit = commit
-        @pull_request = pull_request
+        @pr_base_ref = pr_base_ref
       end
 
       # Execute the agent to implement a GitHub issue.
@@ -35,7 +36,7 @@ module XAeonAgents
         issue = Helpers.github.issue(Helpers.github_repo, github_issue_number)
         issue_comments = Helpers.github.issue_comments(Helpers.github_repo, github_issue_number)
         task(
-          new_agent(DeveloperAgent, commit: @commit, pull_request: @pull_request),
+          new_agent(DeveloperAgent, commit: @commit, pr_base_ref: @pr_base_ref),
           requirements: build_requirements(issue, issue_comments),
           intent: 'Develop the gathered requirements'
         )

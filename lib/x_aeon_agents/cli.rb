@@ -103,7 +103,7 @@ module XAeonAgents
     # Push changes on Github and create a Pull Request.
     def create_pr
       agent_kwargs = {
-        base_sha: options[:base]
+        pr_base_ref: options[:base]
       }
       agent_kwargs[:requirements] = options[:requirements] if options[:requirements]
       Agents::PullRequestCreatorAgent.new(session_id: options[:session_id]).run(**agent_kwargs)
@@ -210,21 +210,25 @@ module XAeonAgents
     long_desc <<~LONGDESC
       Reads the content (and comments) of a GitHub issue and delegates the
       implementation to the Developer agent.  The agent commits changes and
-      opens a Pull Request automatically.
+      opens a Pull Request against the base given with the --pr-base option
+      (defaults to main).
 
       Examples:
 
         $   xaa implement-issue 15
 
+        $   xaa implement-issue 15 --pr-base master
+
         $   xaa implement-issue 15 --session-id my-session
     LONGDESC
+    option :pr_base, type: :string, default: 'main', desc: 'Base git ref of the GitHub Pull Request to create'
     # Implements a GitHub issue using AI.
     #
     # @param github_issue_number [Integer] The GitHub issue number to implement
     def implement_issue(github_issue_number)
       Agents::IssueImplementerAgent.new(
         commit: true,
-        pull_request: true,
+        pr_base_ref: options[:pr_base],
         session_id: options[:session_id]
       ).run(github_issue_number: Integer(github_issue_number))
     end
@@ -238,21 +242,24 @@ module XAeonAgents
       Pass free-form requirements to the Developer agent, which will analyze
       the codebase and produce the requested changes.
 
+      The --pr-base option gives the base ref of the Pull Request to create:
+      omit the option to not create any Pull Request.
+
       Examples:
 
         $   xaa implement "Add authentication middleware"
 
-        $   xaa implement "Refactor the database layer" --commit --pr --session-id my-session
+        $   xaa implement "Refactor the database layer" --commit --pr-base main --session-id my-session
     LONGDESC
     option :commit, type: :boolean, default: false, desc: 'Commit files at every step'
-    option :pr, type: :boolean, default: false, desc: 'Create a GitHub Pull Request for the changes'
+    option :pr_base, type: :string, default: nil, desc: 'Base git ref of the GitHub Pull Request to create (omit for no Pull Request)'
     # Implements arbitrary requirements using AI.
     #
     # @param requirements [String] Free-form requirements describing the desired changes
     def implement(requirements)
       Agents::DeveloperAgent.new(
         commit: options[:commit],
-        pull_request: options[:pr],
+        pr_base_ref: options[:pr_base],
         session_id: options[:session_id]
       ).run(requirements:)
     end

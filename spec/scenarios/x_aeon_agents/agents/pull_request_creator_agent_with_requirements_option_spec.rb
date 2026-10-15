@@ -12,7 +12,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
         remotes: { 'origin' => 'git@github.com:owner/repo.git' }
       ) do
         mock_git_push
-        described_class.new(session_id: nil).run(base_sha: 'main', requirements: 'Add a new Home button on main screen')
+        described_class.new(session_id: nil).run(pr_base_ref: 'main', requirements: 'Add a new Home button on main screen')
 
         # Verify GitDiffInterpreterAgent was called with the right base ref (default: main)
         expect(git_diff_interpreter_run_call).not_to be_nil
@@ -51,7 +51,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
       ) do
         mock_git_push
         described_class.new(session_id: nil).run(
-          base_sha: 'main',
+          pr_base_ref: 'main',
           requirements: <<~REQUIREMENTS.chomp
             # Feature Request
 
@@ -106,7 +106,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
       ) do
         mock_git_push
         described_class.new(session_id: nil).run(
-          base_sha: 'main',
+          pr_base_ref: 'main',
           requirements: <<~REQUIREMENTS.chomp
             ### Feature Request
 

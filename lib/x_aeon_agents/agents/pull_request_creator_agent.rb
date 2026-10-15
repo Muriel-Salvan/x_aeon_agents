@@ -9,7 +9,7 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         {
-          base_sha: 'The git ref of the base of the feature branch',
+          pr_base_ref: 'The git ref (branch name) of the base to create the Pull Request against',
           requirements: {
             description: 'The initial requirements',
             optional: true
@@ -28,10 +28,10 @@ module XAeonAgents
 
       # Execute the agent to generate some output artifacts based on some input artifacts.
       #
-      # @param base_sha [String] The git reference of the base of the branch.
+      # @param pr_base_ref [String] The git ref (branch name) used as base of the Pull Request.
       # @param requirements [String, nil] The initial requirements, or nil if none.
       # @return [Hash{Symbol => Object}] Output artifacts content
-      def run(base_sha:, requirements: nil)
+      def run(pr_base_ref:, requirements: nil)
         super
         raise 'Unable to find the Github repository' unless Helpers.github_repo
 
@@ -56,7 +56,7 @@ module XAeonAgents
         if @artifacts[:existing_pr_url].nil?
           # Create new PR
           git_diff_interpreter_agent = new_agent(GitDiffInterpreterAgent)
-          task(git_diff_interpreter_agent, intent: 'Analyze changes in the whole branch', git_ref_base: base_sha)
+          task(git_diff_interpreter_agent, intent: 'Analyze changes in the whole branch', git_ref_base: pr_base_ref)
           task(:create_pr, name: 'Create Pull Request', intent: "Create a Pull Request for the branch #{head_branch} on repo #{repo_name}") do
             sections = [@artifacts[:change_intent].strip]
             sections << <<~EO_SECTION if requirements
@@ -135,7 +135,7 @@ module XAeonAgents
             EO_SECTION
             new_pr = Helpers.github.create_pull_request(
               repo_name,
-              base_sha,
+              pr_base_ref,
               head_branch,
               @artifacts[:one_line_summary].strip,
               sections.map(&:strip).join("\n\n")

@@ -86,6 +86,7 @@ module XAeonAgentsTest
       # @param body [String] The Pull Request body
       # @param base_sha [String] The base commit SHA
       # @param head_sha [String] The head commit SHA
+      # @param base_ref [String] The base git ref (branch name) of the Pull Request
       # @param slug [String] The 'owner/repo' slug for the singular pull_request call (defaults to matching any)
       # @param review_comments [Array<Hash{Symbol => Object}>] List of review comments for this Pull Request (optional).
       #   When provided, mocks the POST to '/graphql' for the review comments query of this Pull Request.
@@ -104,6 +105,7 @@ module XAeonAgentsTest
         body: 'PR body description',
         base_sha: 'base-sha',
         head_sha: 'head-sha',
+        base_ref: 'main',
         slug: 'owner/repo',
         review_comments: []
       )
@@ -111,7 +113,7 @@ module XAeonAgentsTest
           Struct.new(:title, :body, :base, :head).new(
             title,
             body,
-            Struct.new(:sha).new(base_sha),
+            Struct.new(:sha, :ref).new(base_sha, base_ref),
             Struct.new(:sha).new(head_sha)
           )
         )
