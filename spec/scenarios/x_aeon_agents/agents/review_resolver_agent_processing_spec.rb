@@ -79,7 +79,7 @@ describe XAeonAgents::Agents::ReviewResolverAgent do
           ]
 
           # Validate that we developed the right requirements
-          expect(XAeonAgents::Agents::DeveloperAgent).to have_received(:new).with(hash_including(commit: true, pull_request: true))
+          expect(XAeonAgents::Agents::DeveloperAgent).to have_received(:new).with(hash_including(commit: true, pr_base_ref: 'main'))
           expect(developer_agent_run_calls.last[:kwargs][:requirements]).to eq(
             'Add a new validation method. Devised from: "/agent Please add a validation method".'
           )

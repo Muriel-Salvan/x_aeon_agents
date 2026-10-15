@@ -16,12 +16,13 @@ module XAeonAgents
       # Constructor
       #
       # @param commit [Boolean] Should we commit files at every step?
-      # @param pull_request [Boolean] Should we create a Github Pull Request with this implementation?
+      # @param pr_base_ref [String, nil] The git ref (branch name) of the base of the Github Pull Request to
+      #   create with this implementation, or nil to not create any Pull Request
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
-      def initialize(commit: false, pull_request: false, **agent_params)
+      def initialize(commit: false, pr_base_ref: nil, **agent_params)
         super(name: 'Developer', **agent_params)
         @commit = commit
-        @pull_request = pull_request
+        @pr_base_ref = pr_base_ref
       end
 
       # Execute the agent to generate some output artifacts based on some input artifacts.
@@ -32,12 +33,10 @@ module XAeonAgents
         super
         # Initial artifacts
         task(:setup_requirements, name: 'Setup requirements', intent: 'Initialize requirements from the current commit') do
-          base_sha = Helpers.git.gcommit('HEAD').sha
           @artifacts.merge!(
             requirements:,
-            base_sha:,
-            # The Pull Request creator needs a base ref to open the Pull Request against: reuse the base SHA
-            pr_base_ref: base_sha
+            base_sha: Helpers.git.gcommit('HEAD').sha,
+            pr_base_ref: @pr_base_ref
           )
         end
 
@@ -211,7 +210,7 @@ module XAeonAgents
         )
         logger.info "Documenter changes: #{Helpers.git.status_info.changed.keys.join(', ')}"
 
-        if @commit || @pull_request
+        if @commit || @pr_base_ref
           task(
             new_agent(
               CommitterAgent,
@@ -223,7 +222,7 @@ module XAeonAgents
           )
         end
 
-        if @pull_request
+        if @pr_base_ref
           task(
             new_agent(
               PullRequestCreatorAgent,

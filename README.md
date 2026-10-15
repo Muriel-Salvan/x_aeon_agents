@@ -195,7 +195,7 @@ Each of these secrets can alternatively be retrieved by custom code declared in 
 - 📝 **AI commit messages** — analyze staged changes and generate a meaningful message, with flexible staging strategies (`all`, `if_empty`, `none`)
 - 🚀 **Automated Pull Request creation** — push the branch to GitHub and open a PR against a configurable base ref with an AI-written description
 - 🐛 **GitHub issue implementation** — turn an issue (and its comments) into working code, committing changes and opening a PR automatically
-- 🛠️ **Arbitrary requirement implementation** — pass free-form requirements to a Developer agent that plans, codes and tests the changes, optionally committing and opening a PR
+- 🛠️ **Arbitrary requirement implementation** — pass free-form requirements to a Developer agent that plans, codes and tests the changes, optionally committing and opening a PR against a configurable base ref
 - 📚 **README generation** — build a full README from the codebase with 10 toggleable sections (about, quick start, requirements, features, public API, documentation, how-it-works, development, contributing, license)
 - 🔍 **Git diff interpretation** — summarize the working-tree changes and the intent behind them relative to any base ref
 - 💬 **One-shot prompts** — send a single prompt to the AI agent and print the response

@@ -23,7 +23,7 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
             }
           ]
         )
-        described_class.new(session_id: 'session-1', commit: true, pull_request: true).run(github_issue_number: issue_number)
+        described_class.new(session_id: 'session-1', commit: true, pr_base_ref: 'main').run(github_issue_number: issue_number)
 
         expect(github_double).to have_received(:issue).with(slug, issue_number).once
         expect(github_double).to have_received(:issue_comments).with(slug, issue_number).once
@@ -44,7 +44,7 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
 
         # Second run with the same session-id: Octokit is called again to fetch the issue,
         # but DeveloperAgent is NOT invoked again (session reused).
-        described_class.new(session_id: 'session-1', commit: true, pull_request: true).run(github_issue_number: issue_number)
+        described_class.new(session_id: 'session-1', commit: true, pr_base_ref: 'main').run(github_issue_number: issue_number)
 
         expect(github_double).to have_received(:issue).with(slug, issue_number).twice
         expect(github_double).to have_received(:issue_comments).with(slug, issue_number).twice
@@ -64,7 +64,7 @@ describe XAeonAgents::Agents::IssueImplementerAgent do
 
         # Third run with the same session-id: the new description is detected (issue re-fetched),
         # DeveloperAgent runs again with the new description.
-        described_class.new(session_id: 'session-1', commit: true, pull_request: true).run(github_issue_number: issue_number)
+        described_class.new(session_id: 'session-1', commit: true, pr_base_ref: 'main').run(github_issue_number: issue_number)
 
         expect(github_double).to have_received(:issue).with(slug, issue_number).exactly(3).times
         expect(github_double).to have_received(:issue_comments).with(slug, issue_number).exactly(3).times
