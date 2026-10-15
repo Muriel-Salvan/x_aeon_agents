@@ -1,3 +1,9 @@
+# [v2.0.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.3.0...v2.0.0) (2026-10-15 22:46:39)
+
+### Breaking changes
+
+* [Make PR base ref configurable for requirement and issue implementation](https://github.com/Muriel-Salvan/x_aeon_agents/commit/8a16c8f4c3c7705239a763248a4e2fb0e2150c01)
+
 # [v1.3.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.2.0...v1.3.0) (2026-10-13 14:54:19)
 
 ### Features
