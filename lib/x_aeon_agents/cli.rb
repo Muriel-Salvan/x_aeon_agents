@@ -103,7 +103,7 @@ module XAeonAgents
     # Push changes on Github and create a Pull Request.
     def create_pr
       agent_kwargs = {
-        base_sha: options[:base]
+        pr_base_ref: options[:base]
       }
       agent_kwargs[:requirements] = options[:requirements] if options[:requirements]
       Agents::PullRequestCreatorAgent.new(session_id: options[:session_id]).run(**agent_kwargs)

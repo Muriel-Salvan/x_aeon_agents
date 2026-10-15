@@ -12,7 +12,7 @@ describe XAeonAgents::Agents::PullRequestCreatorAgent do
         remotes: { 'origin' => 'git@github.com:owner/repo.git' }
       ) do
         mock_git_push
-        described_class.new(session_id: nil).run(base_sha: 'develop')
+        described_class.new(session_id: nil).run(pr_base_ref: 'develop')
 
         # Verify GitDiffInterpreterAgent was called with the custom base ref
         expect(git_diff_interpreter_run_call).not_to be_nil

@@ -32,9 +32,12 @@ module XAeonAgents
         super
         # Initial artifacts
         task(:setup_requirements, name: 'Setup requirements', intent: 'Initialize requirements from the current commit') do
+          base_sha = Helpers.git.gcommit('HEAD').sha
           @artifacts.merge!(
             requirements:,
-            base_sha: Helpers.git.gcommit('HEAD').sha
+            base_sha:,
+            # The Pull Request creator needs a base ref to open the Pull Request against: reuse the base SHA
+            pr_base_ref: base_sha
           )
         end
 
