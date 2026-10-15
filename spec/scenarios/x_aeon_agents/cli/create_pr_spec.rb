@@ -5,18 +5,18 @@ describe XAeonAgents::Cli, '#create_pr' do
 
   it 'creates the Pull Request against the default base when no option is given' do
     run_cli 'create-pr'
-    expect(find_run_calls_for(XAeonAgents::Agents::PullRequestCreatorAgent)[:kwargs]).to eq(base_sha: 'main')
+    expect(find_run_calls_for(XAeonAgents::Agents::PullRequestCreatorAgent)[:kwargs]).to eq(pr_base_ref: 'main')
   end
 
   it 'creates the Pull Request against the base given with the --base option' do
     run_cli 'create-pr', '--base', 'master'
-    expect(find_run_calls_for(XAeonAgents::Agents::PullRequestCreatorAgent)[:kwargs]).to eq(base_sha: 'master')
+    expect(find_run_calls_for(XAeonAgents::Agents::PullRequestCreatorAgent)[:kwargs]).to eq(pr_base_ref: 'master')
   end
 
   it 'passes the requirements given with the --requirements option' do
     run_cli 'create-pr', '--requirements', 'Add a new Home button'
     expect(find_run_calls_for(XAeonAgents::Agents::PullRequestCreatorAgent)[:kwargs]).to eq(
-      base_sha: 'main',
+      pr_base_ref: 'main',
       requirements: 'Add a new Home button'
     )
   end
@@ -24,7 +24,7 @@ describe XAeonAgents::Cli, '#create_pr' do
   it 'passes both the custom base and requirements when both options are given' do
     run_cli 'create-pr', '--base', 'master', '--requirements', 'Add a new Home button'
     expect(find_run_calls_for(XAeonAgents::Agents::PullRequestCreatorAgent)[:kwargs]).to eq(
-      base_sha: 'master',
+      pr_base_ref: 'master',
       requirements: 'Add a new Home button'
     )
   end
