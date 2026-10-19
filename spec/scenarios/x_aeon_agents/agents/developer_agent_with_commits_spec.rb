@@ -105,12 +105,10 @@ describe XAeonAgents::Agents::DeveloperAgent do
       before do
         # Stub Launchy.open and $stdin.gets to avoid interactive prompts during plan review
         stub_review_content
-        # Isolate the configuration loading from any real user configuration file
-        allow(Dir).to receive(:home).and_return(temp_dir('home'))
-        # Override the default stub to return plan_modifications from TesterAgent.
         # A revision counter increments on each call and is embedded in both the
         # file content and the plan_modifications so that each call produces a unique diff.
         tester_revision = 0
+        # Override the default stub to return plan_modifications from TesterAgent.
         # Also stub GitDiffInterpreterAgent (inherits from ComposableAgents::Agent directly, not covered by the prepend).
         stub_agent_run(
           agent_classes: [XAeonAgents::Agents::GitDiffInterpreterAgent],
