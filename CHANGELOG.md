@@ -1,3 +1,9 @@
+# [v2.0.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.0...v2.0.1) (2026-10-19 17:15:42)
+
+### Patches
+
+* [Isolate tests to make sure local Dir.home does not affect them](https://github.com/Muriel-Salvan/x_aeon_agents/commit/b6d2f6a7d4368052b2cd73486e61c22ec29de205)
+
 # [v2.0.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v1.3.0...v2.0.0) (2026-10-15 22:46:39)
 
 ### Breaking changes
