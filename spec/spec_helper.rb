@@ -49,6 +49,14 @@ RSpec.configure do |config|
     allow(RubyLLM::Models).to receive(:refresh!)
   end
 
+  # Mock Dir.home to prevent config files from being loaded from the real user home directory.
+  # The .x_aeon_agents_test directory is cleared at the start of each test, so a simple 'home' subdirectory suffices.
+  config.before do
+    test_home_dir = File.expand_path('.x_aeon_agents_test/home')
+    FileUtils.mkdir_p(test_home_dir)
+    allow(Dir).to receive(:home).and_return(test_home_dir)
+  end
+
   # Around hook for all test cases
   # Don't use a before hook for that purpose, as before hooks are always run after around hooks.
   config.around do |example|

@@ -1,8 +1,6 @@
-* Don't put .x_aeon_agents dir in the project dir: it confuses the LLMs.
 * Don't use project skills and rules: it adds noise to the LLMs that scan the files and code base. Use only global objects from dedicated config dirs.
 * Add desktop notification when user input is needed.
 * Test with other models.
-* Provide a unified CLI with Thor and actions to not pollute the user CLI environment too much.
 * Implement non-debug logs with progress bars (one char per message received).
 * Cache the cli auth call for performace between several agents of the same run.
 * Make the WSL CLI tool a Ruby script to avoid paths and slashes issues.
@@ -20,7 +18,6 @@
   * 1 task for creating PR
   Goal would be to reduce the amount of skills or rules each task needs, so that it gets focused on what it needs to do given previous context.
   Each task could even be performed by different models, and in parallel
-* Write a proper README file.
 * Use templates to better guide the format of commit comments and PR descriptions.
 * Extract the generate_skills executable into a generic Rubygem that generates skills following agents best practices
 * Add a conventions skill that explains conventions used:
@@ -40,9 +37,5 @@
   * Models are good at performing small tasks, not huge workflows. We need workflows orchestrators handling context and memory.
 * Check anthropic's skill-creator skill: https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md
 * Check security warnings that we got from installation and fix them.
-* Move the Cline Ruby connector into a Rubygem.
 * Split helpers in Utils / Git/Github/Generators/Skills...
-* Rename in x_aeon_agents because it's not about skills only anymore.
-* Yank old Rubygems.
 * Migrate comments to YARD.
-* Check useless methods, require and gems after separating the code properly.
