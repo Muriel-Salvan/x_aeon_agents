@@ -49,6 +49,14 @@ RSpec.configure do |config|
     allow(RubyLLM::Models).to receive(:refresh!)
   end
 
+  # Mock Dir.home to prevent config files from being loaded from the real user home directory.
+  # The .x_aeon_agents_test directory is cleared at the start of each test, so a simple 'home' subdirectory suffices.
+  config.before do
+    test_home_dir = File.expand_path('.x_aeon_agents_test/home')
+    FileUtils.mkdir_p(test_home_dir)
+    allow(Dir).to receive(:home).and_return(test_home_dir)
+  end
+
   # Around hook for all test cases
   # Don't use a before hook for that purpose, as before hooks are always run after around hooks.
   config.around do |example|
@@ -70,18 +78,25 @@ RSpec.configure do |config|
     XAeonAgents::Helpers.instance_variable_set(:@github_remote, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github_repo, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github, nil)
-    # Set debug
-    original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
-    ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Log.debug?
-    # Globally capture everything written to stdout and stderr during the example, so that tests
-    # not validating logging don't pollute the test runner's output. In debug mode (TEST_DEBUG=1),
-    # the capture is also dumped to the real stdout/stderr in real time.
+    # Make sure tests are not impacted by local configuration
+    original_config = ENV.fetch('X_AEON_AGENTS_CONFIG', nil)
+    ENV.delete('X_AEON_AGENTS_CONFIG')
     begin
-      with_global_capture do
-        example.run
+      # Set debug
+      original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
+      ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Log.debug?
+      # Globally capture everything written to stdout and stderr during the example, so that tests
+      # not validating logging don't pollute the test runner's output. In debug mode (TEST_DEBUG=1),
+      # the capture is also dumped to the real stdout/stderr in real time.
+      begin
+        with_global_capture do
+          example.run
+        end
+      ensure
+        ENV['X_AEON_AGENTS_DEBUG'] = original_debug
       end
     ensure
-      ENV['X_AEON_AGENTS_DEBUG'] = original_debug
+      ENV['X_AEON_AGENTS_CONFIG'] = original_config
     end
   end
 
