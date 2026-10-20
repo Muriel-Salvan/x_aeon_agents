@@ -1,3 +1,9 @@
+# [v2.0.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.1...v2.0.2) (2026-10-20 14:16:57)
+
+### Patches
+
+* [Added missing skills.](https://github.com/Muriel-Salvan/x_aeon_agents/commit/0414a020d04530c436a9d6bf47350e750099ca8d)
+
 # [v2.0.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.0...v2.0.1) (2026-10-19 17:15:42)
 
 ### Patches
