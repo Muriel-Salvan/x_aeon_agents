@@ -6,6 +6,10 @@ skills:
     enabled: true
   - source: Muriel-Salvan/x_aeon_agents
     skills:
+      - applying-ruby-conventions
+      - applying-test-conventions
+      - enforcing-project-rules
       - implementing-github-issue
+      - updating-doc
     enabled: true
 updatedAt: 2026-02-17T14:06:55.952Z
