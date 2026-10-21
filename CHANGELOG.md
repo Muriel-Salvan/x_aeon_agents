@@ -1,3 +1,15 @@
+# [v2.0.3](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.2...v2.0.3) (2026-10-21 16:35:35)
+
+## Global changes
+### Patches
+
+* [fix(task_starter_agent): use branch_new to surface branch creation failures](https://github.com/Muriel-Salvan/x_aeon_agents/commit/da59cd6abf8bd8a93e976dccf0d51b3f3238cfab)
+
+## Changes for task_starter_agent
+### Patches
+
+* [fix(task_starter_agent): use branch_new to surface branch creation failures](https://github.com/Muriel-Salvan/x_aeon_agents/commit/da59cd6abf8bd8a93e976dccf0d51b3f3238cfab)
+
 # [v2.0.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.1...v2.0.2) (2026-10-20 14:16:57)
 
 ### Patches
