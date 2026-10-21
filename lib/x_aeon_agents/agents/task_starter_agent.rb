@@ -42,7 +42,7 @@ module XAeonAgents
         # Create the branch if it does not exist (without checking it out)
         unless Helpers.git.branches.any? { |branch| branch.name == branch_name }
           task(:create_branch, name: 'Create branch', intent: "Create new git branch #{branch_name}") do
-            Helpers.git.branch(branch_name).create
+            Helpers.git.branch_new(branch_name)
           end
         end
         # Create the git worktree only if it does not exist yet (idempotent)
