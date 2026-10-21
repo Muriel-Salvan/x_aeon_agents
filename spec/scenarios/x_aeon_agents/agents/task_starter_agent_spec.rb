@@ -49,7 +49,7 @@ describe XAeonAgents::Agents::TaskStarterAgent do
         remotes: { 'github' => 'git@github.com:owner/repo.git' }
       ) do
         # Create the branch in advance (without checking it out)
-        Git.open(Dir.pwd).branch(branch_name).create
+        Git.open(Dir.pwd).branch_new(branch_name)
         branch_sha = Git.open(Dir.pwd).gcommit(branch_name).sha
 
         main_git = Git.open(Dir.pwd)
@@ -249,7 +249,7 @@ describe XAeonAgents::Agents::TaskStarterAgent do
           remotes: { 'github' => 'git@github.com:owner/repo.git' }
         ) do
           # Create the other branch and a worktree on it at the requested path
-          Git.open(Dir.pwd).branch(other_branch).create
+          Git.open(Dir.pwd).branch_new(other_branch)
           Git.open(Dir.pwd).lib.worktree_add(worktree_dir, other_branch)
 
           mock_git_push
@@ -489,6 +489,37 @@ describe XAeonAgents::Agents::TaskStarterAgent do
           "echo opened #{worktree_dir}",
           "echo opened #{worktree_dir}"
         ]
+      end
+    end
+  end
+
+  describe 'when branch creation fails because HEAD is unborn' do
+    it 'surfaces the branch creation failure instead of proceeding to worktree creation' do
+      branch_name = 'issue-1'
+      worktree_dir = ".worktrees/#{branch_name}"
+
+      with_git_workspace(
+        files: {},
+        remotes: { 'github' => 'git@github.com:owner/repo.git' }
+      ) do
+        # Mock worktree creation and push so the only possible failure point is
+        # branch creation: today its error is swallowed, so the run completes
+        # silently instead of raising.
+        mock_git_push
+        allow(Git).to receive(:open).and_wrap_original do |original_open, *args, **kwargs|
+          git_instance = original_open.call(*args, **kwargs)
+          allow(git_instance).to receive(:worktree_add)
+          git_instance
+        end
+
+        # Branch creation should fail (HEAD has no commits) and that failure
+        # must be reported, not silently ignored.
+        expect do
+          described_class.new(session_id: nil).run(branch_name: branch_name)
+        end.to raise_error(Git::FailedError, /not a valid object name/)
+
+        # No worktree must have been created from the failed branch.
+        expect(Dir).not_to exist(worktree_dir)
       end
     end
   end
