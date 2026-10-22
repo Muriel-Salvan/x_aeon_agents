@@ -48,11 +48,13 @@ describe XAeonAgents::Agents::SkillInstallerAgent do
   #   by the mocked `skillkit install` command:
   #   - subpath [String] Value of the subpath property of the skill's .skillkit.json
   #   - dependencies [Array<String>] Dependencies of the skill, as declared in its SKILL.md front matter
+  # @param global [Boolean] Whether skills are installed globally (uses user home directory)
   # @return [Array<Array<String>, Array<String>>] The install commands executed, and the NO_COLOR values
   #   observed when running the skillkit commands
-  def stub_skillkit(manifest_repos, skills_metadata)
+  def stub_skillkit(manifest_repos, skills_metadata, global: false)
     install_commands = []
     no_color_values = []
+    skills_dir = global ? File.join(Dir.home, '.cline', 'skills') : File.join(Dir.pwd, '.cline', 'skills')
     stub_command(
       /\Askillkit manifest\z/,
       stdout: proc do |_cmd|
@@ -65,11 +67,11 @@ describe XAeonAgents::Agents::SkillInstallerAgent do
       stdout: proc do |cmd|
         no_color_values << ENV.fetch('NO_COLOR', nil)
         install_commands << cmd
-        match_data = cmd.match(/\Askillkit install \S+ --yes --skills=(?<skills>\S+) --agent=\S+\z/)
+        match_data = cmd.match(/\Askillkit install \S+ --yes --skills=(?<skills>\S+) --agent=\S+(?: --global)?\z/)
         match_data[:skills].split(',').each do |skill_name|
           metadata = skills_metadata.fetch(skill_name)
           simulate_installed_skill(
-            '.cline/skills', skill_name, metadata.fetch(:subpath), dependencies: metadata.fetch(:dependencies, [])
+            skills_dir, skill_name, metadata.fetch(:subpath), dependencies: metadata.fetch(:dependencies, [])
           )
         end
         ''
@@ -98,10 +100,10 @@ describe XAeonAgents::Agents::SkillInstallerAgent do
         ]
         expect(result).to eq(installed: true)
         # Skills with a subpath not starting with skills/ have it fixed
-        expect(JSON.parse(File.read('.cline/skills/skill_a/.skillkit.json'))['subpath']).to eq 'skills/sources/skill_a'
-        expect(JSON.parse(File.read('.cline/skills/skill_c/.skillkit.json'))['subpath']).to eq 'skills/sources/skill_c'
+        expect(JSON.parse(File.read(File.join(Dir.pwd, '.cline', 'skills', 'skill_a', '.skillkit.json')))['subpath']).to eq 'skills/sources/skill_a'
+        expect(JSON.parse(File.read(File.join(Dir.pwd, '.cline', 'skills', 'skill_c', '.skillkit.json')))['subpath']).to eq 'skills/sources/skill_c'
         # Skills with an already correct subpath are left untouched
-        expect(File.read('.cline/skills/skill_b/.skillkit.json')).to eq JSON.dump('subpath' => 'skills/skill_b')
+        expect(File.read(File.join(Dir.pwd, '.cline', 'skills', 'skill_b', '.skillkit.json'))).to eq JSON.dump('subpath' => 'skills/skill_b')
       end
     end
   end
@@ -132,8 +134,8 @@ describe XAeonAgents::Agents::SkillInstallerAgent do
 
     it 'does not install dependencies that are already installed' do
       with_workspace do
-        FileUtils.mkdir_p('.cline/skills/dep_skill')
-        File.write('.cline/skills/dep_skill/SKILL.md', "# dep_skill\n")
+        FileUtils.mkdir_p(File.join(Dir.pwd, '.cline', 'skills', 'dep_skill'))
+        File.write(File.join(Dir.pwd, '.cline', 'skills', 'dep_skill', 'SKILL.md'), "# dep_skill\n")
         install_commands, = stub_skillkit(
           { 'repo_one' => ['skill_a'] },
           { 'skill_a' => { subpath: 'skills/skill_a', dependencies: ['dep_skill'] } }
@@ -166,6 +168,45 @@ describe XAeonAgents::Agents::SkillInstallerAgent do
       end
     ensure
       ENV['NO_COLOR'] = original_no_color
+    end
+  end
+
+  context 'when installing skills globally' do
+    it 'passes --global to skillkit install commands and uses the global skills directory' do
+      global_skills_dir = File.join(Dir.home, '.cline', 'skills')
+      with_workspace do
+        install_commands, = stub_skillkit(
+          { 'repo_one' => ['skill_a'] },
+          { 'skill_a' => { subpath: 'sources/skill_a' } },
+          global: true
+        )
+
+        described_class.new(session_id: nil).run(agent: :cline, global: true)
+
+        expect(install_commands).to eq ['skillkit install repo_one --yes --skills=skill_a --agent=cline --global']
+        expect(File.exist?("#{global_skills_dir}/skill_a/SKILL.md")).to be true
+        expect(JSON.parse(File.read("#{global_skills_dir}/skill_a/.skillkit.json"))['subpath']).to eq 'skills/sources/skill_a'
+      end
+    end
+
+    it 'passes --global to dependency installation commands recursively' do
+      with_workspace do
+        install_commands, = stub_skillkit(
+          { 'repo_one' => ['skill_a'] },
+          {
+            'skill_a' => { subpath: 'skills/skill_a', dependencies: ['dep_skill'] },
+            'dep_skill' => { subpath: 'skills/dep_skill' }
+          },
+          global: true
+        )
+
+        described_class.new(session_id: nil).run(agent: :cline, global: true)
+
+        expect(install_commands).to eq [
+          'skillkit install repo_one --yes --skills=skill_a --agent=cline --global',
+          'skillkit install repo_one --yes --skills=dep_skill --agent=cline --global'
+        ]
+      end
     end
   end
 end
