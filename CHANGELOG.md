@@ -1,3 +1,9 @@
+# [v2.0.4](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.3...v2.0.4) (2026-10-22 11:31:50)
+
+### Patches
+
+* [refactor(agents): enrich tester plan_modifications contract with type metadata](https://github.com/Muriel-Salvan/x_aeon_agents/commit/2dabb5da11150c89d62d93b631b917c5ca330b49)
+
 # [v2.0.3](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.2...v2.0.3) (2026-10-21 16:35:35)
 
 ## Global changes
