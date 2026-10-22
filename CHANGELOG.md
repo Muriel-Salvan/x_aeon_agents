@@ -1,3 +1,15 @@
+# [v2.1.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.4...v2.1.0) (2026-10-22 13:25:41)
+
+## Global changes
+### Patches
+
+* [feat(skill-installer): add global skills installation support](https://github.com/Muriel-Salvan/x_aeon_agents/commit/165088bc2cbd077cb3ccd781c51d9a590cef0b80)
+
+## Changes for skill-installer
+### Features
+
+* [feat(skill-installer): add global skills installation support](https://github.com/Muriel-Salvan/x_aeon_agents/commit/165088bc2cbd077cb3ccd781c51d9a590cef0b80)
+
 # [v2.0.4](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.3...v2.0.4) (2026-10-22 11:31:50)
 
 ### Patches
