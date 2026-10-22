@@ -333,13 +333,16 @@ module XAeonAgents
         $   xaa install-skills
 
         $   xaa install-skills --agent cline
+
+        $   xaa install-skills --global
     LONGDESC
     option :agent, type: :string, default: 'cline', desc: 'Agent name to be used to install skills'
+    option :global, type: :boolean, default: false, desc: 'Install skills globally instead of in the project'
     # Installs skills and their dependencies from the .skills manifest.
     def install_skills
-      Agents::SkillInstallerAgent.new(session_id: options[:session_id]).run(
-        agent: options[:agent].to_sym
-      )
+      kwargs = { agent: options[:agent].to_sym }
+      kwargs[:global] = true if options[:global]
+      Agents::SkillInstallerAgent.new(session_id: options[:session_id]).run(**kwargs)
     end
 
     # --------------------------------------------------------------------------- #

@@ -13,6 +13,11 @@ describe XAeonAgents::Cli, '#install_skills' do
     expect(find_run_calls_for(XAeonAgents::Agents::SkillInstallerAgent)[:kwargs]).to eq(agent: :claude)
   end
 
+  it 'installs skills globally when --global option is given' do
+    run_cli 'install-skills', '--global'
+    expect(find_run_calls_for(XAeonAgents::Agents::SkillInstallerAgent)[:kwargs]).to eq(agent: :cline, global: true)
+  end
+
   it 'transfers the session id given from the command line' do
     run_cli 'install-skills', '--session-id', 'my-session'
     expect(find_new_calls_for(XAeonAgents::Agents::SkillInstallerAgent)[:kwargs]).to eq(session_id: 'my-session')
