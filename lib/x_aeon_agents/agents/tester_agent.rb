@@ -23,7 +23,12 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Set of output artifacts description, per artifact name
       def output_artifacts_contracts
-        super.merge(plan_modifications: 'The modification or divergence you considered from the implementation plan')
+        super.merge(
+          plan_modifications: {
+            description: 'The modification or divergence you considered from the implementation plan',
+            type: :markdown
+          }
+        )
       end
 
       # Constructor
