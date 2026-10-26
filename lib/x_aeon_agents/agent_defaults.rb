@@ -35,10 +35,16 @@ module XAeonAgents
     #
     # @param base [Class] The base class prepending this mixin
     def self.prepended(base)
-      base.prepend ComposableAgents::Mixins::ArtifactContract unless base.ancestors.include?(ComposableAgents::Mixins::ArtifactContract)
-      base.prepend ComposableAgents::Mixins::Resumable unless base.ancestors.include?(ComposableAgents::Mixins::Resumable)
+      mixins_to_prepend = [
+        ComposableAgents::Mixins::ArtifactContract,
+        ComposableAgents::Mixins::Resumable
+      ]
+      mixins_to_prepend << ComposableAgents::Mixins::UserInteraction if base.is_a?(ComposableAgents::Cline::Agent)
+      mixins_to_prepend << ComposableAgents::Mixins::AiAgentUserInteraction if base.is_a?(ComposableAgents::AiAgents::Agent)
+      mixins_to_prepend.each { |mixin| base.prepend mixin unless base.ancestors.include?(mixin) }
       # Make sure we always prepend at the top our initializer that sets all defaults
       base.prepend(
+        # TODO: Move this module into a dedicated mixin class and Ruby file.
         Module.new do
           # Constructor
           #
@@ -124,6 +130,20 @@ module XAeonAgents
               @current_step_node[:metadata] = @step_metadata if @step_metadata
               @step_metadata = nil
               block&.call
+            end
+          end
+
+          # Answer an agent's question
+          #
+          # @param question [String] The agent's question
+          # @return [String] The answer that should be sent back to the agent
+          def answer_to(question)
+            if Config.interactive
+              super
+            else
+              'You are running in non-interactive mode, so no human user is available to answer this question. ' \
+                'Please continue using your best judgment and your existing knowledge to determine the most ' \
+                'appropriate answer, and proceed with the task without further user input.'
             end
           end
         end
