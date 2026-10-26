@@ -43,10 +43,10 @@ RSpec.configure do |config|
   config.include XAeonAgentsTest::Helpers
 
   # Stub the AI models discovery to avoid any network access in unit tests.
-  # Agents of the AiAgents kind call RubyLLM::Models.refresh! when instantiated,
+  # Agents of the AiAgents kind call RubyLLM::Models.refresh when instantiated,
   # which would otherwise fetch live model registries from OpenRouter and models.dev.
   config.before do
-    allow(RubyLLM::Models).to receive(:refresh!)
+    allow(RubyLLM::Models).to receive(:refresh)
   end
 
   # Mock Dir.home to prevent config files from being loaded from the real user home directory.
