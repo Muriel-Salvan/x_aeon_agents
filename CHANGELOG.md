@@ -1,3 +1,15 @@
+# [v2.3.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.2.0...v2.3.0) (2026-10-26 15:39:49)
+
+## Global changes
+### Patches
+
+* [feat(cli): add version command to display library versions](https://github.com/Muriel-Salvan/x_aeon_agents/commit/13fce2b018775f6942f2d556683c17abad95ffed)
+
+## Changes for cli
+### Features
+
+* [feat(cli): add version command to display library versions](https://github.com/Muriel-Salvan/x_aeon_agents/commit/13fce2b018775f6942f2d556683c17abad95ffed)
+
 # [v2.2.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.1.0...v2.2.0) (2026-10-26 12:38:46)
 
 ### Features
