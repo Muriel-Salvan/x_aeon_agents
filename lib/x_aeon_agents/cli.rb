@@ -13,6 +13,34 @@ module XAeonAgents
     class_option :interactive, type: :boolean, default: nil, desc: 'Enable interactive prompts with the user'
 
     # --------------------------------------------------------------------------- #
+    # version: Display the version of x_aeon_agents and its main libraries
+    # --------------------------------------------------------------------------- #
+
+    desc 'version', 'Display the version of x_aeon_agents and its main libraries'
+    long_desc <<~LONGDESC
+      Prints the version of x_aeon_agents itself and of its main libraries:
+      ai-agents, composable_agents, cline-rb and ruby_llm.
+
+      Examples:
+
+        $   xaa version
+    LONGDESC
+    # Displays the version of x_aeon_agents and its main libraries.
+    def version
+      lines = ["x_aeon_agents #{XAeonAgents::VERSION}"]
+      %w[ai-agents composable_agents cline-rb ruby_llm].each do |library|
+        version =
+          begin
+            Gem::Specification.find_by_name(library).version.to_s
+          rescue Gem::LoadError
+            'not installed'
+          end
+        lines << "  #{library}: #{version}"
+      end
+      puts lines.join("\n")
+    end
+
+    # --------------------------------------------------------------------------- #
     # review-comments: Address Pull Request review comments
     # --------------------------------------------------------------------------- #
 

@@ -225,6 +225,7 @@ Available commands:
 
 | Command | Description |
 | --- | --- |
+| `xaa version` | Display the version of x_aeon_agents and its main libraries |
 | `xaa review-comments [PR_NUMBER]` | Read, address and reply to GitHub Pull Request review comments |
 | `xaa commit` | Commit staged changes with an AI-generated message |
 | `xaa create-pr` | Push the branch and create a GitHub Pull Request |
