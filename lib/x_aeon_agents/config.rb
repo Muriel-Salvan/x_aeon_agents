@@ -220,7 +220,7 @@ module XAeonAgents
         # Evict RubyLLM's memoized default logger in case it was resolved before we plugged our own
         RubyLLM.instance_variable_set(:@logger, nil)
         # Discover all the models
-        RubyLLM::Models.refresh!
+        RubyLLM::Models.refresh
       end
 
       # Setup Cline in a lazy and memoized way
