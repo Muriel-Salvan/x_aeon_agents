@@ -1,3 +1,9 @@
+# [v2.2.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.1.0...v2.2.0) (2026-10-26 12:38:46)
+
+### Features
+
+* [feat: add non-interactive answer fallback for agents](https://github.com/Muriel-Salvan/x_aeon_agents/commit/fc2e01beb4f7b88ae6a5ba97af5ca69422147632)
+
 # [v2.1.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.0.4...v2.1.0) (2026-10-22 13:25:41)
 
 ## Global changes
