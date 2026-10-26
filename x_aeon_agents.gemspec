@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 3.1'
 
-  spec.add_dependency 'ai-agents', '~> 0.10'
+  spec.add_dependency 'ai-agents', '~> 0.13'
   spec.add_dependency 'cleanroom-next', '~> 1.0'
   spec.add_dependency 'commonmarker', '~> 2.7'
   spec.add_dependency 'composable_agents', '~> 2.1'
@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'launchy', '~> 3.1'
   spec.add_dependency 'octokit', '~> 10.0'
   spec.add_dependency 'pastel', '~> 0.8'
-  spec.add_dependency 'ruby_llm', '~> 1.14'
+  spec.add_dependency 'ruby_llm', '~> 2.0'
   spec.add_dependency 'secret_string', '~> 1.1'
   spec.add_dependency 'sqlite3', '~> 2.9'
   spec.add_dependency 'thor', '~> 1.5'
