@@ -1,3 +1,15 @@
+# [v2.3.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.3.0...v2.3.1) (2026-10-27 09:17:11)
+
+## Global changes
+### Patches
+
+* [fix(x-aeon-agents): use ancestors.include? for agent mixin detection](https://github.com/Muriel-Salvan/x_aeon_agents/commit/f0af8f6950a177d751ce26e76e91c384de065091)
+
+## Changes for x-aeon-agents
+### Patches
+
+* [fix(x-aeon-agents): use ancestors.include? for agent mixin detection](https://github.com/Muriel-Salvan/x_aeon_agents/commit/f0af8f6950a177d751ce26e76e91c384de065091)
+
 # [v2.3.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.2.0...v2.3.0) (2026-10-26 15:39:49)
 
 ## Global changes
