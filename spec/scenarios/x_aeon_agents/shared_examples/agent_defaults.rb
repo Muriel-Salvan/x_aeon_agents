@@ -264,5 +264,33 @@ shared_examples 'an agent using AgentDefaults' do |
         end
       end
     end
+
+    describe 'validating user interaction' do
+      if agent_class.ancestors.include?(ComposableAgents::Cline::Agent) ||
+          agent_class.ancestors.include?(ComposableAgents::AiAgents::Agent)
+        it 'returns the user answer when interactive mode is enabled' do
+          XAeonAgents::Config.interactive = true
+          allow($stdin).to receive(:gets).and_return("my answer\n")
+          agent = agent_class.new
+          expect(agent.ask('Question?')).to eq('my answer')
+        end
+
+        it 'returns a generic answer without prompting when interactive mode is disabled' do
+          XAeonAgents::Config.interactive = false
+          allow($stdin).to receive(:gets)
+          agent = agent_class.new
+          expect(agent.ask('Question?')).to eq(
+            'You are running in non-interactive mode, so no human user is available to answer this question. ' \
+              'Please continue using your best judgment and your existing knowledge to determine the most ' \
+              'appropriate answer, and proceed with the task without further user input.'
+          )
+          expect($stdin).not_to have_received(:gets)
+        end
+      else
+        it 'does not provide user interaction methods' do
+          expect { agent_class.new.ask('Question?') }.to raise_error(NoMethodError)
+        end
+      end
+    end
   end
 end

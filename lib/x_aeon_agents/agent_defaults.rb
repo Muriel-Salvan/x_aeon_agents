@@ -39,8 +39,8 @@ module XAeonAgents
         ComposableAgents::Mixins::ArtifactContract,
         ComposableAgents::Mixins::Resumable
       ]
-      mixins_to_prepend << ComposableAgents::Mixins::UserInteraction if base.is_a?(ComposableAgents::Cline::Agent)
-      mixins_to_prepend << ComposableAgents::Mixins::AiAgentUserInteraction if base.is_a?(ComposableAgents::AiAgents::Agent)
+      mixins_to_prepend << ComposableAgents::Mixins::UserInteraction if base.ancestors.include?(ComposableAgents::Cline::Agent)
+      mixins_to_prepend << ComposableAgents::Mixins::AiAgentUserInteraction if base.ancestors.include?(ComposableAgents::AiAgents::Agent)
       mixins_to_prepend.each { |mixin| base.prepend mixin unless base.ancestors.include?(mixin) }
       # Make sure we always prepend at the top our initializer that sets all defaults
       base.prepend(
