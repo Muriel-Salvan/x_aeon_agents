@@ -51,6 +51,15 @@ module XAeonAgentsTest
           }
           filtered_artifacts
         end
+
+        # Record the output artifacts returned by a stubbed run into a prompt driven agent,
+        # exactly as a real run would (through save_output_artifact).
+        #
+        # @param agent [ComposableAgents::PromptDrivenAgent] The agent that was run.
+        # @param output_artifacts [Hash{Symbol => Object}] The output artifacts returned by the stub handler.
+        def record_output_artifacts(agent, output_artifacts)
+          output_artifacts.each { |artifact_name, content| agent.save_output_artifact(artifact_name, content) }
+        end
       end
 
       # Intercept Agent.new to capture constructor arguments, then let
@@ -67,7 +76,9 @@ module XAeonAgentsTest
       # test's stub_handler (if any), and prevent real AI calls.
       def run(*args, **kwargs)
         filtered_artifacts = PromptAgentsStubAgent.record_run_call(self, args, kwargs)
-        PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **filtered_artifacts) : {}
+        output_artifacts = PromptAgentsStubAgent.stub_handler ? PromptAgentsStubAgent.stub_handler.call(self, *args, **filtered_artifacts) : {}
+        PromptAgentsStubAgent.record_output_artifacts(self, output_artifacts)
+        output_artifacts
       end
 
       # Make some methods public for spying.

@@ -70,7 +70,9 @@ module XAeonAgentsTest
             Stubs::PromptAgentsStubAgent.record_new_call(agent, args, kwargs)
             allow(agent).to receive(:run) do |*run_args, **run_kwargs|
               filtered_artifacts = Stubs::PromptAgentsStubAgent.record_run_call(agent, run_args, run_kwargs)
-              stub_handler.call(agent, *run_args, **filtered_artifacts)
+              output_artifacts = stub_handler.call(agent, *run_args, **filtered_artifacts)
+              Stubs::PromptAgentsStubAgent.record_output_artifacts(agent, output_artifacts) if agent.is_a?(ComposableAgents::PromptDrivenAgent)
+              output_artifacts
             end
             agent_stub_block&.call(agent)
             agent
