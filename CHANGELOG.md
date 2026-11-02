@@ -1,3 +1,9 @@
+# [v2.4.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.3.1...v2.4.0) (2026-11-02 21:43:41)
+
+### Features
+
+* [feat: update rubocop gems and add retriable mixins to agent defaults](https://github.com/Muriel-Salvan/x_aeon_agents/commit/1df510d820ee2e953f6d79d48d091c265623cccd)
+
 # [v2.3.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.3.0...v2.3.1) (2026-10-27 09:17:11)
 
 ## Global changes
