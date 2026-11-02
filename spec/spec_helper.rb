@@ -79,6 +79,28 @@ RSpec.configure do |config|
     XAeonAgents::Helpers.instance_variable_set(:@github_remote, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github_repo, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github, nil)
+    # By default, don't retry failures.
+    %i[
+      AboutAnalyzerAgent
+      CoderAgent
+      ContributingAgent
+      DiffInterpreterAgent
+      DocumentationAgent
+      DocumenterAgent
+      ExecutorAgent
+      FeaturesAgent
+      FeedbackAnalystAgent
+      HowItWorksAgent
+      LicenseAgent
+      OneLineCodeDiffSummarizerAgent
+      PlanGeneratorAgent
+      PublicApiAgent
+      QuickStartAgent
+      RequirementsAgent
+      ReviewResponderAgent
+    ].each do |name|
+      XAeonAgents::Config.register_agent_config_proc(name, ->(kwargs) { kwargs.merge({ artifacts_errors_max_retries: 0 }) })
+    end
     # Make sure tests are not impacted by local configuration
     original_config = ENV.fetch('X_AEON_AGENTS_CONFIG', nil)
     ENV.delete('X_AEON_AGENTS_CONFIG')

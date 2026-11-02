@@ -37,10 +37,17 @@ module XAeonAgents
     def self.prepended(base)
       mixins_to_prepend = [
         ComposableAgents::Mixins::ArtifactContract,
-        ComposableAgents::Mixins::Resumable
+        ComposableAgents::Mixins::Retriable
       ]
-      mixins_to_prepend << ComposableAgents::Mixins::UserInteraction if base.ancestors.include?(ComposableAgents::Cline::Agent)
+      mixins_to_prepend << ComposableAgents::Mixins::RetriableArtifacts if base.ancestors.include?(ComposableAgents::PromptDrivenAgent)
+      if base.ancestors.include?(ComposableAgents::Cline::Agent)
+        mixins_to_prepend.push(
+          ComposableAgents::Mixins::UserInteraction,
+          ComposableAgents::Mixins::RetriableCline
+        )
+      end
       mixins_to_prepend << ComposableAgents::Mixins::AiAgentUserInteraction if base.ancestors.include?(ComposableAgents::AiAgents::Agent)
+      mixins_to_prepend << ComposableAgents::Mixins::Resumable
       mixins_to_prepend.each { |mixin| base.prepend mixin unless base.ancestors.include?(mixin) }
       # Make sure we always prepend at the top our initializer that sets all defaults
       base.prepend(
