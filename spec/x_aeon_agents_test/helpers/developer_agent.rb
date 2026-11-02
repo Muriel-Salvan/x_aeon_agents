@@ -15,7 +15,13 @@ module XAeonAgentsTest
             developer_agent_new_calls << { agent: dev_instance, kwargs: kwargs }
             allow(dev_instance).to receive(:run) do |**run_kwargs|
               developer_agent_run_calls << { agent: dev_instance, kwargs: run_kwargs.slice(*dev_instance.send(:input_artifacts_contracts).keys) }
-              {}
+              # DeveloperAgent.run returns @artifacts in production, which includes :plan and
+              # :files_diffs. Return them so that orchestrator agents (e.g. ReviewResolverAgent)
+              # that consume them as input artifacts find them present.
+              {
+                plan: 'No implementation plan',
+                files_diffs: 'No changes'
+              }
             end
             dev_instance
           end
