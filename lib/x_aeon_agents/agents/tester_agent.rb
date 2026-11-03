@@ -26,7 +26,8 @@ module XAeonAgents
         super.merge(
           plan_modifications: {
             description: 'The modification or divergence you considered from the implementation plan',
-            type: :markdown
+            type: :markdown,
+            optional: true
           }
         )
       end

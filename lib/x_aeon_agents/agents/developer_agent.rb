@@ -114,7 +114,7 @@ module XAeonAgents
               )
               logger.info "Tester changes: #{Helpers.git.status_info.changed.keys.join(', ')}"
               # Integrate potential implementation plan modifications
-              unless @artifacts[:plan_modifications].strip.empty?
+              if @artifacts[:plan_modifications] && !@artifacts[:plan_modifications].strip.empty?
                 plan_modifications = @artifacts.delete(:plan_modifications)
                 @artifacts[:plan] = <<~EO_PLAN
                   #{@artifacts[:plan].strip}
