@@ -211,7 +211,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
               { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
             when XAeonAgents::Agents::TesterAgent
               File.write('test.rb', "puts 'Fixed test'\n")
-              { plan_modifications: '' }
+              {}
             else
               {}
             end
@@ -232,6 +232,10 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
           # TesterAgent has been called once, after the single test failure
           expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true).size).to eq 1
+          # TesterAgent received the plan unchanged
+          expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)[:kwargs][:plan]).to eq(
+            'Detailed step-by-step plan for requirements "Add a new feature"'
+          )
           # No plan modification was reported, so the plan is not revised
           expect(find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)[:kwargs][:plan]).to eq(
             'Detailed step-by-step plan for requirements "Add a new feature"'
