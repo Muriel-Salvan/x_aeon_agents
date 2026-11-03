@@ -1,3 +1,9 @@
+# [v2.4.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.0...v2.4.1) (2026-11-03 13:55:35)
+
+### Patches
+
+* [fix: handle optional plan modifications from tester agent](https://github.com/Muriel-Salvan/x_aeon_agents/commit/3b103970cdbc8eebaa63d096afd2352cd9cbde2a)
+
 # [v2.4.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.3.1...v2.4.0) (2026-11-02 21:43:41)
 
 ### Features
