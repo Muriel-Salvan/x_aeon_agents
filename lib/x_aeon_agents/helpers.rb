@@ -21,34 +21,45 @@ module XAeonAgents
       #   - stderr [String] Full stderr
       #   - exit_status [Integer] Exit status
       def run_cmd(cmd, expected_exit_status: 0)
+        stdout = nil
+        stderr = nil
+        exit_status = nil
         stdout_lines = []
         stderr_lines = []
-        exit_status = nil
-        Open3.popen3(cmd) do |stdin, stdout, stderr, wait_thr|
-          stdin.close
+        Open3.popen3(cmd) do |cmd_stdin, cmd_stdout, cmd_stderr, wait_thr|
+          cmd_stdin.close
           [
             # Parse stdout
             Thread.new do
-              stdout.each_line do |line|
+              cmd_stdout.each_line do |line|
                 stdout_lines << line
               end
             end,
             # Parse stderr
             Thread.new do
-              stderr.each_line do |line|
+              cmd_stderr.each_line do |line|
                 stderr_lines << line
               end
             end
           ].each(&:join)
           exit_status = wait_thr.value.exitstatus
+          stdout = stdout_lines.join
+          stderr = stderr_lines.join
           Config.logger.debug "Command `#{cmd}` exited with status: #{exit_status}"
+          Config.logger.debug <<~EO_DEBUG_OUTPUT
+            ===== STDOUT
+            #{stdout}
+            ===== STDERR
+            #{stderr}
+            ===== END OF STDERR
+          EO_DEBUG_OUTPUT
           if !expected_exit_status.nil? && exit_status != expected_exit_status
             raise UnexpectedExitStatusError, "Command `#{cmd}` exited with status #{exit_status} (expected #{expected_exit_status})"
           end
         end
         {
-          stdout: stdout_lines.join,
-          stderr: stderr_lines.join,
+          stdout:,
+          stderr:,
           exit_status:
         }
       end
