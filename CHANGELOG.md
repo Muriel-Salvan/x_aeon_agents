@@ -1,3 +1,9 @@
+# [v2.4.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.1...v2.4.2) (2026-11-04 10:39:50)
+
+### Patches
+
+* [refactor(helpers): improve run_cmd variable handling and debug logging](https://github.com/Muriel-Salvan/x_aeon_agents/commit/06c0554d12ba667fb23435c6fb36eb0f67754617)
+
 # [v2.4.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.0...v2.4.1) (2026-11-03 13:55:35)
 
 ### Patches
