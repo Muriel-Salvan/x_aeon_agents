@@ -38,11 +38,13 @@ module XAeonAgents
         super
         task(
           diff_interpreter_agent,
+          user_instructions: 'Analyze the diffs given',
           intent: "Analyze git diffs from #{git_ref_base}",
           files_diff: Helpers.artifact_files_diffs(git_ref_base == 'cached' ? :cached : git_ref_base)
         )
         task(
           new_agent(OneLineCodeDiffSummarizerAgent),
+          user_instructions: 'Summarize the diffs given in 1 line',
           intent: 'Summarize git diffs in 1 line'
         )
         {
