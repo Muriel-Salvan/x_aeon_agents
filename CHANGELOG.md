@@ -1,3 +1,15 @@
+# [v2.5.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.0...v2.5.1) (2026-11-06 12:48:20)
+
+## Global changes
+### Patches
+
+* [fix(agents): add sub-agent instructions to avoid Resumable leaking previous user instructions in next agents](https://github.com/Muriel-Salvan/x_aeon_agents/commit/ea3e168f04b4d6636099bfbb895c6b83568e6e98)
+
+## Changes for agents
+### Patches
+
+* [fix(agents): add sub-agent instructions to avoid Resumable leaking previous user instructions in next agents](https://github.com/Muriel-Salvan/x_aeon_agents/commit/ea3e168f04b4d6636099bfbb895c6b83568e6e98)
+
 # [v2.5.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.3...v2.5.0) (2026-11-06 11:30:25)
 
 ## Global changes
