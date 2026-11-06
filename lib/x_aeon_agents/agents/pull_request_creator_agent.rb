@@ -133,11 +133,13 @@ module XAeonAgents
                 end.join("\n")
               }
             EO_SECTION
+            pr_title = @artifacts[:one_line_summary].strip
+            logger.info "Create PR on #{repo_name} from #{head_branch} based on #{pr_base_ref}: \"#{pr_title}\""
             new_pr = Helpers.github.create_pull_request(
               repo_name,
               pr_base_ref,
               head_branch,
-              @artifacts[:one_line_summary].strip,
+              pr_title,
               sections.map(&:strip).join("\n\n")
             )
             logger << "Created new Pull Request for branch #{head_branch}: #{new_pr.html_url}"
