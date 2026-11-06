@@ -1,3 +1,9 @@
+# [v2.4.3](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.2...v2.4.3) (2026-11-06 11:25:16)
+
+### Patches
+
+* [test: centralize environment isolation in the spec helper](https://github.com/Muriel-Salvan/x_aeon_agents/commit/ff9a5ec4a33b1e340ed5d7eb49ced9d565f4fa44)
+
 # [v2.4.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.1...v2.4.2) (2026-11-04 10:39:50)
 
 ### Patches
