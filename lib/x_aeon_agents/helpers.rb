@@ -149,6 +149,25 @@ module XAeonAgents
         end
       end
 
+      # Get the system instructions telling agents in which repository they are working.
+      # This instruction is format-agnostic: it does not include any formatting (bullet, header...) so that it can be
+      # included in any system instructions section.
+      #
+      # @return [String] The system instructions about the current repository
+      def repository_access_system_instructions
+        "The current repository in which you are working is `#{Dir.pwd}`."
+      end
+
+      # Get the constraint restricting the files agents are allowed to access.
+      # This constraint is format-agnostic: it does not include any formatting (bullet, header...) so that it can be
+      # included in any constraints section.
+      #
+      # @param writable [Boolean] True if the agent is allowed to write files, false if it is read-only
+      # @return [String] The constraint restricting the agents' file accesses to the current repository
+      def repository_access_constraint(writable: false)
+        "You should only #{writable ? 'read and write' : 'read'} files that are part of the current repository: `#{Dir.pwd}`"
+      end
+
       # Allow user to review and edit content before using it
       #
       # When the interactive mode is disabled (Config.interactive), no review file
