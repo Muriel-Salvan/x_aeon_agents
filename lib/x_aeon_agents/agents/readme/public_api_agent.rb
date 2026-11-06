@@ -27,6 +27,13 @@ module XAeonAgents
               Analyze the project's codebase to identify all public APIs, classes, methods, and interfaces exposed to users.
               Generate a "Public API" section in Markdown format, compatible with Github flavor, documenting the public API surface.
             EO_OBJECTIVE
+            system_instructions: <<~EO_INSTRUCTIONS,
+              #{Helpers.repository_access_system_instructions}
+
+              Always gather all the necessary context before starting to work on a task: explore the current repository's code, configuration and documentation to ground your analysis in the actual project.
+              If you need more information, use one of the available tools instead of making assumptions.
+              Do not indicate that you will perform an action without actually doing it.
+            EO_INSTRUCTIONS
             constraints: <<~EO_CONSTRAINTS,
               - The required output artifact content should only contain the required content, without additional header or title.
               - Do not explain or describe the artifact content: only provide the content as required.
@@ -34,6 +41,7 @@ module XAeonAgents
                 Other agents will generate other sections of the README.
                 Do not try to document other parts.
               - Only document public API entry points: executables and library public methods belonging to yarn `Public API` group.
+              - #{Helpers.repository_access_constraint}
             EO_CONSTRAINTS
             **agent_params
           )

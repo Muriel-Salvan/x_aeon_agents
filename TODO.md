@@ -1,5 +1,3 @@
-* Add the repository to be worked on in the prompts, and with the constraint that it should not edit files outside of this repo:
-  - - "Your git repository root is the current working directory. Use __relative__ paths only, and always prefix commands with `git rev-parse --show-toplevel` verification; never use `/workspace` absolute paths (that is a *different* checkout of the base branch)."
 * Improve prompts:
   - "Never create files (`ARTIFACT_*`, `/tmp/*`) to hold artifacts. Put the fenced ` ```json output_artifact=… ` block in your final message and end the turn with __no tool call__. If `ARTIFACT_PLAN_MODIFICATIONS` has nothing to report, say so in plain text."
 * Improve Tester prompt:

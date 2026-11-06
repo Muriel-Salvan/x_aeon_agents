@@ -24,6 +24,8 @@ module XAeonAgents
             Given the user's prompt, you should use the tools available to you to answer user's question.
           EO_OBJECTIVE
           system_instructions: <<~EO_INSTRUCTIONS,
+            #{Helpers.repository_access_system_instructions}
+
             Always gather all the necessary context before starting to work on a task.
             For example, if you are generating a unit test or new code, make sure you understand the requirement, the naming conventions, frameworks and libraries used and aligned in the current codebase, and the environment and commands used to run and test the code etc.
             Always validate the new unit test at the end including running the code if possible for live feedback.
@@ -59,6 +61,7 @@ module XAeonAgents
               emit independent read_files, search_codebase, and run_commands calls together in one response;
               emit multiple editor calls together when editing different files or non-overlapping regions.
             - Always verify the files you have edited or created at the end of the task to ensure they are completed and working as expected.
+            - #{Helpers.repository_access_constraint(writable: true)}
 
             REMEMBER, be helpful and proactive!
             Don't ask for permission to do something when you can do it!

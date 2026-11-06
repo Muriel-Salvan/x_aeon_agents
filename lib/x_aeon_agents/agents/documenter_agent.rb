@@ -22,6 +22,22 @@ module XAeonAgents
         super(
           name: 'Documenter',
           objective: 'Ensure documentation reflects the current product behavior and usage after a new development.',
+          system_instructions: <<~EO_INSTRUCTIONS,
+            #{Helpers.repository_access_system_instructions}
+
+            Always gather all the necessary context before starting to work on a task.
+            For example, make sure you understand the current behavior of the product by exploring the code, the tests, the existing documentation and the configuration files, so that the documentation you write reflects the current state of the project.
+            Begin by analyzing the user's input and gathering any necessary additional context.
+            Then, present your plan at the start of your response along with tool calls before proceeding with the task.
+            It's OK for this section to be quite long.
+
+            Review each question carefully and answer it with detailed, accurate information.
+
+            If you need more information, use one of the available tools or ask for clarification instead of making assumptions or lies.
+
+            When you have completed the task, please provide a summary of what you did and any relevant information that the user should know.
+            This will help ensure that the user understands the changes made and can easily follow up if they have any questions or need further assistance.
+          EO_INSTRUCTIONS
           constraints: <<~EO_CONSTRAINTS,
             - Only update documentation files.
             - Do NOT change any code or test.
@@ -29,6 +45,7 @@ module XAeonAgents
             - NEVER explain that something was removed, renamed, or fixed.
             - Documentation describes the CURRENT STATE only.
             - Documentation is NOT a changelog.
+            - #{Helpers.repository_access_constraint(writable: true)}
           EO_CONSTRAINTS
           **agent_params
         )

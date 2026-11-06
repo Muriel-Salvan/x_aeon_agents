@@ -29,6 +29,13 @@ module XAeonAgents
               Focus on giving community specific guidelines (issues, pull requests, CI, fork...).
               Use emphasis, bullet points, useful links to the project resources and small emojis to better format your section.
             EO_OBJECTIVE
+            system_instructions: <<~EO_INSTRUCTIONS,
+              #{Helpers.repository_access_system_instructions}
+
+              Always gather all the necessary context before starting to work on a task: explore the current repository's code, configuration and documentation to ground your analysis in the actual project.
+              If you need more information, use one of the available tools instead of making assumptions.
+              Do not indicate that you will perform an action without actually doing it.
+            EO_INSTRUCTIONS
             constraints: <<~EO_CONSTRAINTS,
               - The required output artifact content should only contain the required content, without additional header or title.
               - Do not explain or describe the artifact content: only provide the content as required.
@@ -37,6 +44,7 @@ module XAeonAgents
                 Do not try to document other parts.
               - Do not describe the technical setup or prequisites, as they are already covered by other sections.
               - Do not cover how to develop in this project: it is already covered in other sections.
+              - #{Helpers.repository_access_constraint}
             EO_CONSTRAINTS
             **agent_params
           )

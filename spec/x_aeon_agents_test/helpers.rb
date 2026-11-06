@@ -15,6 +15,7 @@ module XAeonAgentsTest
     include InterpretGitDiffs
     include Log
     include PromptAgentsStub
+    include Prompts
     include ReviewContent
     include ReviewResolverAgent
     include Skills
