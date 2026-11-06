@@ -78,25 +78,31 @@ RSpec.configure do |config|
     XAeonAgents::Helpers.instance_variable_set(:@github_remote, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github_repo, nil)
     XAeonAgents::Helpers.instance_variable_set(:@github, nil)
-    # Make sure tests are not impacted by local configuration
-    original_config = ENV.fetch('X_AEON_AGENTS_CONFIG', nil)
-    ENV.delete('X_AEON_AGENTS_CONFIG')
+    # Make sure tests are not impacted by local environment
+    original_env = (
+      XAeonAgents::Config::KNOWN_SECRETS.map { |name| name.to_s.upcase } + %w[
+        X_AEON_AGENTS_CONFIG
+        X_AEON_AGENTS_DEBUG
+      ]
+    ).to_h { |env_var| [env_var, ENV.fetch(env_var, nil)] }
+    original_env.each_key { |env_var| ENV.delete(env_var) }
     begin
       # Set debug
-      original_debug = ENV.fetch('X_AEON_AGENTS_DEBUG', nil)
       ENV['X_AEON_AGENTS_DEBUG'] = '1' if XAeonAgentsTest::Helpers::Log.debug?
       # Globally capture everything written to stdout and stderr during the example, so that tests
       # not validating logging don't pollute the test runner's output. In debug mode (TEST_DEBUG=1),
       # the capture is also dumped to the real stdout/stderr in real time.
-      begin
-        with_global_capture do
-          example.run
-        end
-      ensure
-        ENV['X_AEON_AGENTS_DEBUG'] = original_debug
+      with_global_capture do
+        example.run
       end
     ensure
-      ENV['X_AEON_AGENTS_CONFIG'] = original_config
+      original_env.each do |env_var, env_value|
+        if env_value.nil?
+          ENV.delete(env_var)
+        else
+          ENV[env_var] = env_value
+        end
+      end
     end
   end
 
