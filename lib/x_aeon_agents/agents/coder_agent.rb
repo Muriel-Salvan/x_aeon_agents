@@ -44,6 +44,8 @@ module XAeonAgents
             - Always adhere to existing code conventions and patterns.
             - Use only libraries and frameworks that are confirmed to be in use in the current codebase.
             - Provide complete and functional code without omissions or placeholders.
+            - Always think about new tests and corner cases to be added or changed with new features, fixes or feature changes.
+            - Always think about documentation updates with new features or feature changes.
             - Be explicit about any assumptions or limitations in your solution.
             - Always show your planning process before executing any task.
               This will help ensure that you have a clear understanding of the requirements and that your approach aligns with the user's needs.
