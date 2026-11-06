@@ -1,3 +1,15 @@
+# [v2.5.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.1...v2.5.2) (2026-11-06 17:41:01)
+
+## Global changes
+### Patches
+
+* [fix(developer_agent): lazily instantiate tester agent](https://github.com/Muriel-Salvan/x_aeon_agents/commit/fb0fbf4f7449f6c0a3930e6140d3e8060f39b529)
+
+## Changes for developer_agent
+### Patches
+
+* [fix(developer_agent): lazily instantiate tester agent](https://github.com/Muriel-Salvan/x_aeon_agents/commit/fb0fbf4f7449f6c0a3930e6140d3e8060f39b529)
+
 # [v2.5.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.0...v2.5.1) (2026-11-06 12:48:20)
 
 ## Global changes
