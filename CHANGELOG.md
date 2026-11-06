@@ -1,3 +1,15 @@
+# [v2.6.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.3...v2.6.0) (2026-11-06 19:39:17)
+
+## Global changes
+### Patches
+
+* [feat(agents): scope repository file access in agent prompts](https://github.com/Muriel-Salvan/x_aeon_agents/commit/703f1a0b672018fd11f8ae266054c330d887e4e7)
+
+## Changes for agents
+### Features
+
+* [feat(agents): scope repository file access in agent prompts](https://github.com/Muriel-Salvan/x_aeon_agents/commit/703f1a0b672018fd11f8ae266054c330d887e4e7)
+
 # [v2.5.3](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.2...v2.5.3) (2026-11-06 18:10:39)
 
 ### Patches
