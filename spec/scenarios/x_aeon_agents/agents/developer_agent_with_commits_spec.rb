@@ -215,5 +215,144 @@ describe XAeonAgents::Agents::DeveloperAgent do
         end
       end
     end
+
+    context 'when tests pass on the first run' do
+      before do
+        stub_agent_run(
+          agent_classes: [XAeonAgents::Agents::GitDiffInterpreterAgent],
+          stub_handler: lambda { |agent, **kwargs|
+            case agent
+            when XAeonAgents::Agents::PlanGeneratorAgent
+              { plan: "Detailed step-by-step plan for requirements \"#{kwargs[:requirements]}\"" }
+            when XAeonAgents::Agents::CoderAgent
+              # Simulate a file modification done by the coder
+              File.write('new_feature.rb', "puts 'New feature added'\n")
+              {}
+            when XAeonAgents::Agents::DocumenterAgent
+              # Simulate a README creation done by the documenter
+              File.write('README.md', "# Test Project\n\nThis is a test project.\n")
+              {}
+            when XAeonAgents::Agents::GitDiffInterpreterAgent
+              {
+                one_line_summary: "1-line summary of diff from #{kwargs[:git_ref_base]}",
+                change_intent: "Change intent of the diff from #{kwargs[:git_ref_base]}"
+              }
+            else
+              {}
+            end
+          },
+          agent_stub_block: lambda { |agent|
+            allow(agent).to receive(:diff_interpreter_agent) do
+              instance_double(XAeonAgents::Agents::DiffInterpreterAgent, full_name: 'Mocked DiffInterpreter Agent')
+            end
+          }
+        )
+        # Stub Launchy.open and $stdin.gets to avoid interactive prompts during plan review
+        stub_review_content
+        # The test suite regenerates a tracked file (as a snapshot would), so that the final tester
+        # commit - which stages everything - has something to commit even though no fix was needed.
+        # This is what exercises the Tester authors list while no TesterAgent has been run.
+        stub_command(
+          'bundle exec rspec --format documentation',
+          stdout: lambda do |_cmd|
+            File.write('test.txt', "original\nupdated by the test suite\n")
+            "All tests passed\n"
+          end
+        )
+      end
+
+      it 'commits the tests side effects without crediting any Tester' do
+        with_git_workspace(
+          files: {
+            'test.txt' => "original\n",
+            '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+          }
+        ) do
+          XAeonAgents::Config.load
+          described_class.new(session_id: nil, commit: true).run(requirements: 'Add a new feature')
+
+          # Tests passed on the first run, so the TesterAgent has never been run
+          expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)).to be_nil
+
+          git_log = Git.open(Dir.pwd).log.execute
+          # Initial commit + Coder + tests side effects + Documenter
+          expect(git_log.count).to eq 4
+
+          # Most recent commit: Documenter
+          expect_commit(
+            git_log[0],
+            <<~EO_COMMIT,
+              1-line summary of diff from cached
+
+              Change intent of the diff from cached
+
+              Co-authored by X-Aeon AI Agents:
+              * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
+              * Mocked DiffInterpreter Agent
+            EO_COMMIT
+            <<~EO_PATCH
+              diff --git a/README.md b/README.md
+              new file mode git_file_mode
+              index git_short_hash..git_short_hash
+              --- /dev/null
+              +++ b/README.md
+              @@ -0,0 +1,3 @@
+              +# Test Project
+              +
+              +This is a test project.
+            EO_PATCH
+          )
+
+          # The tests side effects are committed by the final tester commit, without crediting
+          # any Tester, as no TesterAgent has been run
+          expect_commit(
+            git_log[1],
+            <<~EO_COMMIT,
+              1-line summary of diff from cached
+
+              Change intent of the diff from cached
+
+              Co-authored by X-Aeon AI Agents:
+              * Mocked DiffInterpreter Agent
+            EO_COMMIT
+            <<~EO_PATCH
+              diff --git a/test.txt b/test.txt
+              index git_short_hash..git_short_hash git_file_mode
+              --- a/test.txt
+              +++ b/test.txt
+              @@ -1 +1,2 @@
+               original
+              +updated by the test suite
+            EO_PATCH
+          )
+
+          # Second commit: Coder
+          expect_commit(
+            git_log[2],
+            <<~EO_COMMIT,
+              1-line summary of diff from cached
+
+              Change intent of the diff from cached
+
+              Co-authored by X-Aeon AI Agents:
+              * Coder (Cline cline/anthropic/claude-sonnet-4.6)
+              * Mocked DiffInterpreter Agent
+            EO_COMMIT
+            <<~EO_PATCH
+              diff --git a/new_feature.rb b/new_feature.rb
+              new file mode git_file_mode
+              index git_short_hash..git_short_hash
+              --- /dev/null
+              +++ b/new_feature.rb
+              @@ -0,0 +1 @@
+              +puts 'New feature added'
+            EO_PATCH
+          )
+
+          # Oldest commit: Initial commit
+          expect(git_log[3].message.strip).to eq('Initial commit')
+        end
+      end
+    end
   end
 end

@@ -346,5 +346,49 @@ describe XAeonAgents::Agents::DeveloperAgent do
         end
       end
     end
+
+    context 'when several fix iterations are needed' do
+      before do
+        # Each TesterAgent run leaves a trace in its own conversation, so that we can verify
+        # that an iteration does not inherit the messages of the previous one.
+        tester_iteration = 0
+        stub_agent_run(
+          stub_handler: lambda { |agent, **_kwargs|
+            case agent
+            when XAeonAgents::Agents::PlanGeneratorAgent
+              { plan: 'Detailed step-by-step plan for requirements "Add a new feature"' }
+            when XAeonAgents::Agents::TesterAgent
+              tester_iteration += 1
+              agent.track_message(message: "Tester fix iteration ##{tester_iteration}", author: 'assistant')
+              File.write('test.rb', "puts 'Fixed test'\n")
+              { plan_modifications: "Fix the failing tests (iteration ##{tester_iteration})" }
+            else
+              {}
+            end
+          }
+        )
+      end
+
+      it 'gives each fix iteration a new TesterAgent that does not know the previous iteration messages' do
+        with_git_workspace(
+          files: {
+            'test.txt' => "original\n",
+            '.x_aeon_agents.rb' => "test_project_cmd 'bundle exec rspec --format documentation'\n"
+          }
+        ) do
+          with_test_project_cmd
+          stub_failing_tests_command(2)
+          described_class.new(session_id: nil, commit: false).run(requirements: 'Add a new feature')
+
+          tester_agents = find_run_calls_for(XAeonAgents::Agents::TesterAgent, all: true).map { |run_call| run_call[:agent] }
+          expect(tester_agents.size).to eq 2
+          # A dedicated TesterAgent instance runs each fix iteration
+          expect(tester_agents[0]).not_to be(tester_agents[1])
+          # No iteration contains the messages of the previous one
+          expect(tester_agents[0].conversation.map { |message| message[:message] }).to eq ['Tester fix iteration #1']
+          expect(tester_agents[1].conversation.map { |message| message[:message] }).to eq ['Tester fix iteration #2']
+        end
+      end
+    end
   end
 end
