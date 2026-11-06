@@ -36,6 +36,13 @@ module XAeonAgents
               - package the project deliverables,
               - perform common development tasks.
             EO_OBJECTIVE
+            system_instructions: <<~EO_INSTRUCTIONS,
+              #{Helpers.repository_access_system_instructions}
+
+              Always gather all the necessary context before starting to work on a task: explore the current repository's code, configuration and documentation to ground your analysis in the actual project.
+              If you need more information, use one of the available tools instead of making assumptions.
+              Do not indicate that you will perform an action without actually doing it.
+            EO_INSTRUCTIONS
             constraints: <<~EO_CONSTRAINTS,
               - The required output artifact content should only contain the required content, without additional header or title.
               - Do not explain or describe the artifact content: only provide the content as required.
@@ -44,6 +51,7 @@ module XAeonAgents
                 Do not try to document other parts.
               - Do not cover the end-user main requirements and prerequisites: they are already covered in other sections.
               - Do not cover the contribution workflow (pull requests, CI, issues...): this is already covered in other sections.
+              - #{Helpers.repository_access_constraint}
             EO_CONSTRAINTS
             **agent_params
           )

@@ -43,11 +43,21 @@ module XAeonAgents
           name: 'Feedback analyst',
           role: 'You are a feedback analyst agent, analyzing feedback from a Pull Request and devising new requirements to address this feedback.',
           objective: 'Extract requirements from Pull Request comments',
+          system_instructions: <<~EO_INSTRUCTIONS,
+            #{Helpers.repository_access_system_instructions}
+
+            Always gather all the necessary context before starting to work on a task: read the Pull Request description, files diffs and conversations, and explore the repository's code when needed.
+            Begin by analyzing the user's input and gathering any necessary additional context.
+            Review each question carefully and answer it with detailed, accurate information.
+            If you need more information, use one of the available tools or ask for clarification instead of making assumptions or lies.
+            Do not indicate that you will perform an action without actually doing it.
+          EO_INSTRUCTIONS
           constraints: <<~EO_CONSTRAINTS,
             - You are in read-only mode.
             - Do NOT modify or write any file.
             - Focus only on agent-directed comments (/agent) for requirement extraction.
             - Output clear, actionable requirements or "No requirements" if none exist.
+            - #{Helpers.repository_access_constraint}
           EO_CONSTRAINTS
           **agent_params
         )
