@@ -46,8 +46,9 @@ module XAeonAgents
         else
           git_diff_interpreter_agent = GitDiffInterpreterAgent.new
           task(git_diff_interpreter_agent, intent: 'Analyze staged git diffs', git_ref_base: 'cached')
+          commit_title = @artifacts[:one_line_summary].strip
           content = <<~EO_COMMIT
-            #{@artifacts[:one_line_summary].strip}
+            #{commit_title}
 
             #{@artifacts[:change_intent].strip}
 
@@ -69,6 +70,7 @@ module XAeonAgents
             end
           end
           task(:git_commit, name: 'Git commit', intent: 'Create a commit') do
+            logger.info "Create commit: \"#{commit_title}\""
             Helpers.git.commit(content)
           end
           logger << 'Commit created successfully.'
