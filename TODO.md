@@ -1,3 +1,4 @@
+* Make the tester loop with a max retries when the same tests are failing (maybe use a JSON/XML output format for tests that allow for parsing which test fail and only give this information in the prompt).
 * Don't use project skills and rules: it adds noise to the LLMs that scan the files and code base. Use only global objects from dedicated config dirs.
 * Add desktop notification when user input is needed.
 * Test with other models.
