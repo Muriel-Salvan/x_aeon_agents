@@ -1,3 +1,15 @@
+# [v2.5.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.3...v2.5.0) (2026-11-06 11:30:25)
+
+## Global changes
+### Patches
+
+* [feat(coder-agent): add testing and docs reminders to prompt](https://github.com/Muriel-Salvan/x_aeon_agents/commit/d155b61437668c1cc87ee2b3c22d1fafd22514bc)
+
+## Changes for coder-agent
+### Features
+
+* [feat(coder-agent): add testing and docs reminders to prompt](https://github.com/Muriel-Salvan/x_aeon_agents/commit/d155b61437668c1cc87ee2b3c22d1fafd22514bc)
+
 # [v2.4.3](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.4.2...v2.4.3) (2026-11-06 11:25:16)
 
 ### Patches
