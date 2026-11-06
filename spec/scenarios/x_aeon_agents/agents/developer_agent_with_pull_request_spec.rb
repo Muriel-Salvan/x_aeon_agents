@@ -365,9 +365,9 @@ describe XAeonAgents::Agents::DeveloperAgent do
         end
       end
 
-      it 'includes the Tester in the PR description and commit when a tests command is configured' do
+      it 'does not credit the Tester in the PR description and commit when no test failed' do
         # Stub the tests command to pass on the first run: the Tester never runs,
-        # but it is still credited as an agent involved in the implementation.
+        # so it is not credited as an author of the implementation.
         stub_command('bundle exec rspec --format documentation', stdout: "All tests passed\n")
         with_git_workspace(
           files: {
@@ -387,7 +387,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
           # The tests passed on the first run, so TesterAgent has never been called
           expect(find_run_calls_for(XAeonAgents::Agents::TesterAgent)).to be_nil
 
-          # The Tester is still credited in the Documenter commit
+          # The Tester did not run, so it is not credited in the Documenter commit
           git_log = Git.open(Dir.pwd).log.execute
           expect(git_log.count).to eq(2) # Initial + Total commit
           expect_commit(
@@ -399,7 +399,6 @@ describe XAeonAgents::Agents::DeveloperAgent do
 
               Co-authored by X-Aeon AI Agents:
               * Coder (Cline cline/anthropic/claude-sonnet-4.6)
-              * Tester (Cline cline/anthropic/claude-sonnet-4.6)
               * Documenter (Cline cline/anthropic/claude-sonnet-4.6)
               * Diff interpreter (AiAgent gpt-4o-mini)
             EO_COMMIT
@@ -423,13 +422,18 @@ describe XAeonAgents::Agents::DeveloperAgent do
             EO_PATCH
           )
 
-          # The Tester is also credited in the PR description
+          # The Tester did not run, so it is not credited in the PR description
+          description_without_tester = an_object_satisfying do |actual|
+            !actual.include?('- Tester') &&
+              actual.include?("- Coder (Cline cline/anthropic/claude-sonnet-4.6)\n" \
+                '- Documenter (Cline cline/anthropic/claude-sonnet-4.6)')
+          end
           expect(github_double).to have_received(:create_pull_request).with(
             'owner/repo',
             'main',
             'feature-branch',
             'Mocked 1-line summary of changes from base main',
-            an_object_satisfying { |actual| actual.include?('- Tester (Cline cline/anthropic/claude-sonnet-4.6)') }
+            description_without_tester
           )
         end
       end

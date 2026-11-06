@@ -57,8 +57,6 @@ module XAeonAgents
         tester_agent = nil
         tests_cmd = Config.test_project_cmd
         unless tests_cmd.nil?
-          tester_agent = new_agent(TesterAgent)
-
           task(:test, name: 'Verify tests', intent: 'Make sure tests are succeeding') do
             @artifacts[:tests_cmd] = tests_cmd
             idx_test = 0
@@ -76,6 +74,7 @@ module XAeonAgents
               break if @artifacts[:tests_exit_status]&.zero?
 
               @artifacts[:files_diffs] = Helpers.artifact_files_diffs(@artifacts[:base_sha])
+              tester_agent = new_agent(TesterAgent)
               task(
                 tester_agent,
                 intent: 'Fix failing tests',
@@ -130,7 +129,7 @@ module XAeonAgents
             end
           end
 
-          task(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent]), intent: 'Commit final tester changes') if @commit
+          task(new_agent(CommitterAgent, user_review: false, stage: :all, authors: [tester_agent].compact), intent: 'Commit final tester changes') if @commit
         end
 
         documenter_agent = new_agent(DocumenterAgent)
