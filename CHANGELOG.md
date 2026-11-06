@@ -1,3 +1,9 @@
+# [v2.5.3](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.2...v2.5.3) (2026-11-06 18:10:39)
+
+### Patches
+
+* [test(specs): cover PR author crediting and README section headers](https://github.com/Muriel-Salvan/x_aeon_agents/commit/f4a4ce6adc39b644e3d77377e8728b44eaa3394a)
+
 # [v2.5.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.1...v2.5.2) (2026-11-06 17:41:01)
 
 ## Global changes
