@@ -47,6 +47,7 @@ module XAeonAgents
             - You may only analyze and propose plans.
             - Do NOT execute the plan yourself.
             - #{Helpers.repository_access_constraint}
+            - Never create files (`ARTIFACT_*`, `/tmp/*`) to hold artifacts. Put the fenced ` ```json output_artifact=… ` block in your final message and end the turn with __no tool call__.
           EO_CONSTRAINTS
           **agent_params
         )
