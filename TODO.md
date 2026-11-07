@@ -1,10 +1,3 @@
-* Improve prompts:
-  - "Never create files (`ARTIFACT_*`, `/tmp/*`) to hold artifacts. Put the fenced ` ```json output_artifact=… ` block in your final message and end the turn with __no tool call__. If `ARTIFACT_PLAN_MODIFICATIONS` has nothing to report, say so in plain text."
-* Improve Tester prompt:
-  - "Fix __all__ issues reported in `ARTIFACT_TESTS_OUTPUT` in this iteration (not a subset)."
-  - "Identify the exact failing spec file(s) and run __those__ (`<tests_cmd> spec/scenarios/code_quality_spec.rb`), then a final full run. __Never__ conclude success from a partial run."
-  - "Quote the final summary line of your verification run in your answer."
-* Replace `JSON.dump(artifact_content)` by `JSON.pretty_generate(artifact_content)` (and `JSON.pretty_generate(@context)`), so no line exceeds a few hundred chars → survives `read_files`' 2 KB/line cap.
 * Make the tester loop with a max retries when the same tests are failing (maybe use a JSON/XML output format for tests that allow for parsing which test fail and only give this information in the prompt).
 * Don't use project skills and rules: it adds noise to the LLMs that scan the files and code base. Use only global objects from dedicated config dirs.
 * Add desktop notification when user input is needed.

@@ -42,28 +42,33 @@ module XAeonAgents
             Fix any regression that has been induced by new features or fixes, while keeping the initial requirements and implementation plan in mind.
             If the decisions taken in the implementation plan prevent you from fixing regressions, modify the implementation plan and report those modifications to the user.
           EO_OBJECTIVE
-          system_instructions: <<~EO_INSTRUCTIONS,
-            #{Helpers.repository_access_system_instructions}
-
-            Always gather all the necessary context before starting to work on a task.
-            For example, make sure you understand the regressions to fix, the naming conventions, frameworks and libraries used and aligned in the current codebase, and the environment and commands used to run and test the code etc.
-            Always run the whole tests suite using the tests command provided, and validate your fixes with live feedback until all tests pass.
-            Begin by analyzing the user's input and gathering any necessary additional context.
-            Then, present your plan at the start of your response along with tool calls before proceeding with the task.
-            It's OK for this section to be quite long.
-
-            Review each question carefully and answer it with detailed, accurate information.
-
-            If you need more information, use one of the available tools or ask for clarification instead of making assumptions or lies.
-
-            When you have completed the task, please provide a summary of what you did and any relevant information that the user should know, including the final summary line of the tests suite.
-            This will help ensure that the user understands the changes made and can easily follow up if they have any questions or need further assistance.
-          EO_INSTRUCTIONS
           constraints: <<~EO_CONSTRAINTS,
             - #{Helpers.repository_access_constraint(writable: true)}
+            - Never create files (`ARTIFACT_*`, `/tmp/*`) to hold artifacts. Put the fenced ` ```json output_artifact=… ` block in your final message and end the turn with __no tool call__.
           EO_CONSTRAINTS
           **agent_params
         )
+        self.system_instructions = <<~EO_INSTRUCTIONS
+          #{Helpers.repository_access_system_instructions}
+
+          Always gather all the necessary context before starting to work on a task.
+          For example, make sure you understand the regressions to fix, the naming conventions, frameworks and libraries used and aligned in the current codebase, and the environment and commands used to run and test the code etc.
+          Always run the whole tests suite using the tests command provided, and validate your fixes with live feedback until all tests pass.
+          Begin by analyzing the user's input and gathering any necessary additional context.
+          Then, present your plan at the start of your response along with tool calls before proceeding with the task.
+          It's OK for this section to be quite long.
+
+          Review each question carefully and answer it with detailed, accurate information.
+
+          If you need more information, use one of the available tools or ask for clarification instead of making assumptions or lies.
+
+          Fix __all__ issues reported in the `#{artifact_ref(:tests_output)}` artifact in this iteration (not a subset).
+          Identify the exact failing spec file(s) and run __those__, then a final full run. __Never__ conclude success from a partial run.
+          Quote the final summary line of your verification run in your answer.
+
+          When you have completed the task, please provide a summary of what you did and any relevant information that the user should know, including the final summary line of the tests suite.
+          This will help ensure that the user understands the changes made and can easily follow up if they have any questions or need further assistance.
+        EO_INSTRUCTIONS
       end
     end
   end
