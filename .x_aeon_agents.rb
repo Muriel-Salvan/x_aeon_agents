@@ -1,6 +1,7 @@
 setup_project { system 'bundle install' }
 
-test_project_cmd 'bundle exec rspec --format=documentation'
+# Don't use documentation format so that agents see errors easily in their prompt.
+test_project_cmd 'bundle exec rspec'
 
 project_skills = %w[
   applying-ruby-conventions
