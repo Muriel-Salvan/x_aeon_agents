@@ -1,3 +1,15 @@
+# [v2.6.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.6.1...v2.6.2) (2026-11-07 11:34:15)
+
+## Global changes
+### Patches
+
+* [chore(config): use default rspec format for agent test output](https://github.com/Muriel-Salvan/x_aeon_agents/commit/e33dea298581d49d117954bf339eeff2867a865c)
+
+## Changes for config
+### Patches
+
+* [chore(config): use default rspec format for agent test output](https://github.com/Muriel-Salvan/x_aeon_agents/commit/e33dea298581d49d117954bf339eeff2867a865c)
+
 # [v2.6.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.6.0...v2.6.1) (2026-11-07 01:29:31)
 
 ### Patches
