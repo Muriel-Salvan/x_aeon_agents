@@ -1,3 +1,9 @@
+# [v2.6.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.6.0...v2.6.1) (2026-11-07 01:29:31)
+
+### Patches
+
+* [refactor(agents): improve prompts to avoid artifact files](https://github.com/Muriel-Salvan/x_aeon_agents/commit/71afa833c80e574eb74b6349e6371762a447350a)
+
 # [v2.6.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.5.3...v2.6.0) (2026-11-06 19:39:17)
 
 ## Global changes
