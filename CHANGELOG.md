@@ -1,3 +1,20 @@
+# [v2.7.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.6.2...v2.7.0) (2026-11-12 13:45:26)
+
+## Global changes
+### Patches
+
+* [feat(cline): adopt MarkdownHeavyFiles prompt strategy](https://github.com/Muriel-Salvan/x_aeon_agents/commit/84448f1ed3ac4f6d548071cb9d3c6ffdef1d5034)
+
+## Changes for agents
+### Patches
+
+* [feat(cline): adopt MarkdownHeavyFiles prompt strategy](https://github.com/Muriel-Salvan/x_aeon_agents/commit/84448f1ed3ac4f6d548071cb9d3c6ffdef1d5034)
+
+## Changes for cline
+### Features
+
+* [feat(cline): adopt MarkdownHeavyFiles prompt strategy](https://github.com/Muriel-Salvan/x_aeon_agents/commit/84448f1ed3ac4f6d548071cb9d3c6ffdef1d5034)
+
 # [v2.6.2](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.6.1...v2.6.2) (2026-11-07 11:34:15)
 
 ## Global changes
