@@ -9,7 +9,13 @@ module XAeonAgents
       #
       # @param agent_params [Hash{Symbol => Object}] Extra agent parameters
       def initialize(**agent_params)
-        super(name: 'Executor', **agent_params)
+        super(
+          name: 'Executor',
+          constraints: [
+            Helpers.non_interactive_constraint
+          ].compact.join("\n"),
+          **agent_params
+        )
       end
     end
   end

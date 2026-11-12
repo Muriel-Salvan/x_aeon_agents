@@ -60,14 +60,15 @@ module XAeonAgents
           EO_INSTRUCTIONS
           **agent_params
         )
-        self.constraints = <<~EO_CONSTRAINTS
-          - You are in read-only mode for the repository: do NOT modify any file of it.
-          - Focus only on agent-directed comments (/agent) for requirement extraction.
-          - Write the extracted requirements to the output artifact file given in this prompt.
-          - If no implementation is required, write exactly `No requirements` in this file.
-          - #{Helpers.repository_access_constraint}
-          - #{Helpers.artifacts_access_constraint(artifact_ref(:requirements))}
-        EO_CONSTRAINTS
+        self.constraints = [
+          '- You are in read-only mode for the repository: do NOT modify any file of it.',
+          '- Focus only on agent-directed comments (/agent) for requirement extraction.',
+          '- Write the extracted requirements to the output artifact file given in this prompt.',
+          '- If no implementation is required, write exactly `No requirements` in this file.',
+          Helpers.repository_access_constraint,
+          Helpers.artifacts_access_constraint(artifact_ref(:requirements)),
+          Helpers.non_interactive_constraint
+        ].compact.join("\n")
       end
     end
   end
