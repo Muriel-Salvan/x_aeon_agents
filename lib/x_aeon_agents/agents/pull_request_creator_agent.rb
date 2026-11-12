@@ -72,20 +72,20 @@ module XAeonAgents
                   # Skip the first user instruction
                   remaining_conversation =
                     if !author.conversation.empty? && author.conversation.first[:author].downcase == 'user'
-                      author.conversation[1..]
+                      author.conversation.drop(1)
                     else
-                      author.conversation
+                      author.conversation.dup
                     end
                   until remaining_conversation.empty?
                     message = remaining_conversation.shift
-                    next if message[:message].strip.empty?
+                    next if conversation_text(message).strip.empty?
 
                     if message[:author].downcase == 'user'
                       messages << message
                     elsif message[:question]
                       answer = remaining_conversation.first
                       messages <<
-                        if answer && answer[:author].downcase == 'user' && !answer[:message].strip.empty?
+                        if answer && answer[:author].downcase == 'user' && !conversation_text(answer).strip.empty?
                           message.merge(answer: remaining_conversation.shift)
                         else
                           message
@@ -107,14 +107,14 @@ module XAeonAgents
                   .map do |message|
                     <<~EO_MESSAGE.strip
                       › **#{message[:author]}**
-                      #{message[:message].each_line.map { |line| "> #{line}".strip }.join("\n")}
+                      #{conversation_text(message).each_line.map { |line| "> #{line}".strip }.join("\n")}
                       > <sub>#{message[:at]}</sub>
                       #{
                         if message[:answer]
                           <<~EO_ANSWER
                             >
                             > › **#{message[:answer][:author]}**
-                            #{message[:answer][:message].each_line.map { |line| "> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#{line}" }.join("\n")}
+                            #{conversation_text(message[:answer]).each_line.map { |line| "> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#{line}" }.join("\n")}
                             > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<sub>#{message[:answer][:at]}</sub>
                           EO_ANSWER
                         end
@@ -148,6 +148,38 @@ module XAeonAgents
           logger << "A Pull Request for branch #{head_branch} already exists: #{@artifacts[:existing_pr_url]}"
         end
         {}
+      end
+
+      private
+
+      # Normalize a conversation entry's message to a String for display.
+      # Conversation messages are stored as String by #converse, but as Hash
+      # (or nil) when they come from #ask with a structured (Cline) question.
+      #
+      # @param entry [Hash{Symbol => Object}] A single conversation entry
+      # @return [String] The human-readable message text (possibly empty)
+      def conversation_text(entry)
+        message = entry[:message] || entry['message']
+        case message
+        when String
+          message
+        when nil
+          ''
+        when Hash
+          text = message[:text] || message['text'] || message[:message] || message['message'] ||
+            message[:question] || message['question']
+          text = text.join("\n") if text.is_a?(Array)
+          options = message[:options] || message['options']
+          options_text =
+            if options.is_a?(Array)
+              options.map { |option| option.is_a?(Hash) ? (option[:text] || option['text'] || option.to_s) : option.to_s }.join(' / ')
+            else
+              ''
+            end
+          [text.to_s, options_text].reject(&:empty?).join("\n")
+        else
+          message.to_s
+        end
       end
     end
   end
