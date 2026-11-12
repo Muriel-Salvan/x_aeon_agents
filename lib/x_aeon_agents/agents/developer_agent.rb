@@ -48,7 +48,7 @@ module XAeonAgents
         task(
           coder_agent,
           intent: 'Implement the requirements following the implementation plan',
-          user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_agent.artifact_ref(:plan)}`."
+          user_instructions: "Read the implementation plan file `#{coder_agent.artifact_ref(:plan)}` and follow all its steps."
         )
         logger.info "Coder changes: #{Helpers.git.status_info.changed.keys.join(', ')}"
 
@@ -81,32 +81,38 @@ module XAeonAgents
                 user_instructions: {
                   ordered_list: [
                     <<~EO_STEP,
-                      Understand the initial requirements from the artifact named `#{tester_agent.artifact_ref(:requirements)}`
+                      Understand the initial requirements from the file `#{tester_agent.artifact_ref(:requirements)}`
 
                       - Understand those requirements and their intent.
                     EO_STEP
                     <<~EO_STEP,
-                      Understand the implementation plan from the artifact named `#{tester_agent.artifact_ref(:plan)}`
+                      Understand the implementation plan from the file `#{tester_agent.artifact_ref(:plan)}`
 
                       - Understand all the steps of the implementation plan.
                     EO_STEP
                     <<~EO_STEP,
-                      Understand the file changes from the artifact named `#{tester_agent.artifact_ref(:files_diffs)}`
+                      Understand the file changes from the file `#{tester_agent.artifact_ref(:files_diffs)}`
 
                       - Understand what was the intent of the developer implementing the requirements.
                     EO_STEP
                     <<~EO_STEP,
-                      Analyze the full output of unit tests run from the artifact named `#{tester_agent.artifact_ref(:tests_output)}`
+                      Read and analyze the full output of unit tests from the file `#{tester_agent.artifact_ref(:tests_output)}`
 
                       - Check every error reported in the output.
                     EO_STEP
                     'Fix any issue that unit tests are surfacing, while keeping the original intent of the requirements',
                     'Remember any inconsistency and modification you need to make to the implementation plan ' \
                       'so that your fixes are in-line with a better implementation plan',
-                    <<~EO_STEP
+                    <<~EO_STEP,
                       Make sure all tests are running without issue after your fixes
 
-                      - You can run tests again using the provided tests command from the artifact named `#{tester_agent.artifact_ref(:tests_cmd)}` to test your own fixes.
+                      - You can run tests again using the tests command given in the file `#{tester_agent.artifact_ref(:tests_cmd)}` to test your own fixes.
+                    EO_STEP
+                    <<~EO_STEP
+                      Write your modifications of the implementation plan, if any, to the file `#{tester_agent.artifact_ref(:plan_modifications)}`
+
+                      - Only write this file if your fixes required diverging from the implementation plan.
+                      - Do not write this file if the implementation plan did not change.
                     EO_STEP
                   ]
                 }
@@ -141,17 +147,17 @@ module XAeonAgents
           user_instructions: {
             ordered_list: [
               <<~EO_STEP,
-                Analyze the initial requirements from the artifact named `#{documenter_agent.artifact_ref(:requirements)}`
+                Read and analyze the initial requirements from the file `#{documenter_agent.artifact_ref(:requirements)}`
 
                 - Those give you information about the requirements you should be documenting.
               EO_STEP
               <<~EO_STEP,
-                Analyze all the steps of the implementation plan from the artifact named `#{documenter_agent.artifact_ref(:plan)}`
+                Read and analyze all the steps of the implementation plan from the file `#{documenter_agent.artifact_ref(:plan)}`
 
                 - Those give you every step that should have been followed for this new development.
               EO_STEP
               <<~EO_STEP,
-                Analyze the concrete changes from the artifact named `#{documenter_agent.artifact_ref(:files_diffs)}`
+                Read and analyze the concrete changes from the file `#{documenter_agent.artifact_ref(:files_diffs)}`
 
                 - Understand what was the intent of the developer implementing those requirements.
               EO_STEP
@@ -194,7 +200,7 @@ module XAeonAgents
                 Update the relevant documentation files
 
                 - Only perform this step if you think documentation is required.
-                - Use artifacts as the source of truth for understanding the changes to be documented.
+                - Use the artifact files as the source of truth for understanding the changes to be documented.
                 - Use the filesystem to locate where documentation should be updated.
                 - After exploring the filesystem, if relevant documentation files are found: update them.
 

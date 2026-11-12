@@ -75,10 +75,10 @@ module XAeonAgents
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's code, features and layout.
               Devise the goal of this project, what problem it solves, and using which interface (CLI, library, web app...).
-              Create an artifact named `#{about_analyzer_agent.artifact_ref(:name)}` with the name of this project.
-              Create an artifact named `#{about_analyzer_agent.artifact_ref(:description)}` with a 1-line high-level description of this project
+              Write the name of this project to the file `#{about_analyzer_agent.artifact_ref(:name)}`.
+              Write a 1-line high-level description of this project to the file `#{about_analyzer_agent.artifact_ref(:description)}`
                 using Markdown format, compatible with Github flavor.
-              Create an artifact named `#{about_analyzer_agent.artifact_ref(:about)}` with an engaging high-level description/overview of this project
+              Write an engaging high-level description/overview of this project to the file `#{about_analyzer_agent.artifact_ref(:about)}`
                 using Markdown format, compatible with Github flavor.
               The description should be concise, in 1 small section and will serve as a the first paragraph of a README file.
               The description is intended to be for end-users and should be simple and easy to understand.
@@ -94,7 +94,7 @@ module XAeonAgents
             intent: 'Generate README Quick Start section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's installation and usage patterns.
-              Create an artifact named `#{quick_start_agent.artifact_ref(:quick_start)}` with quick installation and usage instructions
+              Write quick installation and usage instructions to the file `#{quick_start_agent.artifact_ref(:quick_start)}`
                 using Markdown format, compatible with Github flavor.
               These instructions should cover the installation and basic usage of this project, with simple examples.
             EO_INSTRUCTIONS
@@ -108,7 +108,7 @@ module XAeonAgents
             intent: 'Generate README Requirements section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's dependencies, runtime environment, and prerequisites.
-              Create an artifact named `#{requirements_agent.artifact_ref(:requirements)}` listing all prerequisites needed to use or run the project
+              Write the list of all prerequisites needed to use or run the project to the file `#{requirements_agent.artifact_ref(:requirements)}`
                 using Markdown format, compatible with Github flavor.
               Those prerequisites should be given as a short list of technical points (for example OS, languages and versions, needed libraries...).
               Only list prerequisites that are needed by the users of the project, and not provided by the installation steps.
@@ -123,7 +123,7 @@ module XAeonAgents
             intent: 'Generate README Features section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's codebase and capabilities to identify all key features.
-              Create an artifact named `#{features_agent.artifact_ref(:features)}` listing the main features of the project
+              Write the list of the main features of the project to the file `#{features_agent.artifact_ref(:features)}`
                 using Markdown format, compatible with Github flavor.
               Those features should be summarized in a simple paragraph.
             EO_INSTRUCTIONS
@@ -137,7 +137,7 @@ module XAeonAgents
             intent: 'Generate README Public API section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's codebase to identify all public APIs, classes, methods, and interfaces exposed to users.
-              Create an artifact named `#{public_api_agent.artifact_ref(:public_api)}` documenting the public API surface
+              Write the documentation of the public API surface to the file `#{public_api_agent.artifact_ref(:public_api)}`
                 using Markdown format, compatible with Github flavor.
               The public API description should only contain public entry points of the project. Those entry points can be:
               - Executables from the `bin` directory, if any.
@@ -158,7 +158,7 @@ module XAeonAgents
             intent: 'Generate README Documentation section',
             user_instructions: <<~EO_INSTRUCTIONS
               Explore this project's documentation files and resources to identify all available documentation.
-              Create an artifact named `#{documentation_agent.artifact_ref(:documentation)}` providing links to documentation resources
+              Write links to documentation resources to the file `#{documentation_agent.artifact_ref(:documentation)}`
                 using Markdown format, compatible with Github flavor.
               Links can be:
               - Link to the RubyDoc.info documentation for a Ruby public method (for example `https://www.rubydoc.info/gems/x_aeon_agents`).
@@ -174,7 +174,7 @@ module XAeonAgents
             intent: 'Generate README "How does it work" section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's architecture, design patterns, and internal workings.
-              Create an artifact named `#{how_it_works_agent.artifact_ref(:how_it_works)}` explaining the internal architecture and working principles
+              Write an explanation of the internal architecture and working principles to the file `#{how_it_works_agent.artifact_ref(:how_it_works)}`
                 using Markdown format, compatible with Github flavor.
               This should be summarized as a small section, not an architecture document.
             EO_INSTRUCTIONS
@@ -188,7 +188,7 @@ module XAeonAgents
             intent: 'Generate README Development section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's development setup, build system, testing framework, and development workflows.
-              Create an artifact named `#{development_agent.artifact_ref(:development)}` explaining how to set up a development environment to code for this project
+              Write how to set up a development environment for this project to the file `#{development_agent.artifact_ref(:development)}`
                 using Markdown format, compatible with Github flavor.
             EO_INSTRUCTIONS
           )
@@ -201,7 +201,7 @@ module XAeonAgents
             intent: 'Generate README Contributing section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's CONTRIBUTING guidelines, issue templates, pull request templates, and any community guidelines.
-              Create an artifact named `#{contributing_agent.artifact_ref(:contributing)}` explaining how users can contribute to the project
+              Write how users can contribute to the project to the file `#{contributing_agent.artifact_ref(:contributing)}`
                 using Markdown format, compatible with Github flavor.
               This should be done in 1 paragraph showing how to install or setup test dependencies and how to run tests, as a whole or individually.
               Use simple examples to illustrate it.
@@ -216,7 +216,7 @@ module XAeonAgents
             intent: 'Generate README License section',
             user_instructions: <<~EO_INSTRUCTIONS
               Analyze this project's LICENSE file to identify the license type and terms.
-              Create an artifact named `#{license_agent.artifact_ref(:license)}` describing the project license
+              Write the description of the project license to the file `#{license_agent.artifact_ref(:license)}`
                 using Markdown format, compatible with Github flavor.
               If there is already a LICENSE file in this project, just provide a link to this license file.
             EO_INSTRUCTIONS

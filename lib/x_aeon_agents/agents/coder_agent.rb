@@ -9,7 +9,12 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        super.merge(plan: 'The implementation plan that you must follow')
+        super.merge(
+          plan: {
+            description: 'The implementation plan that you must follow',
+            type: :markdown
+          }
+        )
       end
 
       # Constructor

@@ -39,10 +39,10 @@ describe XAeonAgents::Agents::DeveloperAgent do
         requirements: 'Add a new feature',
         user_instructions: {
           ordered_list: [
-            "Read the initial requirements from the artifact named `#{plan_generator_run_call[:agent].artifact_ref(:requirements)}`",
+            "Read the initial requirements from the file `#{plan_generator_run_call[:agent].artifact_ref(:requirements)}`",
             'Analyze the project files',
-            "Create an artifact named `#{plan_generator_run_call[:agent].artifact_ref(:plan)}` with a complete and detailed " \
-              'step-by-step implementation plan in Markdown format'
+            'Write a complete and detailed step-by-step implementation plan in Markdown format to the file ' \
+              "`#{plan_generator_run_call[:agent].artifact_ref(:plan)}`"
           ]
         }
       )
@@ -51,7 +51,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
       expect(coder_run_call).not_to be_nil
       expect(coder_run_call[:kwargs]).to eq(
         plan: 'Detailed step-by-step plan for requirements "Add a new feature"',
-        user_instructions: "Follow all the steps of the implementation plan described in the artifact named `#{coder_run_call[:agent].artifact_ref(:plan)}`."
+        user_instructions: "Read the implementation plan file `#{coder_run_call[:agent].artifact_ref(:plan)}` and follow all its steps."
       )
 
       documenter_run_call = find_run_calls_for(XAeonAgents::Agents::DocumenterAgent)
@@ -78,17 +78,17 @@ describe XAeonAgents::Agents::DeveloperAgent do
         user_instructions: {
           ordered_list: [
             <<~EO_STEP,
-              Analyze the initial requirements from the artifact named `#{documenter_run_call[:agent].artifact_ref(:requirements)}`
+              Read and analyze the initial requirements from the file `#{documenter_run_call[:agent].artifact_ref(:requirements)}`
 
               - Those give you information about the requirements you should be documenting.
             EO_STEP
             <<~EO_STEP,
-              Analyze all the steps of the implementation plan from the artifact named `#{documenter_run_call[:agent].artifact_ref(:plan)}`
+              Read and analyze all the steps of the implementation plan from the file `#{documenter_run_call[:agent].artifact_ref(:plan)}`
 
               - Those give you every step that should have been followed for this new development.
             EO_STEP
             <<~EO_STEP,
-              Analyze the concrete changes from the artifact named `#{documenter_run_call[:agent].artifact_ref(:files_diffs)}`
+              Read and analyze the concrete changes from the file `#{documenter_run_call[:agent].artifact_ref(:files_diffs)}`
 
               - Understand what was the intent of the developer implementing those requirements.
             EO_STEP
@@ -131,7 +131,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
               Update the relevant documentation files
 
               - Only perform this step if you think documentation is required.
-              - Use artifacts as the source of truth for understanding the changes to be documented.
+              - Use the artifact files as the source of truth for understanding the changes to be documented.
               - Use the filesystem to locate where documentation should be updated.
               - After exploring the filesystem, if relevant documentation files are found: update them.
 

@@ -63,22 +63,22 @@ module XAeonAgents
               user_instructions: {
                 ordered_list: [
                   <<~EO_INSTRUCTION,
-                    Read the `#{feedback_analyst_agent.artifact_ref(:pr_description)}` artifact to understand the purpose of this Pull Request
+                    Read the file `#{feedback_analyst_agent.artifact_ref(:pr_description)}` to understand the purpose of this Pull Request
 
                     - This gives you context on what is the purpose of this Pull Request.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION,
-                    Read the `#{feedback_analyst_agent.artifact_ref(:pr_files_diffs)}` artifact to understand all changes made by this Pull Request
+                    Read the file `#{feedback_analyst_agent.artifact_ref(:pr_files_diffs)}` to understand all changes made by this Pull Request
 
                     - This gives you context on how has this Pull Request been implemented.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION,
-                    Read the `#{feedback_analyst_agent.artifact_ref(:conversations)}` artifact to understand the full context of the PR conversations
+                    Read the file `#{feedback_analyst_agent.artifact_ref(:conversations)}` to understand the full context of the PR conversations
 
                     - This gives you context on the discussions around this Pull Request.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION,
-                    Read the `#{feedback_analyst_agent.artifact_ref(:open_comments_to_agents)}` artifact to focus on agent-directed comments
+                    Read the file `#{feedback_analyst_agent.artifact_ref(:open_comments_to_agents)}` to focus on agent-directed comments
 
                     - You must devise requirements that will address those exact comments.
                   EO_INSTRUCTION
@@ -86,9 +86,9 @@ module XAeonAgents
                     Analyze agent-directed comments to identify specific requirements or tasks that need implementation
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION
-                    Extract clear, actionable requirements from the comments in an artifact named `#{feedback_analyst_agent.artifact_ref(:requirements)}`
+                    Write clear, actionable requirements extracted from the comments to the file `#{feedback_analyst_agent.artifact_ref(:requirements)}`
 
-                    - If no implementation is required (e.g., comments are just questions), output "No requirements"
+                    - If no implementation is required (e.g., comments are just questions), write exactly `No requirements` in this file
                   EO_INSTRUCTION
                 ]
               }
@@ -120,32 +120,32 @@ module XAeonAgents
               user_instructions: {
                 ordered_list: [
                   <<~EO_INSTRUCTION,
-                    Read the `#{review_responder_agent.artifact_ref(:conversations)}` artifact to understand the full context of the PR conversations
+                    Read the file `#{review_responder_agent.artifact_ref(:conversations)}` to understand the full context of the PR conversations
 
                     - This gives you context on the discussions around this Pull Request.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION,
-                    Read the `#{review_responder_agent.artifact_ref(:requirements)}` artifact to understand what was implemented
+                    Read the file `#{review_responder_agent.artifact_ref(:requirements)}` to understand what was implemented
 
                     - This gives you context on what has been implemented by other agents.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION,
-                    Read the `#{review_responder_agent.artifact_ref(:plan)}` artifact to understand the implementation approach
+                    Read the file `#{review_responder_agent.artifact_ref(:plan)}` to understand the implementation approach
 
                     - This gives you context on how other agents implemented the requirements.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION,
-                    Read the `#{review_responder_agent.artifact_ref(:files_diffs)}` artifact to understand the specific code changes made
+                    Read the file `#{review_responder_agent.artifact_ref(:files_diffs)}` to understand the specific code changes made
 
                     - This gives you context on what files have been modified.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION,
-                    Read the `#{review_responder_agent.artifact_ref(:open_comment_for_reply)}` artifact to understand the specific comment to respond to
+                    Read the file `#{review_responder_agent.artifact_ref(:open_comment_for_reply)}` to understand the specific comment to respond to
 
                     - This is the EXACT comment that you should reply to.
                   EO_INSTRUCTION
                   <<~EO_INSTRUCTION
-                    Generate a professional, helpful reply that addresses the comment appropriately, in the artifact named `#{review_responder_agent.artifact_ref(:reply)}`
+                    Write a professional, helpful reply that addresses the comment appropriately to the file `#{review_responder_agent.artifact_ref(:reply)}`
 
                     - If requirements were implemented, explain what was done and how it addresses the comment.
                     - If no requirements existed, provide a helpful response explaining the situation.

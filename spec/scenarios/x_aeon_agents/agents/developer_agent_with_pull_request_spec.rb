@@ -336,13 +336,13 @@ describe XAeonAgents::Agents::DeveloperAgent do
                 › **user**
                 > Please add logging
                 >
-                > Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
+                > Rewrite the file `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
                 > <sub>timestamp</sub>
 
                 › **user**
                 > Please add tests
                 >
-                > Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
+                > Rewrite the file `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
                 > <sub>timestamp</sub>
 
                 › **assistant**
