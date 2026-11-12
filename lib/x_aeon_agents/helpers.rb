@@ -168,6 +168,19 @@ module XAeonAgents
         "You should only #{writable ? 'read and write' : 'read'} files that are part of the current repository: `#{Dir.pwd}`"
       end
 
+      # Get the constraint allowing agents to access their artifact files, which can be located outside of the
+      # current repository.
+      # This constraint is format-agnostic: it does not include any formatting (bullet, header...) so that it can be
+      # included in any constraints section.
+      #
+      # @param artifact_paths [Array<String>] Absolute paths of the artifact files the agent is allowed to access
+      # @return [String] The constraint about artifact files access
+      def artifacts_access_constraint(*artifact_paths)
+        'You are allowed to read and write the artifact files at ' \
+          "#{artifact_paths.map { |artifact_path| "`#{artifact_path}`" }.join(', ')}, " \
+          'even if they are not part of the current repository'
+      end
+
       # Allow user to review and edit content before using it
       #
       # When the interactive mode is disabled (Config.interactive), no review file

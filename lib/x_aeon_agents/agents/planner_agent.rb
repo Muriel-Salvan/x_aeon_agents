@@ -18,7 +18,7 @@ module XAeonAgents
         {
           plan: {
             description: 'The full and detailed implementation plan in Markdown format, ' \
-              "that should implement the requirements given by the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
+              "that should implement the requirements given in the file `#{plan_generator_agent.artifact_ref(:requirements)}`",
             type: :markdown
           }
         }
@@ -39,10 +39,10 @@ module XAeonAgents
         super
         user_instructions = {
           ordered_list: [
-            "Read the initial requirements from the artifact named `#{plan_generator_agent.artifact_ref(:requirements)}`",
+            "Read the initial requirements from the file `#{plan_generator_agent.artifact_ref(:requirements)}`",
             'Analyze the project files',
-            "Create an artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a complete and detailed " \
-              'step-by-step implementation plan in Markdown format'
+            'Write a complete and detailed step-by-step implementation plan in Markdown format to the file ' \
+              "`#{plan_generator_agent.artifact_ref(:plan)}`"
           ]
         }
         loop.with_index do |plan_idx|
@@ -75,7 +75,7 @@ module XAeonAgents
           user_instructions = <<~EO_INSTRUCTIONS
             #{@artifacts[:user_prompt]}
 
-            Re-create the artifact named `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
+            Rewrite the file `#{plan_generator_agent.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
           EO_INSTRUCTIONS
           user_instructions << <<~EO_INSTRUCTIONS if @artifacts[:diffs]
 

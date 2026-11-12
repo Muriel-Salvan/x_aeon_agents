@@ -59,10 +59,10 @@ describe XAeonAgents::Agents::DeveloperAgent do
           requirements: 'Add a new feature',
           user_instructions: {
             ordered_list: [
-              "Read the initial requirements from the artifact named `#{agent1.artifact_ref(:requirements)}`",
+              "Read the initial requirements from the file `#{agent1.artifact_ref(:requirements)}`",
               'Analyze the project files',
-              "Create an artifact named `#{agent1.artifact_ref(:plan)}` with a complete and detailed " \
-                'step-by-step implementation plan in Markdown format'
+              'Write a complete and detailed step-by-step implementation plan in Markdown format to the file ' \
+                "`#{agent1.artifact_ref(:plan)}`"
             ]
           }
         )
@@ -80,7 +80,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
           user_instructions: <<~EO_INSTRUCTIONS
             Please add more details to the plan
 
-            Re-create the artifact named `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
+            Rewrite the file `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
           EO_INSTRUCTIONS
         )
 
@@ -120,10 +120,10 @@ describe XAeonAgents::Agents::DeveloperAgent do
           requirements: 'Add a new feature',
           user_instructions: {
             ordered_list: [
-              "Read the initial requirements from the artifact named `#{agent1.artifact_ref(:requirements)}`",
+              "Read the initial requirements from the file `#{agent1.artifact_ref(:requirements)}`",
               'Analyze the project files',
-              "Create an artifact named `#{agent1.artifact_ref(:plan)}` with a complete and detailed " \
-                'step-by-step implementation plan in Markdown format'
+              'Write a complete and detailed step-by-step implementation plan in Markdown format to the file ' \
+                "`#{agent1.artifact_ref(:plan)}`"
             ]
           }
         )
@@ -167,10 +167,10 @@ describe XAeonAgents::Agents::DeveloperAgent do
           requirements: 'Add a new feature',
           user_instructions: {
             ordered_list: [
-              "Read the initial requirements from the artifact named `#{agent1.artifact_ref(:requirements)}`",
+              "Read the initial requirements from the file `#{agent1.artifact_ref(:requirements)}`",
               'Analyze the project files',
-              "Create an artifact named `#{agent1.artifact_ref(:plan)}` with a complete and detailed " \
-                'step-by-step implementation plan in Markdown format'
+              'Write a complete and detailed step-by-step implementation plan in Markdown format to the file ' \
+                "`#{agent1.artifact_ref(:plan)}`"
             ]
           }
         )
@@ -187,7 +187,7 @@ describe XAeonAgents::Agents::DeveloperAgent do
           user_instructions: <<~EO_INSTRUCTIONS
             Please revise
 
-            Re-create the artifact named `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
+            Rewrite the file `#{agent2.artifact_ref(:plan)}` with a revised implementation plan, taking the above user guidance into account.
 
             The user performed the following modifications on your implementation plan.
             You have to take them into account while revising the plan.
