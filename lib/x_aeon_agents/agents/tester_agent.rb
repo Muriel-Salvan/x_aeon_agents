@@ -10,12 +10,27 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         super.merge(
-          requirements: 'The initial requirements',
-          plan: 'The implementation plan devised from the requirements',
-          files_diffs: 'The full list of files changes and differences that have been done to implement the initial ' \
-            'requirements following the implementation plan',
-          tests_output: 'The output of running the whole tests suite',
-          tests_cmd: 'The command line to be used to run the whole tests suite'
+          requirements: {
+            description: 'The initial requirements',
+            type: :markdown
+          },
+          plan: {
+            description: 'The implementation plan devised from the requirements',
+            type: :markdown
+          },
+          files_diffs: {
+            description: 'The full list of files changes and differences that have been done to implement the initial ' \
+              'requirements following the implementation plan',
+            type: :text
+          },
+          tests_output: {
+            description: 'The output of running the whole tests suite',
+            type: :text
+          },
+          tests_cmd: {
+            description: 'The command line to be used to run the whole tests suite',
+            type: :text
+          }
         )
       end
 
@@ -42,12 +57,12 @@ module XAeonAgents
             Fix any regression that has been induced by new features or fixes, while keeping the initial requirements and implementation plan in mind.
             If the decisions taken in the implementation plan prevent you from fixing regressions, modify the implementation plan and report those modifications to the user.
           EO_OBJECTIVE
-          constraints: <<~EO_CONSTRAINTS,
-            - #{Helpers.repository_access_constraint(writable: true)}
-            - Never create files (`ARTIFACT_*`, `/tmp/*`) to hold artifacts. Put the fenced ` ```json output_artifact=… ` block in your final message and end the turn with __no tool call__.
-          EO_CONSTRAINTS
           **agent_params
         )
+        self.constraints = <<~EO_CONSTRAINTS
+          - #{Helpers.repository_access_constraint(writable: true)}
+          - #{Helpers.artifacts_access_constraint(artifact_ref(:plan_modifications))}
+        EO_CONSTRAINTS
         self.system_instructions = <<~EO_INSTRUCTIONS
           #{Helpers.repository_access_system_instructions}
 
@@ -62,7 +77,7 @@ module XAeonAgents
 
           If you need more information, use one of the available tools or ask for clarification instead of making assumptions or lies.
 
-          Fix __all__ issues reported in the `#{artifact_ref(:tests_output)}` artifact in this iteration (not a subset).
+          Fix __all__ issues reported in the tests output file `#{artifact_ref(:tests_output)}` in this iteration (not a subset).
           Identify the exact failing spec file(s) and run __those__, then a final full run. __Never__ conclude success from a partial run.
           Quote the final summary line of your verification run in your answer.
 

@@ -18,9 +18,18 @@ module XAeonAgents
               description: 'The exact comment to be replied to',
               type: :json
             },
-            requirements: 'The requirements that have been implemented (or "No requirements")',
-            plan: 'The implementation plan that was used to implement those requirements (or "No implementation plan")',
-            files_diffs: 'The code changes from implement_requirements workflow (or "No changes")'
+            requirements: {
+              description: 'The requirements that have been implemented (or "No requirements")',
+              type: :markdown
+            },
+            plan: {
+              description: 'The implementation plan that was used to implement those requirements (or "No implementation plan")',
+              type: :markdown
+            },
+            files_diffs: {
+              description: 'The code changes from implement_requirements workflow (or "No changes")',
+              type: :text
+            }
           }
         )
       end
@@ -46,17 +55,25 @@ module XAeonAgents
           role: 'You are a review responder agent. Your role is to reply to feedback, ' \
             'taking into account the feedback itself, and the work that has been done because of this feedback.',
           objective: 'Generate a reply to a review comment',
+          system_instructions: <<~EO_INSTRUCTIONS,
+            #{Helpers.repository_access_system_instructions}
+
+            Always base your reply on the input artifacts given to you: they contain the full context of the Pull Request.
+            Do not indicate that you will perform an action without actually doing it.
+          EO_INSTRUCTIONS
           **agent_params
         )
         self.constraints = <<~EO_CONSTRAINTS
-          - You are in read-only mode.
-          - Do NOT modify or write any file.
-          - The implementation work is already complete (captured in the artifacts).
-          - ONLY focus on addressing the specific comment of the `#{artifact_ref(:open_comment_for_reply)}` artifact appropriately.
+          - You are in read-only mode for the repository: do NOT modify any file of it.
+          - The implementation work is already complete (captured in the input artifacts).
+          - ONLY focus on addressing the specific comment described in the file `#{artifact_ref(:open_comment_for_reply)}`.
           - Do NOT answer or reply to any other comment.
           - You already have ALL the information required.
           - You MUST NOT ask follow-up questions.
           - You MUST NOT ask for user confirmation.
+          - Write the reply text to the output artifact file `#{artifact_ref(:reply)}`.
+          - #{Helpers.repository_access_constraint}
+          - #{Helpers.artifacts_access_constraint(artifact_ref(:reply))}
         EO_CONSTRAINTS
       end
     end

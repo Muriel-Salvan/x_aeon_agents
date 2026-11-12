@@ -34,16 +34,17 @@ module XAeonAgents
               If you need more information, use one of the available tools instead of making assumptions.
               Do not indicate that you will perform an action without actually doing it.
             EO_INSTRUCTIONS
-            constraints: <<~EO_CONSTRAINTS,
-              - The required output artifact content should only contain the required content, without additional header or title.
-              - Do not explain or describe the artifact content: only provide the content as required.
-              - Only focus on the specific scope of the required documentation required.
-                Other agents will generate other sections of the README.
-                Do not try to document other parts.
-              - #{Helpers.repository_access_constraint}
-            EO_CONSTRAINTS
             **agent_params
           )
+          self.constraints = <<~EO_CONSTRAINTS
+            - Write only the required content to the output artifact file, without any additional header or title.
+            - Do NOT write any explanation or description in the artifact file: write only the required content.
+            - Only focus on the specific scope of the required documentation required.
+              Other agents will generate other sections of the README.
+              Do not try to document other parts.
+            - #{Helpers.repository_access_constraint}
+            - #{Helpers.artifacts_access_constraint(artifact_ref(:requirements))}
+          EO_CONSTRAINTS
         end
       end
     end

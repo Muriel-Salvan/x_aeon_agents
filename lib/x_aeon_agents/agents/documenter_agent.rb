@@ -9,9 +9,19 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         super.merge(
-          requirements: 'The initial requirements',
-          plan: 'Implementation plan that introduced features and fixes to be documented',
-          files_diffs: 'Full list of files changes and differences that have been done to implement the initial requirements following the implementation plan'
+          requirements: {
+            description: 'The initial requirements',
+            type: :markdown
+          },
+          plan: {
+            description: 'Implementation plan that introduced features and fixes to be documented',
+            type: :markdown
+          },
+          files_diffs: {
+            description: 'Full list of files changes and differences that have been done to implement the initial ' \
+              'requirements following the implementation plan',
+            type: :text
+          }
         )
       end
 
