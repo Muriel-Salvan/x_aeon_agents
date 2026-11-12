@@ -9,8 +9,14 @@ module XAeonAgents
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
         super.merge(
-          pr_description: 'The Pull Request description (context)',
-          pr_files_diffs: 'The files modifications that were done in this Pull Request (context)',
+          pr_description: {
+            description: 'The Pull Request description (context)',
+            type: :markdown
+          },
+          pr_files_diffs: {
+            description: 'The files modifications that were done in this Pull Request (context)',
+            type: :text
+          },
           conversations: {
             description: 'All Pull Request conversations and comments to be considered (context)',
             type: :json
