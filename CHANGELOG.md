@@ -1,3 +1,20 @@
+# [v2.7.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.7.0...v2.7.1) (2026-11-12 15:59:52)
+
+## Global changes
+### Patches
+
+* [fix(agents): improve prompts, isolate artifacts per run and declare plan type](https://github.com/Muriel-Salvan/x_aeon_agents/commit/b7f9dab265b908514b646b61c6ebc5f74fd1d4b6)
+
+## Changes for agent_defaults
+### Patches
+
+* [fix(agents): improve prompts, isolate artifacts per run and declare plan type](https://github.com/Muriel-Salvan/x_aeon_agents/commit/b7f9dab265b908514b646b61c6ebc5f74fd1d4b6)
+
+## Changes for agents
+### Patches
+
+* [fix(agents): improve prompts, isolate artifacts per run and declare plan type](https://github.com/Muriel-Salvan/x_aeon_agents/commit/b7f9dab265b908514b646b61c6ebc5f74fd1d4b6)
+
 # [v2.7.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.6.2...v2.7.0) (2026-11-12 13:45:26)
 
 ## Global changes
