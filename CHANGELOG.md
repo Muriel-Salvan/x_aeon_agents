@@ -1,3 +1,9 @@
+# [v2.8.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.8.0...v2.8.1) (2026-11-12 17:54:34)
+
+### Patches
+
+* [fix: handle structured hash messages in PR creator agent](https://github.com/Muriel-Salvan/x_aeon_agents/commit/5b6496bd2d0fe3f8498da16d1f227586a2d18f84)
+
 # [v2.8.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.7.1...v2.8.0) (2026-11-12 17:47:11)
 
 ## Global changes
