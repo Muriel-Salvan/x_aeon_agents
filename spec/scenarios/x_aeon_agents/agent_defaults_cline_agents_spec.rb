@@ -24,6 +24,13 @@ describe XAeonAgents::AgentDefaults do
       XAeonAgentsTest::Agents::TestClineAgent
     )
 
+    it 'gives each agent run its own artifacts directory' do
+      agent = XAeonAgentsTest::Agents::TestClineAgent.new(session_id: 'test-session')
+      expect(agent.artifacts_directory).to eq(
+        "#{XAeonAgents::Config.data_dir}/sessions/test-session/composable_agents/runs/test-session-TestClineAgent/artifacts"
+      )
+    end
+
     it 'writes artifacts in the directory of the agent run, using the file format of their type' do
       agent = XAeonAgentsTest::Agents::TestClineArtifactsAgent.new(session_id: 'test-session')
       run_dir = "#{XAeonAgents::Config.data_dir}/sessions/test-session/composable_agents/runs/test-session-TestClineArtifactsAgent"

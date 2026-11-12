@@ -87,16 +87,24 @@ module XAeonAgents
             @session_id = session_id || AgentDefaults.singleton_session_id
             @session_dir = "#{Config.data_dir}/sessions/#{@session_id}"
             run_id = "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}"
+            agent_kwargs = kwargs_from_config.merge(kwargs)
+            # TODO: Redesign how prompt rendering strategies are initialized with regard to the constructors and remove
+            #   this code smell.
+            # The prompt rendering strategy is included in the agent's singleton class by PromptDrivenAgent's
+            # constructor, which runs after the agent's own constructor: include it here first so that the agent's
+            # constructor and mixins can use the strategy's accessors (e.g. #artifact_ref) while being initialized.
+            singleton_class.include(agent_kwargs[:strategy]) if agent_kwargs[:strategy]
+            # File-based artifact strategies persist artifacts as files: give each agent run its own artifacts
+            # directory so that agents of the same session don't share artifact files.
+            self.artifacts_directory = "#{@session_dir}/composable_agents/runs/#{run_id}/artifacts" \
+              if respond_to?(:artifacts_directory=)
             super(
               *args,
               composable_agents_dir: "#{@session_dir}/composable_agents",
               run_id:,
               logger: Config.logger,
-              **kwargs_from_config.merge(kwargs)
+              **agent_kwargs
             )
-            # File-based artifact strategies persist artifacts as files: give each agent run its own artifacts
-            # directory so that agents of the same session don't share artifact files.
-            self.artifacts_directory = "#{@session_dir}/composable_agents/runs/#{run_id}/artifacts" if respond_to?(:artifacts_directory=)
           end
 
           # Define a task that is resumable and that will log big steps of an agent.
