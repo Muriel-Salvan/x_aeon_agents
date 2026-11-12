@@ -26,13 +26,14 @@ module XAeonAgents
           name: '1-line code diff summarizer',
           role: 'You are a 1-line code diff summarizer agent',
           objective: 'Produce a 1-line summary of a code change intent report.',
-          constraints: <<~EO_CONSTRAINTS,
-            - You are in read-only mode.
-            - Do NOT modify or write any file.
-            - You already have ALL the information required.
-            - The user's intent is fully specified.
-            - You MUST NOT ask follow-up questions.
-          EO_CONSTRAINTS
+          constraints: [
+            '- You are in read-only mode.',
+            '- Do NOT modify or write any file.',
+            '- You already have ALL the information required.',
+            "- The user's intent is fully specified.",
+            '- You MUST NOT ask follow-up questions.',
+            Helpers.non_interactive_constraint
+          ].compact.join("\n"),
           **agent_params
         )
         self.system_instructions = {

@@ -59,10 +59,11 @@ module XAeonAgents
           EO_OBJECTIVE
           **agent_params
         )
-        self.constraints = <<~EO_CONSTRAINTS
-          - #{Helpers.repository_access_constraint(writable: true)}
-          - #{Helpers.artifacts_access_constraint(artifact_ref(:plan_modifications))}
-        EO_CONSTRAINTS
+        self.constraints = [
+          Helpers.repository_access_constraint(writable: true),
+          Helpers.artifacts_access_constraint(artifact_ref(:plan_modifications)),
+          Helpers.non_interactive_constraint
+        ].compact.join("\n")
         self.system_instructions = <<~EO_INSTRUCTIONS
           #{Helpers.repository_access_system_instructions}
 
