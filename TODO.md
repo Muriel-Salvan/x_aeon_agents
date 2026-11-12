@@ -1,3 +1,4 @@
+* Consider remove the checklists from MarkdownHeavy (maybe having MarkdownFiles?).
 * Embed TaskStarter as an option to implement-issue CLI.
 * Add a --tdd option to implement-issue and use a TddAgent in place of DeveloperAgent.
 * Add a bump dependencies CLI command to do what bump_gemspec_minor does (and also in Gemfile) for Ruby projects, and make it so it can be extended for other languages.
