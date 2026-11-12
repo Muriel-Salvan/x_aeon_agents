@@ -63,7 +63,7 @@ module XAeonAgents
               user_instructions: {
                 ordered_list: [
                   <<~EO_INSTRUCTION,
-                    Read the `#{feedback_analyst_agent.artifact_ref(:description)}` artifact to understand the purpose of this Pull Request
+                    Read the `#{feedback_analyst_agent.artifact_ref(:pr_description)}` artifact to understand the purpose of this Pull Request
 
                     - This gives you context on what is the purpose of this Pull Request.
                   EO_INSTRUCTION

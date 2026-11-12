@@ -1,4 +1,12 @@
+* Embed TaskStarter as an option to implement-issue CLI.
+* Add a --tdd option to implement-issue and use a TddAgent in place of DeveloperAgent.
+* Add a bump dependencies CLI command to do what bump_gemspec_minor does (and also in Gemfile) for Ruby projects, and make it so it can be extended for other languages.
 * Make the tester loop with a max retries when the same tests are failing (maybe use a JSON/XML output format for tests that allow for parsing which test fail and only give this information in the prompt).
+* Add a command that cleans and refactor code:
+  * Identify duplicates in code, doc, tests.
+  * Increase coverage.
+  * Validate that only public interfaces are being tested.
+  * Simplify algorithms and documentation.
 * Don't use project skills and rules: it adds noise to the LLMs that scan the files and code base. Use only global objects from dedicated config dirs.
 * Add desktop notification when user input is needed.
 * Test with other models.
