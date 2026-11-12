@@ -4,6 +4,10 @@ AllCops:
   NewCops: enable
 
 # Keep indentations consistent
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+# Keep indentations consistent
 Layout/LineEndStringConcatenationIndentation:
   EnforcedStyle: indented
 

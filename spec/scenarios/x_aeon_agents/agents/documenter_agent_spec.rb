@@ -1,7 +1,10 @@
+require_relative 'shared_examples/artifact_types'
 require_relative 'shared_examples/common_behavior'
 require_relative 'shared_examples/repository_scope'
 
 describe XAeonAgents::Agents::DocumenterAgent do
   it_behaves_like 'an agent with common behavior', described_class
   it_behaves_like 'an agent scoped to the current repository', described_class, writable: true
+  it_behaves_like 'an agent declaring artifact types', described_class,
+    input_types: { requirements: :markdown, plan: :markdown, files_diffs: :text }
 end

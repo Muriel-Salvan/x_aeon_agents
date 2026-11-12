@@ -8,7 +8,12 @@ module XAeonAgents
       #
       # @return [Hash{Symbol => Object}] Set of input artifacts description, per artifact name
       def input_artifacts_contracts
-        super.merge(requirements: 'The initial requirements for which you need to devise an implementation plan')
+        super.merge(
+          requirements: {
+            description: 'The initial requirements for which you need to devise an implementation plan',
+            type: :markdown
+          }
+        )
       end
 
       # Define output artifacts contracts
@@ -18,7 +23,7 @@ module XAeonAgents
         super.merge(
           plan: {
             description: 'The full and detailed implementation plan in Markdown format, ' \
-              "that should implement the requirements given by the artifact named `#{artifact_ref(:requirements)}`",
+              "that should implement the requirements given in the file `#{artifact_ref(:requirements)}`",
             type: :markdown
           }
         )
@@ -41,16 +46,15 @@ module XAeonAgents
             If you need more information, use one of the available tools or ask for clarification instead of making assumptions or lies.
             Do not indicate that you will perform an action without actually doing it.
           EO_INSTRUCTIONS
-          constraints: <<~EO_CONSTRAINTS,
-            - You are in read-only mode.
-            - Do NOT modify or write any file.
-            - You may only analyze and propose plans.
-            - Do NOT execute the plan yourself.
-            - #{Helpers.repository_access_constraint}
-            - Never create files (`ARTIFACT_*`, `/tmp/*`) to hold artifacts. Put the fenced ` ```json output_artifact=… ` block in your final message and end the turn with __no tool call__.
-          EO_CONSTRAINTS
           **agent_params
         )
+        self.constraints = <<~EO_CONSTRAINTS
+          - You are in read-only mode for the repository: do NOT modify any file of it.
+          - You may only analyze and propose plans.
+          - Do NOT execute the plan yourself.
+          - #{Helpers.repository_access_constraint}
+          - #{Helpers.artifacts_access_constraint(artifact_ref(:plan))}
+        EO_CONSTRAINTS
       end
     end
   end

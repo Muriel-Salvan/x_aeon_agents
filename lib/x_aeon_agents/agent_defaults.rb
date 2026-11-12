@@ -86,13 +86,17 @@ module XAeonAgents
             end
             @session_id = session_id || AgentDefaults.singleton_session_id
             @session_dir = "#{Config.data_dir}/sessions/#{@session_id}"
+            run_id = "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}"
             super(
               *args,
               composable_agents_dir: "#{@session_dir}/composable_agents",
-              run_id: "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}",
+              run_id:,
               logger: Config.logger,
               **kwargs_from_config.merge(kwargs)
             )
+            # File-based artifact strategies persist artifacts as files: give each agent run its own artifacts
+            # directory so that agents of the same session don't share artifact files.
+            self.artifacts_directory = "#{@session_dir}/composable_agents/runs/#{run_id}/artifacts" if respond_to?(:artifacts_directory=)
           end
 
           # Define a task that is resumable and that will log big steps of an agent.

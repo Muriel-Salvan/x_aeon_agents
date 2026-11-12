@@ -84,32 +84,38 @@ describe XAeonAgents::Agents::DeveloperAgent do
           user_instructions: {
             ordered_list: [
               <<~EO_STEP,
-                Understand the initial requirements from the artifact named `#{agent1.artifact_ref(:requirements)}`
+                Understand the initial requirements from the file `#{agent1.artifact_ref(:requirements)}`
 
                 - Understand those requirements and their intent.
               EO_STEP
               <<~EO_STEP,
-                Understand the implementation plan from the artifact named `#{agent1.artifact_ref(:plan)}`
+                Understand the implementation plan from the file `#{agent1.artifact_ref(:plan)}`
 
                 - Understand all the steps of the implementation plan.
               EO_STEP
               <<~EO_STEP,
-                Understand the file changes from the artifact named `#{agent1.artifact_ref(:files_diffs)}`
+                Understand the file changes from the file `#{agent1.artifact_ref(:files_diffs)}`
 
                 - Understand what was the intent of the developer implementing the requirements.
               EO_STEP
               <<~EO_STEP,
-                Analyze the full output of unit tests run from the artifact named `#{agent1.artifact_ref(:tests_output)}`
+                Read and analyze the full output of unit tests from the file `#{agent1.artifact_ref(:tests_output)}`
 
                 - Check every error reported in the output.
               EO_STEP
               'Fix any issue that unit tests are surfacing, while keeping the original intent of the requirements',
               'Remember any inconsistency and modification you need to make to the implementation plan ' \
                 'so that your fixes are in-line with a better implementation plan',
-              <<~EO_STEP
+              <<~EO_STEP,
                 Make sure all tests are running without issue after your fixes
 
-                - You can run tests again using the provided tests command from the artifact named `#{agent1.artifact_ref(:tests_cmd)}` to test your own fixes.
+                - You can run tests again using the tests command given in the file `#{agent1.artifact_ref(:tests_cmd)}` to test your own fixes.
+              EO_STEP
+              <<~EO_STEP
+                Write your modifications of the implementation plan, if any, to the file `#{agent1.artifact_ref(:plan_modifications)}`
+
+                - Only write this file if your fixes required diverging from the implementation plan.
+                - Do not write this file if the implementation plan did not change.
               EO_STEP
             ]
           }
