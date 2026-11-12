@@ -48,15 +48,16 @@ module XAeonAgents
             When you have completed the task, please provide a summary of what you did and any relevant information that the user should know.
             This will help ensure that the user understands the changes made and can easily follow up if they have any questions or need further assistance.
           EO_INSTRUCTIONS
-          constraints: <<~EO_CONSTRAINTS,
-            - Only update documentation files.
-            - Do NOT change any code or test.
-            - NEVER document the fact that a change happened.
-            - NEVER explain that something was removed, renamed, or fixed.
-            - Documentation describes the CURRENT STATE only.
-            - Documentation is NOT a changelog.
-            - #{Helpers.repository_access_constraint(writable: true)}
-          EO_CONSTRAINTS
+          constraints: [
+            '- Only update documentation files.',
+            '- Do NOT change any code or test.',
+            '- NEVER document the fact that a change happened.',
+            '- NEVER explain that something was removed, renamed, or fixed.',
+            '- Documentation describes the CURRENT STATE only.',
+            '- Documentation is NOT a changelog.',
+            Helpers.repository_access_constraint(writable: true),
+            Helpers.non_interactive_constraint
+          ].compact.join("\n"),
           **agent_params
         )
       end

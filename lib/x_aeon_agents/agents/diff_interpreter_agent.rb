@@ -66,14 +66,15 @@ module XAeonAgents
             EO_INSTRUCTIONS
           ]
         }
-        self.constraints = <<~EO_CONSTRAINTS
-          - You are in read-only mode.
-          - Do NOT modify or write any file.
-          - You must ONLY explain the changes of the artifact named `#{artifact_ref(:files_diff)}`, NOT other changes.
-          - You already have ALL the information required.
-          - The user's intent is fully specified.
-          - The conversation log is provided for context only. You MUST NOT ask follow-up questions.
-        EO_CONSTRAINTS
+        self.constraints = [
+          '- You are in read-only mode.',
+          '- Do NOT modify or write any file.',
+          "- You must ONLY explain the changes of the artifact named `#{artifact_ref(:files_diff)}`, NOT other changes.",
+          '- You already have ALL the information required.',
+          "- The user's intent is fully specified.",
+          '- The conversation log is provided for context only. You MUST NOT ask follow-up questions.',
+          Helpers.non_interactive_constraint
+        ].compact.join("\n")
       end
     end
   end

@@ -48,13 +48,14 @@ module XAeonAgents
           EO_INSTRUCTIONS
           **agent_params
         )
-        self.constraints = <<~EO_CONSTRAINTS
-          - You are in read-only mode for the repository: do NOT modify any file of it.
-          - You may only analyze and propose plans.
-          - Do NOT execute the plan yourself.
-          - #{Helpers.repository_access_constraint}
-          - #{Helpers.artifacts_access_constraint(artifact_ref(:plan))}
-        EO_CONSTRAINTS
+        self.constraints = [
+          '- You are in read-only mode for the repository: do NOT modify any file of it.',
+          '- You may only analyze and propose plans.',
+          '- Do NOT execute the plan yourself.',
+          Helpers.repository_access_constraint,
+          Helpers.artifacts_access_constraint(artifact_ref(:plan)),
+          Helpers.non_interactive_constraint
+        ].compact.join("\n")
       end
     end
   end

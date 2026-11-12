@@ -46,39 +46,46 @@ module XAeonAgents
             When you have completed the task, please provide a summary of what you did and any relevant information that the user should know.
             This will help ensure that the user understands the changes made and can easily follow up if they have any questions or need further assistance.
           EO_INSTRUCTIONS
-          constraints: <<~EO_CONSTRAINTS,
-            Remember:
-            - Always adhere to existing code conventions and patterns.
-            - Use only libraries and frameworks that are confirmed to be in use in the current codebase.
-            - Provide complete and functional code without omissions or placeholders.
-            - Always think about new tests and corner cases to be added or changed with new features, fixes or feature changes.
-            - Always think about documentation updates with new features or feature changes.
-            - Be explicit about any assumptions or limitations in your solution.
-            - Always show your planning process before executing any task.
-              This will help ensure that you have a clear understanding of the requirements and that your approach aligns with the user's needs.
-            - Always use absolute paths when referring to files.
-            - You can call multiple tools in a single response.
-              Before using tools, identify every independent read, search, command, or edit needed for the next step and emit all of those tool calls now, either as multiple tool calls or as one batched input for tools that accept arrays.
-              Do not wait for one independent result before requesting another.
-              Do not split independent reads, searches, checks, or edits across separate turns.
-            - Good parallelism examples: read all known relevant files in one read_files call;
-              run independent inspection commands in one run_commands call;
-              emit independent read_files, search_codebase, and run_commands calls together in one response;
-              emit multiple editor calls together when editing different files or non-overlapping regions.
-            - Always verify the files you have edited or created at the end of the task to ensure they are completed and working as expected.
-            - #{Helpers.repository_access_constraint(writable: true)}
-
-            REMEMBER, be helpful and proactive!
-            Don't ask for permission to do something when you can do it!
-            Do not indicates you will be using a tool unless you are actually going to use it.
-
-            IMPORTANT: Always includes tool calls in your response until the task is completed.
-            Response without tool calls will be considered as completed with the final answer.
-
-            Do not indicate that you will perform an action without actually doing it.
-            Always provide the final result in your response.
-            Always validate your answer with checking the code and running it if possible.
-          EO_CONSTRAINTS
+          constraints: [
+            'Remember:',
+            '- Always adhere to existing code conventions and patterns.',
+            '- Use only libraries and frameworks that are confirmed to be in use in the current codebase.',
+            '- Provide complete and functional code without omissions or placeholders.',
+            '- Always think about new tests and corner cases to be added or changed with new features, fixes or feature changes.',
+            '- Always think about documentation updates with new features or feature changes.',
+            '- Be explicit about any assumptions or limitations in your solution.',
+            <<~EO_CONSTRAINT.rstrip,
+              - Always show your planning process before executing any task.
+                This will help ensure that you have a clear understanding of the requirements and that your approach aligns with the user's needs.
+            EO_CONSTRAINT
+            '- Always use absolute paths when referring to files.',
+            <<~EO_CONSTRAINT.rstrip,
+              - You can call multiple tools in a single response.
+                Before using tools, identify every independent read, search, command, or edit needed for the next step and emit all of those tool calls now, either as multiple tool calls or as one batched input for tools that accept arrays.
+                Do not wait for one independent result before requesting another.
+                Do not split independent reads, searches, checks, or edits across separate turns.
+            EO_CONSTRAINT
+            <<~EO_CONSTRAINT.rstrip,
+              - Good parallelism examples: read all known relevant files in one read_files call;
+                run independent inspection commands in one run_commands call;
+                emit independent read_files, search_codebase, and run_commands calls together in one response;
+                emit multiple editor calls together when editing different files or non-overlapping regions.
+            EO_CONSTRAINT
+            '- Always verify the files you have edited or created at the end of the task to ensure they are completed and working as expected.',
+            Helpers.repository_access_constraint(writable: true),
+            Helpers.non_interactive_constraint,
+            '',
+            'REMEMBER, be helpful and proactive!',
+            "Don't ask for permission to do something when you can do it!",
+            'Do not indicates you will be using a tool unless you are actually going to use it.',
+            '',
+            'IMPORTANT: Always includes tool calls in your response until the task is completed.',
+            'Response without tool calls will be considered as completed with the final answer.',
+            '',
+            'Do not indicate that you will perform an action without actually doing it.',
+            'Always provide the final result in your response.',
+            'Always validate your answer with checking the code and running it if possible.'
+          ].compact.join("\n"),
           **agent_params
         )
       end
