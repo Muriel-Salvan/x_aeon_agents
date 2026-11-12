@@ -16,7 +16,7 @@ describe XAeonAgents::AgentDefaults do
         cli_options: { thinking: 'xhigh' }
       },
       expected_default_options_kept: { api_key: 'test-cline-api-key' },
-      expected_singleton_modules: [ComposableAgents::PromptRenderingStrategy::MarkdownHeavy]
+      expected_singleton_modules: [ComposableAgents::PromptRenderingStrategy::MarkdownHeavyFiles]
     )
 
     it_behaves_like(

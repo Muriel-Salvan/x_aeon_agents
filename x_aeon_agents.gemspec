@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'ai-agents', '~> 0.13'
   spec.add_dependency 'cleanroom-next', '~> 1.0'
   spec.add_dependency 'commonmarker', '~> 2.7'
-  spec.add_dependency 'composable_agents', '~> 3.4'
+  spec.add_dependency 'composable_agents', '~> 3.7'
   spec.add_dependency 'diffy', '~> 3.4'
   spec.add_dependency 'erb', '~> 6.0'
   spec.add_dependency 'front_matter_parser', '~> 1.0'
