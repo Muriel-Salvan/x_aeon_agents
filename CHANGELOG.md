@@ -1,3 +1,15 @@
+# [v2.8.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.7.1...v2.8.0) (2026-11-12 17:47:11)
+
+## Global changes
+### Patches
+
+* [feat(agents): support non-interactive constraints if needed in the prompts](https://github.com/Muriel-Salvan/x_aeon_agents/commit/2ef0511f6a711d28c91de95c498c0deb8ee71607)
+
+## Changes for agents
+### Features
+
+* [feat(agents): support non-interactive constraints if needed in the prompts](https://github.com/Muriel-Salvan/x_aeon_agents/commit/2ef0511f6a711d28c91de95c498c0deb8ee71607)
+
 # [v2.7.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.7.0...v2.7.1) (2026-11-12 15:59:52)
 
 ## Global changes
