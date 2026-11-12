@@ -1,4 +1,3 @@
-* When --no-interactive, add `MUST NOT ask_question` to all prompts.
 * Consider remove the checklists from MarkdownHeavy (maybe having MarkdownFiles?).
 * Embed TaskStarter as an option to implement-issue CLI.
 * Add a --tdd option to implement-issue and use a TddAgent in place of DeveloperAgent.
