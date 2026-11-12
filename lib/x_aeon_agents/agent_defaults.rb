@@ -74,7 +74,8 @@ module XAeonAgents
                 Config.setup_cline
                 {
                   api_key: Config.cline_api_key,
-                  cli_options: Config.default_cline_cli_args
+                  cli_options: Config.default_cline_cli_args,
+                  strategy: ComposableAgents::PromptRenderingStrategy::MarkdownHeavyFiles
                 }
               else
                 {}
