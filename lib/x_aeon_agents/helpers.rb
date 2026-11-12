@@ -159,26 +159,42 @@ module XAeonAgents
       end
 
       # Get the constraint restricting the files agents are allowed to access.
-      # This constraint is format-agnostic: it does not include any formatting (bullet, header...) so that it can be
-      # included in any constraints section.
+      # Constraints are rendered as Markdown bullet lists: the returned sentence includes its own bullet prefix.
       #
       # @param writable [Boolean] True if the agent is allowed to write files, false if it is read-only
       # @return [String] The constraint restricting the agents' file accesses to the current repository
       def repository_access_constraint(writable: false)
-        "You should only #{writable ? 'read and write' : 'read'} files that are part of the current repository: `#{Dir.pwd}`"
+        "- You should only #{writable ? 'read and write' : 'read'} files that are part of the current repository: `#{Dir.pwd}`"
       end
 
       # Get the constraint allowing agents to access their artifact files, which can be located outside of the
       # current repository.
-      # This constraint is format-agnostic: it does not include any formatting (bullet, header...) so that it can be
-      # included in any constraints section.
+      # Constraints are rendered as Markdown bullet lists: the returned sentence includes its own bullet prefix.
+      # A nil is returned when no artifact path is given, so that callers can interpolate the result
+      # unconditionally in an array of constraint lines and simply compact the array.
       #
       # @param artifact_paths [Array<String>] Absolute paths of the artifact files the agent is allowed to access
-      # @return [String] The constraint about artifact files access
+      # @return [String, nil] The constraint about artifact files access, or nil when no artifact path is given
       def artifacts_access_constraint(*artifact_paths)
-        'You are allowed to read and write the artifact files at ' \
+        return nil if artifact_paths.empty?
+
+        '- You are allowed to read and write the artifact files at ' \
           "#{artifact_paths.map { |artifact_path| "`#{artifact_path}`" }.join(', ')}, " \
           'even if they are not part of the current repository'
+      end
+
+      # Get the constraint forbidding the agent from using the ask_question tool when no human user is available.
+      # Constraints are rendered as Markdown bullet lists: the returned sentence includes its own bullet prefix.
+      # A nil is returned when the interactive mode is enabled, so that callers can interpolate the result
+      # unconditionally in an array of constraint lines and simply compact the array.
+      #
+      # @return [String, nil] The constraint about not asking questions, or nil when the interactive mode is enabled
+      def non_interactive_constraint
+        return nil if Config.interactive
+
+        '- You MUST NOT use the ask_question tool under any circumstances: ' \
+          'you are running in non-interactive mode with no human user available, ' \
+          'so proceed using your best judgment without asking'
       end
 
       # Allow user to review and edit content before using it

@@ -63,18 +63,19 @@ module XAeonAgents
           EO_INSTRUCTIONS
           **agent_params
         )
-        self.constraints = <<~EO_CONSTRAINTS
-          - You are in read-only mode for the repository: do NOT modify any file of it.
-          - The implementation work is already complete (captured in the input artifacts).
-          - ONLY focus on addressing the specific comment described in the file `#{artifact_ref(:open_comment_for_reply)}`.
-          - Do NOT answer or reply to any other comment.
-          - You already have ALL the information required.
-          - You MUST NOT ask follow-up questions.
-          - You MUST NOT ask for user confirmation.
-          - Write the reply text to the output artifact file `#{artifact_ref(:reply)}`.
-          - #{Helpers.repository_access_constraint}
-          - #{Helpers.artifacts_access_constraint(artifact_ref(:reply))}
-        EO_CONSTRAINTS
+        self.constraints = [
+          '- You are in read-only mode for the repository: do NOT modify any file of it.',
+          '- The implementation work is already complete (captured in the input artifacts).',
+          "- ONLY focus on addressing the specific comment described in the file `#{artifact_ref(:open_comment_for_reply)}`.",
+          '- Do NOT answer or reply to any other comment.',
+          '- You already have ALL the information required.',
+          '- You MUST NOT ask follow-up questions.',
+          '- You MUST NOT ask for user confirmation.',
+          "- Write the reply text to the output artifact file `#{artifact_ref(:reply)}`.",
+          Helpers.repository_access_constraint,
+          Helpers.artifacts_access_constraint(artifact_ref(:reply)),
+          Helpers.non_interactive_constraint
+        ].compact.join("\n")
       end
     end
   end

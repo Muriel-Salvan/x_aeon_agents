@@ -1,7 +1,9 @@
 require_relative 'shared_examples/common_behavior'
+require_relative 'shared_examples/non_interactive'
 
 describe XAeonAgents::Agents::ExecutorAgent do
   it_behaves_like 'an agent with common behavior', described_class
+  it_behaves_like 'an agent respecting the non-interactive mode', described_class
 
   context 'with a simple prompt' do
     it 'prints the last message of the AI response' do
