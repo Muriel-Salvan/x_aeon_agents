@@ -1,34 +1,3 @@
-* Improve Cline prompts constraints:
-  - run_commands takes ONE shell script as a plain string.
-    - NEVER wrap it in [ ] or JSON.
-    - One command per call; chain with && only on one line.
-    - Never use multi-line heredocs
-  - Always use `editor` to write files.
-  - You are a single agent. There is no team: NEVER call team_* tools. They will fail and count as mistakes.
-* Improve Cline global settings:
-  "disabledTools": [
-    "ask_question", # Only if no-interactive
-    "spawn_agent",
-    "team_attach_outcome_fragment",
-    "team_await_runs",
-    "team_broadcast",
-    "team_cancel_run",
-    "team_cleanup",
-    "team_create_outcome",
-    "team_finalize_outcome",
-    "team_list_outcomes",
-    "team_list_runs",
-    "team_mission_log",
-    "team_read_mailbox",
-    "team_review_outcome_fragment",
-    "team_run_task",
-    "team_send_message",
-    "team_shutdown_teammate",
-    "team_spawn_teammate",
-    "team_status",
-    "team_task",
-    "teams"
-  ]
 * Pass `--timeout 1800` and `--retries 10` through cline-rb (`timeout:`, `retries:` are already supported at the CLI layer). *(bounds every stall; kills the 97/72/105-min class)* Those are default cli_options that could be superceded by the model config DSL.
 * Fix the tokens metrics that seem to be wrong with Cline.
 * Consider remove the checklists from MarkdownHeavy (maybe having MarkdownFiles?).

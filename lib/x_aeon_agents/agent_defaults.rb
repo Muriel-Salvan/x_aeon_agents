@@ -63,6 +63,9 @@ module XAeonAgents
             AgentDefaults.root_agents << self if parent_agent.nil?
             # If we inherit from some frameworks initialize them now.
             Config.setup_composable_agents
+            # Possible transformation applied to the agent's kwargs once the framework defaults,
+            # the config DSL procs and the explicitly given kwargs are merged.
+            kwargs_processor = proc { |agent_kwarg_hash| agent_kwarg_hash }
             kwargs_from_agent_defaults =
               case self
               when ComposableAgents::AiAgents::Agent
@@ -72,6 +75,42 @@ module XAeonAgents
                 }
               when ComposableAgents::Cline::Agent
                 Config.setup_cline
+                # Whatever Cline global settings are configured (through the config DSL or explicitly),
+                # always disable the Cline tools that are not used by X-Aeon agents: agents are
+                # orchestrated by ComposableAgents (letting an LLM spawn agents or manage teams would
+                # bypass this orchestration), and no human user answers questions in non-interactive mode.
+                # Merge these tools with the configured ones, without duplicates.
+                kwargs_processor = proc do |cline_agent_kwargs|
+                  configured_global_settings = cline_agent_kwargs[:configure_global]
+                  cline_agent_kwargs[:configure_global] = proc do |global_settings|
+                    configured_global_settings&.call(global_settings)
+                    disabled_tools = %w[
+                      spawn_agent
+                      team_attach_outcome_fragment
+                      team_await_runs
+                      team_broadcast
+                      team_cancel_run
+                      team_cleanup
+                      team_create_outcome
+                      team_finalize_outcome
+                      team_list_outcomes
+                      team_list_runs
+                      team_mission_log
+                      team_read_mailbox
+                      team_review_outcome_fragment
+                      team_run_task
+                      team_send_message
+                      team_shutdown_teammate
+                      team_spawn_teammate
+                      team_status
+                      team_task
+                      teams
+                    ]
+                    disabled_tools << 'ask_question' unless Config.interactive
+                    global_settings.disabled_tools = disabled_tools | Array(global_settings.disabled_tools)
+                  end
+                  cline_agent_kwargs
+                end
                 {
                   api_key: Config.cline_api_key,
                   cli_options: Config.default_cline_cli_args,
@@ -87,7 +126,7 @@ module XAeonAgents
             @session_id = session_id || AgentDefaults.singleton_session_id
             @session_dir = "#{Config.data_dir}/sessions/#{@session_id}"
             run_id = "#{@session_id}-#{kwargs[:name] || self.class.name.split('::').last}"
-            agent_kwargs = kwargs_from_config.merge(kwargs)
+            agent_kwargs = kwargs_processor.call(kwargs_from_config.merge(kwargs))
             # TODO: Redesign how prompt rendering strategies are initialized with regard to the constructors and remove
             #   this code smell.
             # The prompt rendering strategy is included in the agent's singleton class by PromptDrivenAgent's

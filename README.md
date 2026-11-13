@@ -328,7 +328,7 @@ Files are looked up in the following locations and evaluated from the lowest pri
   - `skills` — Array of skill names the agent should follow
   - `model` — LLM model to use (e.g. `'deepseek/deepseek-v4-flash'`)
   - `cli_options` — Hash of options merged into the Cline CLI invocation (e.g. `plan: true`)
-  - `configure_global` — Proc given the Cline global settings to tweak
+  - `configure_global` — Proc given the Cline global settings to tweak. Whatever it configures, the Cline tools that X-Aeon agents don't use (agent spawning and team management tools) are always disabled, as is `ask_question` when `interactive` is off; lists are merged without duplicates
 
   ```ruby
   configure_agent(:PlanGeneratorAgent) do |agent_config|
@@ -462,6 +462,7 @@ Every agent is enriched by the [`AgentDefaults`](https://github.com/Muriel-Salva
 
 - injects `new_agent`, `task`, `step` and `step_agent` to build multi-step pipelines;
 - auto-configures the frameworks (`setup_composable_agents`, `setup_ai_agents`, `setup_cline`) and injects per-class defaults (overridable with the `configure_agent` config DSL);
+- disables the Cline tools that X-Aeon agents don't use (agent spawning, team management, and `ask_question` in non-interactive mode) in the Cline global settings, merging them without duplicates with the ones configured by `configure_global`;
 - enforces **input/output artifact contracts** and adds **resume** support (via the `ArtifactContract` + `Resumable` mixins);
 - gives each agent a per-session directory under `Config.data_dir/sessions/<id>`.
 
