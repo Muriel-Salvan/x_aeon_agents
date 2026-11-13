@@ -17,5 +17,9 @@ describe XAeonAgents::AgentDefaults do
       'a status displaying the usage of the run',
       XAeonAgentsTest::Agents::TestAiAgent
     )
+
+    it 'does not constrain AiAgents agents to the use of the Cline tools' do
+      expect(XAeonAgentsTest::Agents::TestAiAgent.new.constraints.to_s).not_to include('run_commands')
+    end
   end
 end

@@ -46,6 +46,7 @@ module XAeonAgents
             EO_CONSTRAINT
             '- Only document public API entry points: executables and library public methods belonging to yarn `Public API` group.',
             Helpers.repository_access_constraint,
+            Helpers.cline_tools_constraint,
             Helpers.artifacts_access_constraint(artifact_ref(:public_api)),
             Helpers.non_interactive_constraint
           ].compact.join("\n")
