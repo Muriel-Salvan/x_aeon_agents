@@ -327,8 +327,8 @@ Files are looked up in the following locations and evaluated from the lowest pri
 - **`configure_agent(agent_class_name) { |agent_config| ... }`** — define the default kwargs to be merged when initializing agents of a given class (e.g. `:CoderAgent`). The block is evaluated every time an agent of this class is instantiated: it is given the currently merged configuration (a Hash of kwargs, that can be modified in place), and returns a Hash of additional kwargs merged on top. It is re-entrant: it can be called several times for the same class, from the same file or from different ones (global, project, env-var designated), each call seeing the configuration accumulated by the previous ones. Typical kwargs keys (as used by the agent frameworks):
   - `skills` — Array of skill names the agent should follow
   - `model` — LLM model to use (e.g. `'deepseek/deepseek-v4-flash'`)
-  - `cli_options` — Hash of options merged into the Cline CLI invocation (e.g. `plan: true`)
-  - `configure_global` — Proc given the Cline global settings to tweak
+  - `cli_options` — Hash of options merged into the Cline CLI invocation (e.g. `plan: true`). Cline agents always get `timeout: 600` (10 minutes) and `retries: 5` by default; options given here supersede them option by option (`nil` disables one)
+  - `configure_global` — Proc given the Cline global settings to tweak. Whatever it configures, the Cline tools that X-Aeon agents don't use (agent spawning and team management tools) are always disabled, as is `ask_question` when `interactive` is off; lists are merged without duplicates
 
   ```ruby
   configure_agent(:PlanGeneratorAgent) do |agent_config|
@@ -461,7 +461,8 @@ Each capability is implemented by an `Agents::*Agent` class built on `composable
 Every agent is enriched by the [`AgentDefaults`](https://github.com/Muriel-Salvan/x_aeon_agents/blob/main/lib/x_aeon_agents/agent_defaults.rb) mixin, which:
 
 - injects `new_agent`, `task`, `step` and `step_agent` to build multi-step pipelines;
-- auto-configures the frameworks (`setup_composable_agents`, `setup_ai_agents`, `setup_cline`) and injects per-class defaults (overridable with the `configure_agent` config DSL);
+- auto-configures the frameworks (`setup_composable_agents`, `setup_ai_agents`, `setup_cline`) and injects per-class defaults (overridable with the `configure_agent` config DSL); for Cline agents, it also injects `timeout: 600` and `retries: 5` CLI options to bound every run (configured options supersede them);
+- disables the Cline tools that X-Aeon agents don't use (agent spawning, team management, and `ask_question` in non-interactive mode) in the Cline global settings, merging them without duplicates with the ones configured by `configure_global`;
 - enforces **input/output artifact contracts** and adds **resume** support (via the `ArtifactContract` + `Resumable` mixins);
 - gives each agent a per-session directory under `Config.data_dir/sessions/<id>`.
 

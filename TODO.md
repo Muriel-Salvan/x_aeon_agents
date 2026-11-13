@@ -1,3 +1,4 @@
+* Fix the tokens metrics that seem to be wrong with Cline.
 * Consider remove the checklists from MarkdownHeavy (maybe having MarkdownFiles?).
 * Embed TaskStarter as an option to implement-issue CLI.
 * Add a --tdd option to implement-issue and use a TddAgent in place of DeveloperAgent.
