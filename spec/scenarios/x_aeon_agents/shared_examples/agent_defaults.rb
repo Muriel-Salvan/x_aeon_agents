@@ -13,6 +13,9 @@
 #   framework default.
 # @param expected_default_options_kept [Hash{Symbol => Object}] The framework defaults that are not overwritten by
 #   the config DSL, expected to still be applied.
+# @param expected_configured_options [Hash{Symbol => Object}, nil] The kwargs expected after the config DSL has been
+#   applied, if different from configured_kwargs (eg. when configured options are merged with default ones).
+#   Defaults to configured_kwargs.
 # @param configurable_kwarg [Symbol, nil] The kwarg used to validate the config DSL behaviors
 #   needing a single kwarg (several configure_agent calls, configs of other agent classes). If nil
 #   (default), the first one of configured_kwargs is used.
@@ -24,6 +27,7 @@ shared_examples 'an agent using AgentDefaults' do |
   configured_kwargs:,
   expected_default_options:,
   expected_default_options_kept:,
+  expected_configured_options: nil,
   configurable_kwarg: nil,
   expected_singleton_modules: []
 |
@@ -61,7 +65,7 @@ shared_examples 'an agent using AgentDefaults' do |
           end
         CONFIG
         agent = agent_class.new
-        configured_kwargs.each do |kwargs_name, expected_value|
+        (expected_configured_options || configured_kwargs).each do |kwargs_name, expected_value|
           expect(agent.received_kwargs[kwargs_name]).to eq expected_value
         end
         # Defaults not overwritten by the config DSL are still applied

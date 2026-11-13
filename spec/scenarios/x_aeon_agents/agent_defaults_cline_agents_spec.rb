@@ -13,7 +13,11 @@ describe XAeonAgents::AgentDefaults do
       },
       expected_default_options: {
         api_key: 'test-cline-api-key',
-        cli_options: { thinking: 'xhigh' }
+        cli_options: { thinking: 'xhigh', timeout: 600, retries: 5 }
+      },
+      expected_configured_options: {
+        model: 'config-model',
+        cli_options: { thinking: 'low', timeout: 600, retries: 5 }
       },
       expected_default_options_kept: { api_key: 'test-cline-api-key' },
       expected_singleton_modules: [ComposableAgents::PromptRenderingStrategy::MarkdownHeavyFiles]
@@ -23,6 +27,34 @@ describe XAeonAgents::AgentDefaults do
       'a status displaying the usage of the run',
       XAeonAgentsTest::Agents::TestClineAgent
     )
+
+    it 'adds the default CLI options to the other ones given by the config DSL' do
+      XAeonAgents::ConfigDsl.new.evaluate <<~CONFIG
+        configure_agent(:TestClineAgent) do
+          { cli_options: { plan: true } }
+        end
+      CONFIG
+
+      expect(XAeonAgentsTest::Agents::TestClineAgent.new.received_kwargs[:cli_options]).to eq(
+        timeout: 600,
+        retries: 5,
+        plan: true
+      )
+    end
+
+    it 'lets the config DSL supersede the default CLI timeout and retries, while keeping the other CLI options' do
+      XAeonAgents::ConfigDsl.new.evaluate <<~CONFIG
+        configure_agent(:TestClineAgent) do |agent_config|
+          { cli_options: (agent_config[:cli_options] || {}).merge(timeout: 120, retries: 2) }
+        end
+      CONFIG
+
+      expect(XAeonAgentsTest::Agents::TestClineAgent.new.received_kwargs[:cli_options]).to eq(
+        thinking: 'xhigh',
+        timeout: 120,
+        retries: 2
+      )
+    end
 
     it 'gives each agent run its own artifacts directory' do
       agent = XAeonAgentsTest::Agents::TestClineAgent.new(session_id: 'test-session')

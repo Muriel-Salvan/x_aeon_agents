@@ -75,6 +75,9 @@ module XAeonAgents
                 }
               when ComposableAgents::Cline::Agent
                 Config.setup_cline
+                # Default Cline CLI options bounding every agent run: no run can stall forever,
+                # and consecutive mistakes are limited. Configured options supersede them.
+                default_cline_cli_options = { timeout: 600, retries: 5 }
                 # Whatever Cline global settings are configured (through the config DSL or explicitly),
                 # always disable the Cline tools that are not used by X-Aeon agents: agents are
                 # orchestrated by ComposableAgents (letting an LLM spawn agents or manage teams would
@@ -109,11 +112,14 @@ module XAeonAgents
                     disabled_tools << 'ask_question' unless Config.interactive
                     global_settings.disabled_tools = disabled_tools | Array(global_settings.disabled_tools)
                   end
+                  # Always bound Cline runs, while letting the configured CLI options supersede the
+                  # defaults option by option (a nil value disables a default, as cline-rb skips nil options).
+                  cline_agent_kwargs[:cli_options] = default_cline_cli_options.merge(cline_agent_kwargs[:cli_options] || {})
                   cline_agent_kwargs
                 end
                 {
                   api_key: Config.cline_api_key,
-                  cli_options: Config.default_cline_cli_args,
+                  cli_options: Config.default_cline_cli_args.merge(default_cline_cli_options),
                   strategy: ComposableAgents::PromptRenderingStrategy::MarkdownHeavyFiles
                 }
               else
