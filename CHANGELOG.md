@@ -1,3 +1,25 @@
+# [v2.9.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.8.1...v2.9.0) (2026-11-13 11:26:58)
+
+## Global changes
+### Patches
+
+* [feat(cline): constrain agent prompts, filter unused tools and bound runs with default timeout/retries](https://github.com/Muriel-Salvan/x_aeon_agents/commit/cae5e014c5f8c00212b74aa68609a5f0e94aadd3)
+
+## Changes for agent_defaults
+### Features
+
+* [feat(cline): constrain agent prompts, filter unused tools and bound runs with default timeout/retries](https://github.com/Muriel-Salvan/x_aeon_agents/commit/cae5e014c5f8c00212b74aa68609a5f0e94aadd3)
+
+## Changes for agents
+### Features
+
+* [feat(cline): constrain agent prompts, filter unused tools and bound runs with default timeout/retries](https://github.com/Muriel-Salvan/x_aeon_agents/commit/cae5e014c5f8c00212b74aa68609a5f0e94aadd3)
+
+## Changes for cline
+### Features
+
+* [feat(cline): constrain agent prompts, filter unused tools and bound runs with default timeout/retries](https://github.com/Muriel-Salvan/x_aeon_agents/commit/cae5e014c5f8c00212b74aa68609a5f0e94aadd3)
+
 # [v2.8.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.8.0...v2.8.1) (2026-11-12 17:54:34)
 
 ### Patches
