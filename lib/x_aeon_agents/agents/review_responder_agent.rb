@@ -73,6 +73,7 @@ module XAeonAgents
           '- You MUST NOT ask for user confirmation.',
           "- Write the reply text to the output artifact file `#{artifact_ref(:reply)}`.",
           Helpers.repository_access_constraint,
+          Helpers.cline_tools_constraint,
           Helpers.artifacts_access_constraint(artifact_ref(:reply)),
           Helpers.non_interactive_constraint
         ].compact.join("\n")

@@ -73,6 +73,7 @@ module XAeonAgents
             EO_CONSTRAINT
             '- Always verify the files you have edited or created at the end of the task to ensure they are completed and working as expected.',
             Helpers.repository_access_constraint(writable: true),
+            Helpers.cline_tools_constraint,
             Helpers.non_interactive_constraint,
             '',
             'REMEMBER, be helpful and proactive!',
