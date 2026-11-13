@@ -56,6 +56,7 @@ module XAeonAgents
             '- Do not cover the end-user main requirements and prerequisites: they are already covered in other sections.',
             '- Do not cover the contribution workflow (pull requests, CI, issues...): this is already covered in other sections.',
             Helpers.repository_access_constraint,
+            Helpers.cline_tools_constraint,
             Helpers.artifacts_access_constraint(artifact_ref(:development)),
             Helpers.non_interactive_constraint
           ].compact.join("\n")

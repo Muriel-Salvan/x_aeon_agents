@@ -49,6 +49,7 @@ module XAeonAgents
             EO_CONSTRAINT
             '- Do not provide long paragraphs: focus on readability by splitting long paragraphs into several short ones.',
             Helpers.repository_access_constraint,
+            Helpers.cline_tools_constraint,
             Helpers.artifacts_access_constraint(artifact_ref(:how_it_works)),
             Helpers.non_interactive_constraint
           ].compact.join("\n")

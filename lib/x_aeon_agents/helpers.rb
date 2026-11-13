@@ -197,6 +197,21 @@ module XAeonAgents
           'so proceed using your best judgment without asking'
       end
 
+      # Get the constraint explaining how to use the tools that are available to agents of the Cline kind.
+      # Constraints are rendered as Markdown bullet lists: the returned sentences include their own bullet prefixes.
+      #
+      # @return [String] The constraint about using the tools available to Cline agents
+      def cline_tools_constraint
+        <<~EO_CONSTRAINT.rstrip
+          - The `run_commands` tool takes ONE shell script as a plain string.
+            - NEVER wrap it in `[ ]` or JSON.
+            - One command per call; chain commands with `&&` only on one line.
+            - Never use multi-line heredocs.
+          - Always use the `editor` tool to write files.
+          - You are a single agent: there is no team. NEVER call `team_*` tools: they will fail and count as mistakes.
+        EO_CONSTRAINT
+      end
+
       # Allow user to review and edit content before using it
       #
       # When the interactive mode is disabled (Config.interactive), no review file

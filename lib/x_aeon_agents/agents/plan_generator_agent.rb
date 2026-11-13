@@ -53,6 +53,7 @@ module XAeonAgents
           '- You may only analyze and propose plans.',
           '- Do NOT execute the plan yourself.',
           Helpers.repository_access_constraint,
+          Helpers.cline_tools_constraint,
           Helpers.artifacts_access_constraint(artifact_ref(:plan)),
           Helpers.non_interactive_constraint
         ].compact.join("\n")

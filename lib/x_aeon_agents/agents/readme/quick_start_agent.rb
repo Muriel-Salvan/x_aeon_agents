@@ -52,6 +52,7 @@ module XAeonAgents
             EO_CONSTRAINT
             "- This section is not meant for developers: don't describe how to develop, test, document, package or contribute to this project.",
             Helpers.repository_access_constraint,
+            Helpers.cline_tools_constraint,
             Helpers.artifacts_access_constraint(artifact_ref(:quick_start)),
             Helpers.non_interactive_constraint
           ].compact.join("\n")

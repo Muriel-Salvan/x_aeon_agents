@@ -56,6 +56,7 @@ module XAeonAgents
             '- Documentation describes the CURRENT STATE only.',
             '- Documentation is NOT a changelog.',
             Helpers.repository_access_constraint(writable: true),
+            Helpers.cline_tools_constraint,
             Helpers.non_interactive_constraint
           ].compact.join("\n"),
           **agent_params

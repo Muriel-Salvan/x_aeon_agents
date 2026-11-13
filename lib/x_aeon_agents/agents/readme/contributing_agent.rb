@@ -49,6 +49,7 @@ module XAeonAgents
             '- Do not describe the technical setup or prequisites, as they are already covered by other sections.',
             '- Do not cover how to develop in this project: it is already covered in other sections.',
             Helpers.repository_access_constraint,
+            Helpers.cline_tools_constraint,
             Helpers.artifacts_access_constraint(artifact_ref(:contributing)),
             Helpers.non_interactive_constraint
           ].compact.join("\n")

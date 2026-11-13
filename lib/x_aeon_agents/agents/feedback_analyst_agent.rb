@@ -66,6 +66,7 @@ module XAeonAgents
           '- Write the extracted requirements to the output artifact file given in this prompt.',
           '- If no implementation is required, write exactly `No requirements` in this file.',
           Helpers.repository_access_constraint,
+          Helpers.cline_tools_constraint,
           Helpers.artifacts_access_constraint(artifact_ref(:requirements)),
           Helpers.non_interactive_constraint
         ].compact.join("\n")

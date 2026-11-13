@@ -47,6 +47,7 @@ module XAeonAgents
                 Do not try to document other parts.
             EO_CONSTRAINT
             Helpers.repository_access_constraint,
+            Helpers.cline_tools_constraint,
             Helpers.artifacts_access_constraint(artifact_ref(:features)),
             Helpers.non_interactive_constraint
           ].compact.join("\n")

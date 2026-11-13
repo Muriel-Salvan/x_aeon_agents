@@ -61,6 +61,7 @@ module XAeonAgents
         )
         self.constraints = [
           Helpers.repository_access_constraint(writable: true),
+          Helpers.cline_tools_constraint,
           Helpers.artifacts_access_constraint(artifact_ref(:plan_modifications)),
           Helpers.non_interactive_constraint
         ].compact.join("\n")
