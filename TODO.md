@@ -1,3 +1,4 @@
+* Implement a Docker isolation layer, with RO volumes and RW ones to make sure only agents supposed to modify files can do it.
 * Fix the tokens metrics that seem to be wrong with Cline.
 * Consider remove the checklists from MarkdownHeavy (maybe having MarkdownFiles?).
 * Embed TaskStarter as an option to implement-issue CLI.
