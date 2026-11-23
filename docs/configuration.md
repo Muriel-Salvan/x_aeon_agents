@@ -3,11 +3,13 @@
 `x_aeon_agents` works with environment variables alone. When you need more control, an optional Ruby
 configuration file adds secret retrieval, project commands, worktree hooks and per-agent settings.
 
+The Ruby objects behind these settings — `XAeonAgents::Config` and `XAeonAgents::Logger` — are part of the
+[public API](../README.md#public-api) and documented in the
+[RubyDoc reference](https://www.rubydoc.info/gems/x-aeon_agents).
+
 - [The configuration file](#the-configuration-file)
   - [Where the file is loaded from](#where-the-file-is-loaded-from)
   - [Available DSL methods](#available-dsl-methods)
-- [`XAeonAgents::Config`](#xaeonagentsconfig)
-- [`XAeonAgents::Logger`](#xaeonagentslogger)
 
 ## The configuration file
 
@@ -72,8 +74,7 @@ data_dir '/var/lib/x_aeon_agents'
 
 `cline_api_key`, `openrouter_api_key` and `github_token` take a block returning the secret value. Each
 block is evaluated lazily, only when the secret is needed, and its result is memoized. Secrets are
-resolved with the precedence **explicit setter → `ENV` variable → config DSL block** (see
-[`XAeonAgents::Config`](#xaeonagentsconfig)):
+resolved with the precedence **explicit setter → `ENV` variable → config DSL block**:
 
 ```ruby
 github_token { File.read("#{Dir.home}/.github_token").strip }
@@ -143,55 +144,3 @@ end
 This is how you make a workflow cheap: assign inexpensive models to the roles whose intelligence
 matters least, and keep the expensive ones for planning and review. The
 [example configuration](../.x_aeon_agents.example.rb) in this repository does exactly that.
-
-## `XAeonAgents::Config`
-
-Singleton module holding all X-Aeon Agents configuration (secrets, data directory, default Cline CLI
-arguments, debug flag). All methods listed below are part of the `Public API` YARD group.
-
-**Usecase** — configure credentials and options at once:
-
-```ruby
-require 'x_aeon_agents'
-
-XAeonAgents::Config.configure(
-  openrouter_api_key: ENV['OPENROUTER_API_KEY'],
-  github_token: ENV['GITHUB_TOKEN'],
-  debug: false
-)
-```
-
-More details: [RubyDoc — XAeonAgents::Config](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config)
-
-Public methods:
-
-- `configure(**kwargs)` — set any configuration property. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#configure-class_method)
-- `cline_api_key` / `cline_api_key=`, `openrouter_api_key` / `openrouter_api_key=`, `github_token` / `github_token=` — lazily-resolved secrets (ENV or config DSL). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#cline_api_key-class_method)
-- `data_dir` / `data_dir=` — data directory (`.x_aeon_agents` by default). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#data_dir-class_method)
-- `default_cline_cli_args` / `default_cline_cli_args=` — default Cline CLI arguments. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#default_cline_cli_args-class_method)
-- `debug` / `debug=` — enable debug logging. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#debug-class_method)
-- `interactive` / `interactive=` — enable interactive content reviews (defaults to true). [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#interactive-class_method)
-- `config_paths` — candidate paths of the optional `.x_aeon_agents.rb` config file. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#config_paths-class_method)
-- `logger` — the shared logger instance. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config#logger-class_method)
-
-## `XAeonAgents::Logger`
-
-The shared status-aware logger used by all X-Aeon Agents components (accessible through
-`XAeonAgents::Config.logger`). It inherits from the standard Ruby `Logger`; the methods below are part of
-the public API, on top of the standard `::Logger` interface.
-
-**Usecase** — write a log line, then dump a raw message:
-
-```ruby
-XAeonAgents::Config.logger.info 'Fetching repository metadata'
-XAeonAgents::Config.logger << 'machine-readable output'
-```
-
-More details: [RubyDoc — XAeonAgents::Logger](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger)
-
-Public methods:
-
-- `add(severity, message = nil, progname = nil, &block)` — log a message with a given severity. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger#add-instance_method)
-- `log(severity, message = nil, progname = nil, &block)` — alias of `add`. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger#log-instance_method)
-- `<<(message)` — output a raw, unformatted message. [doc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger#%3C%3C-instance_method)
-

@@ -387,13 +387,24 @@ XAeonAgents::Config.configure(
 XAeonAgents::Agents::CommitterAgent.new.run
 ```
 
-Full references:
+Public modules:
 
-- [RubyDoc — x_aeon_agents](https://www.rubydoc.info/gems/x-aeon_agents) — every public method.
-- [configuration](docs/configuration.md) — the `.x_aeon_agents.rb` DSL, `XAeonAgents::Config` and
-  `XAeonAgents::Logger`.
-- [skill authoring](docs/skill-authoring.md#genhelpers-reference) — `XAeonAgents::GenHelpers` and the ERB
-  templating helpers.
+- **`XAeonAgents::Config`** — the configuration singleton: credentials, data directory, default Cline CLI
+  arguments, debug and interactive flags. Methods: `configure`, `cline_api_key`, `openrouter_api_key`,
+  `github_token`, `data_dir`, `default_cline_cli_args`, `debug`, `interactive`, `config_paths`, `logger`.
+  [RubyDoc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Config)
+- **`XAeonAgents::Logger`** — the shared status-aware logger, available as `XAeonAgents::Config.logger` and
+  inheriting from the standard Ruby `Logger`. Methods: `add` / `log`, `<<`.
+  [RubyDoc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/Logger)
+- **`XAeonAgents::GenHelpers`** — the ERB templating DSL used to generate skills.
+  [Reference](docs/skill-authoring.md#genhelpers-reference) ·
+  [RubyDoc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents/GenHelpers)
+- **`XAeonAgents`** — `agent_name`, `agent_signature` and `VERSION`.
+  [RubyDoc](https://www.rubydoc.info/gems/x-aeon_agents/XAeonAgents)
+
+Related documentation: [configuration file](docs/configuration.md) ·
+[skill authoring](docs/skill-authoring.md) ·
+[full RubyDoc index](https://www.rubydoc.info/gems/x-aeon_agents)
 
 ## Contributing
 
@@ -431,7 +442,7 @@ conventional commits and the release pipeline — lives in [CONTRIBUTING.md](CON
 | --- | --- |
 | [Architecture](docs/architecture.md) | Layers, agent kinds, artifacts, orchestration, providers, testing seams |
 | [Workflow design](docs/workflow-design.md) | Why engineer agents, the three principles, how to design and add a workflow |
-| [Configuration](docs/configuration.md) | `.x_aeon_agents.rb` DSL, `XAeonAgents::Config`, `XAeonAgents::Logger` |
+| [Configuration](docs/configuration.md) | The `.x_aeon_agents.rb` file: lookup order, DSL methods, per-agent settings |
 | [Skill authoring](docs/skill-authoring.md) | Skill conventions, ERB templating, `XAeonAgents::GenHelpers` |
 | [Benchmarks](docs/benchmarks.md) | Harness, first experiment, methodology, limitations, how to contribute scenarios |
 | [Contributing](CONTRIBUTING.md) | Contribution paths, environment, gates, commits, releases |
@@ -443,4 +454,3 @@ conventional commits and the release pipeline — lives in [CONTRIBUTING.md](CON
 
 This project is distributed under the **BSD-3-Clause** license. See [LICENSE](LICENSE) for the full terms and
 copyright information.
-
