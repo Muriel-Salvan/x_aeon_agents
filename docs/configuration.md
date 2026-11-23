@@ -3,10 +3,6 @@
 `x_aeon_agents` works with environment variables alone. When you need more control, an optional Ruby
 configuration file adds secret retrieval, project commands, worktree hooks and per-agent settings.
 
-The Ruby objects behind these settings — `XAeonAgents::Config` and `XAeonAgents::Logger` — are part of the
-[public API](../README.md#public-api) and documented in the
-[RubyDoc reference](https://www.rubydoc.info/gems/x-aeon_agents).
-
 - [The configuration file](#the-configuration-file)
   - [Where the file is loaded from](#where-the-file-is-loaded-from)
   - [Available DSL methods](#available-dsl-methods)

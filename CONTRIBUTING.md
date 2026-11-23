@@ -20,33 +20,11 @@ there are many ways to contribute, and most of them do not require being a Ruby 
 If you are unsure where your idea fits, open an issue and ask. Design discussions are welcome
 *before* code: workflows are architecture, and a written design is often more valuable than a patch.
 
-## Project rules that apply to every contribution
-
-These rules keep agent-driven work predictable, and they apply to humans too.
-
-- **Run commands from the repository root.** Entry points behave the same regardless of the caller's directory.
-- **Never switch branches.** Work on the branch that is already checked out, in its own git worktree.
-- **Rebase, never merge.** Keep history linear on top of `main` with `git fetch --all && git rebase github/main`.
-- **Keep commits conventional.** Releases are automated from the commit log (see [Commits and Pull Requests](#commits-and-pull-requests)).
-- **Keep CI green.** A red pipeline blocks the release job.
-
-### Working in a worktree
-
-The project favors one worktree per task. With the gem installed:
-
-```bash
-xaa start-task --branch feature/my-change
-```
-
-This creates the branch if needed, sets it up as a worktree under `.worktrees/`, pushes it upstream,
-then runs the `setup_project` and `on_open_worktree` callbacks from your
-[configuration](docs/configuration.md) if they are defined.
-
 ## Development environment
 
 ### Prerequisites
 
-- **Ruby** `>= 3.1` (CI runs `3.4`) with a matching Bundler.
+- **Ruby** `>= 3.3` (CI runs `3.4`) with a matching Bundler.
 - **Git** command-line client.
 - **Node.js** and **npm** are only needed for tooling: `skillkit` (installs skills in CI) and
   `semantic-release` (release job). They are *not* needed to run the test suite.
