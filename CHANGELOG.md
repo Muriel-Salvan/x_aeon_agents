@@ -1,3 +1,15 @@
+# [v2.9.1](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.9.0...v2.9.1) (2026-11-23 17:53:56)
+
+## Global changes
+### Patches
+
+* [docs(readme): reposition README as an engineering landing page](https://github.com/Muriel-Salvan/x_aeon_agents/commit/9e3ec3efb4d8b64a34e94e6ecb7adb85f617ded0)
+
+## Changes for coder-agent
+### Patches
+
+* [docs(readme): reposition README as an engineering landing page](https://github.com/Muriel-Salvan/x_aeon_agents/commit/9e3ec3efb4d8b64a34e94e6ecb7adb85f617ded0)
+
 # [v2.9.0](https://github.com/Muriel-Salvan/x_aeon_agents/compare/v2.8.1...v2.9.0) (2026-11-13 11:26:58)
 
 ## Global changes
