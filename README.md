@@ -107,8 +107,9 @@ The approach is benchmarked in a separate, inspectable harness:
 repository to a commit, creates a GitHub sandbox with an issue, runs an agent through a Harbor/Docker
 adapter, and grades the result.
 
-First experiment — same task, same repository (`Muriel-Salvan/cline-rb` at `v1.1.3`), **same inexpensive
-model** (`cline:cline-free/muse-spark-1.3-contributor`), two different setups:
+First experiment — the feature request was made on **this repository itself**
+(`Muriel-Salvan/x_aeon_agents`, commit `agentic_dev_bench_test`), and run with the **same inexpensive model**
+(`nvidia/nemotron-3.5-lightning-free`) in two different setups:
 
 | Configuration | Outcome | Time | Delivered |
 | --- | --- | --- | --- |
@@ -117,8 +118,8 @@ model** (`cline:cline-free/muse-spark-1.3-contributor`), two different setups:
 
 The model was identical. The difference was the engineering around it.
 
-Caveats, stated plainly: this is **one scenario**, with **one run per configuration**, on a deliberately
-small task. It is an existence proof, not a ranking, and it is reported as such.
+Caveats, stated plainly: this is **one scenario**, with **one run per configuration**. It is an existence
+proof, not a ranking, and it is reported as such.
 
 Methodology, verification, raw metrics and how to reproduce or contribute a scenario:
 [docs/benchmarks.md](docs/benchmarks.md) ·

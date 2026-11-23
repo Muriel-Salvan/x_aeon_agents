@@ -45,15 +45,16 @@ key.
 
 ## The first experiment
 
-**Scenario:** `add-greeting` (`scenarios/add-greeting-cline-free.yml` and
-`scenarios/add-greeting-xaa-free.yml`).
+**Scenario:** `add-interactive-cli` (`scenarios/add-interactive-cli-cline-free.yml` and
+`scenarios/add-interactive-cli-xaa-free.yml`). The task was run on **this repository itself**, so the feature
+being asked for is the `--(no-)interactive` flag that now ships with the gem.
 
 | | |
 | --- | --- |
-| **Repository** | [`Muriel-Salvan/cline-rb`](https://github.com/Muriel-Salvan/cline-rb) at tag `v1.1.3` |
-| **Task (issue body)** | Add a small reusable greeting helper to the `cline-rb` configuration: a `greeting` method on `Cline::Configuration` (accessible as `Cline.config.greeting`) returning exactly `Hello, world!`; add automated tests covering it; keep the implementation small and idiomatic |
-| **Verification** | `require 'cline' ; exit(Cline.config.greeting == 'Hello, world!' ? 0 : 1)` |
-| **Model** | `cline:cline-free/muse-spark-1.3-contributor` — the same inexpensive free model in both configurations |
+| **Repository** | `Muriel-Salvan/x_aeon_agents` at commit `agentic_dev_bench_test` |
+| **Task (issue body)** | Add a global boolean `--(no-)interactive` CLI flag and its config DSL option (similar to `--debug`, defaulting to `true`, with no env var). Use it in the `review_content` helper: `true` keeps the current behavior, `false` returns the content as if the user had accepted it. Adapt existing unit tests and add new ones for the config DSL option, the global CLI parameter, and every agent using `review_content`. Update the documentation accordingly. |
+| **Verification** | ``exit(`bundle exec ruby bin/xaa help`.include?('--no-interactive') ? 0 : 1)`` |
+| **Model** | `cline:nvidia/nemotron-3.5-lightning-free` — the same inexpensive free model in both configurations |
 | **Baseline (system A)** | Harbor `cline-cli` agent: a conventional coding agent with tools |
 | **Engineered (system B)** | Harbor `bash_script_agent.agent:BashScriptAgent` running `agents/scripts/xaa.sh`: an `x_aeon_agents` workflow |
 
@@ -75,8 +76,8 @@ Both runs used **exactly the same model**.
 
 ## What the numbers do not prove
 
-- **It is one scenario.** One task on one small repository is an existence proof, not a ranking. The
-  author's own conclusion: *"one benchmark scenario isn't enough to establish a universal conclusion"*.
+- **It is one scenario.** One task in one repository is an existence proof, not a ranking. The author's own
+  conclusion: *"one benchmark scenario isn't enough to establish a universal conclusion"*.
 - **Single run per configuration.** LLM runs are stochastic; repeated runs are needed before any rate can
   be quoted.
 - **Prompts and scenarios evolve.** A scenario is code; results are only comparable at the same commit of
@@ -96,7 +97,7 @@ survives review is worth more than an unchallenged table.
 1. Clone [agentic-dev-bench](https://github.com/Muriel-Salvan/agentic-dev-bench) and follow its README:
    runtime requirements, `bundle install`, environment variables (`GITHUB_TOKEN`, `GITHUB_OWNER`, and
    `CLINE_API_KEY` / `OPENROUTER_API_KEY` for the analysis agents).
-2. Pick a scenario pair (`add-greeting-*`, `add-interactive-cli-*`).
+2. Pick a scenario pair (`add-interactive-cli-*`, `add-greeting-*`).
 3. Run it; inspect `runs/<run_id>/` for the raw logs, the metrics and the analysis report.
 4. Compare the verdict (`verifier_passed`) with the analyses — the verdict says whether the feature works,
    the analyses say how it was produced.
@@ -109,20 +110,21 @@ so that this page cannot drift from the harness.
 A scenario is a small YAML file:
 
 ```yaml
-name: Add greeting helper using x_aeon_agents free model
+name: Add --interactive CLI option using x_aeon_agents free model
 
 source:
-  repository: Muriel-Salvan/cline-rb
-  commit: v1.1.3
+  repository: Muriel-Salvan/x_aeon_agents
+  commit: agentic_dev_bench_test
 
 sandbox:
   owner_env: GITHUB_OWNER
   name_prefix: agentic-dev-bench
 
 issue:
-  title: Add a greeting helper
+  title: Add a --(no-)interactive CLI option to skip user reviews.
   body: |
-    Add a small reusable greeting helper to the cline-rb config.
+    Add a global boolean --(no-)interactive CLI flag and its config option,
+    used by the review_content helper. Adapt the tests and the documentation.
     ...
 
 agent:
@@ -130,15 +132,16 @@ agent:
   model: agents/scripts/xaa.sh
 
 evaluation:
-  ruby: "require 'cline' ; exit(Cline.config.greeting == 'Hello, world!' ? 0 : 1)"
+  ruby: "exit(`bundle exec ruby bin/xaa help`.include?('--no-interactive') ? 0 : 1)"
 ```
 
 Useful contributions, in decreasing order of value:
 
 - **Paired scenarios.** For every new task, provide both the conventional configuration and the engineered
   one; a single-sided scenario cannot support a comparison.
-- **Harder tasks.** More realistic feature work, refactors, multi-file changes — the current scenario is
-  deliberately small.
+- **Broader tasks.** The current scenario is one focused feature that touches a CLI flag, a config option, a
+  helper, its tests and the documentation; feature work spanning several subsystems, refactors and multi-file
+  changes are the natural next step.
 - **Better verifiers.** An evaluation that checks tests *and* observable behavior is worth more than one
   that checks a symbol exists.
 - **Cost and token capture.** Reliable cost accounting per role is still an open area.
